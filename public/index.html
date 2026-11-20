@@ -281,6 +281,33 @@ button{font:inherit;color:inherit;cursor:pointer}
 .card-head .tag-morning{display:block}
 .night{display:flex;align-items:center;justify-content:center;gap:5px;width:fit-content;margin:8px auto 0;padding:3px 8px 3px 6px;border-radius:7px;font-size:11.5px;font-weight:400;color:#fff;background:linear-gradient(135deg,#312E81,#6228D7);box-shadow:0 4px 10px -4px rgba(98,40,215,.6);white-space:nowrap}
 .night svg{flex:0 0 auto}
+
+/* --- v17 --- */
+.dnote{flex-direction:row;justify-content:center}
+.card h3{background:linear-gradient(transparent 60%,color-mix(in srgb,var(--ac) 32%,#fff) 60%,color-mix(in srgb,var(--ac) 32%,#fff) 92%,transparent 92%);text-shadow:0 0 1px #fff,1px 1px 0 #fff,-1px 1px 0 #fff,1px -1px 0 #fff,-1px -1px 0 #fff,0 1px 0 #fff,0 -1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff}
+.badge .sep{margin:0 3px}
+.badge .bi{font-size:12px;margin-right:4px}
+sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
+.partners-box{padding:8px 12px}
+.partners{gap:10px 22px}
+.partners img{height:68px;max-width:170px}
+.partners-box p{margin:6px 0 2px}
+.cal-ico.sj .rng2{display:flex;flex-direction:column;align-items:center;padding:8px 2px 9px;font-size:13px;font-weight:600;line-height:1.25}
+.cal-ico.sj .rng2 i{font-style:normal;color:#B5B1AA;font-size:11px;line-height:1.1}
+.stay-tag{display:block;width:fit-content;margin:8px auto 0;padding:3px 8px;border-radius:7px;font-size:11.5px;font-weight:500;color:#5A3A00;background:linear-gradient(135deg,#FFE58A,#F9B934);box-shadow:0 4px 10px -4px rgba(217,150,20,.6)}
+.pinned{display:flex;flex-direction:column;gap:10px}
+.pin-t{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#6228D7}
+.pdate{font-weight:600;color:var(--ink);margin-right:6px}
+.pub{position:relative;overflow-x:clip}
+.wm{position:absolute;top:-34px;right:-54px;width:230px;height:230px;object-fit:contain;pointer-events:none;z-index:11}
+.wm-doux{opacity:.12}
+.wm-couleur{opacity:.22;mix-blend-mode:multiply}
+.wm-mono{opacity:.13;filter:grayscale(1) contrast(1.2)}
+.wm-fondu{opacity:.28;-webkit-mask-image:radial-gradient(circle at 70% 30%,#000 25%,transparent 70%);mask-image:radial-gradient(circle at 70% 30%,#000 25%,transparent 70%)}
+.when .wt{display:inline-flex;align-items:baseline;white-space:normal}
+.when .wtx{display:inline}
+.wm{z-index:11;width:200px;height:200px;top:-40px;right:-56px}
+.days{position:relative;z-index:9}
 </style>
 
 <style>
@@ -678,6 +705,8 @@ function visualSVG(key){
   const v=VIS[key]||VIS.etoile;
   return `<svg class="vis" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(v.label)}"><rect width="200" height="200" fill="${v.c1}"/><rect width="200" height="200" fill="#fff" opacity=".72"/><text x="100" y="106" text-anchor="middle" dominant-baseline="central" font-size="104">${v.emoji}</text></svg>`;
 }
+const fmtTH=t=>{if(!t)return'';const [h,m]=t.split(':');return (+h)+'h'+(m&&m!=='00'?'<sup>'+m+'</sup>':'')};
+const rngH=(a,b)=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'dès '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'';
 const rng=(a,b)=>a&&b?'de '+fmtT(a)+' à '+fmtT(b):a?'dès '+fmtT(a):b?'jusqu\'à '+fmtT(b):'';
 const fmtShortDate=s=>{const d=parse(s);return cap(DAYS_S[dow(s)])+'. '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+String(d.getFullYear()).slice(2)};
 function actImage(a,opts){
@@ -704,7 +733,7 @@ function priceText(p){
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
 function badgesHTML(a){
   const b=[];
-  if(a.booking&&a.booking.on)b.push(`<span class="badge">${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
+  if(a.booking&&a.booking.on)b.push(`<span class="badge"><span class="bi">📋</span>${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=a.price||{};
   let t=[];
   if(pm==='ccv2cc'){
@@ -718,8 +747,17 @@ function badgesHTML(a){
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
 }
 const jc=t=>String(t||'').length>=90?' j':'';
+function whenHTML(a){
+  const t=a.timing||{};
+  if(t.mode==='range'&&(t.start||t.end))return rngH(t.start,t.end);
+  if(t.mode==='depart'&&(t.start||t.end)){
+    const sep=a.cat==='sejour'?' · retour ':' → ';
+    return t.start&&t.end?esc(LBL.depart)+' '+fmtTH(t.start)+sep+fmtTH(t.end):t.start?esc(LBL.depart)+' '+fmtTH(t.start):'retour '+fmtTH(t.end);
+  }
+  return '';
+}
 function cardHTML(a,opts){
-  const w=whenText(a);
+  const w=whenHTML(a);
   const info=badgesHTML(a)
     +(a.bring&&a.bring.length?(()=>{const t=a.bring.join(', ');return `<p class="bring${jc(t)}"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${esc(t)}</span></p>`})():'')
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
@@ -732,7 +770,7 @@ function cardHTML(a,opts){
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
-      ${w||bus||full?`<div class="when">${w||bus?`<span class="wt">${bus}${w?esc(w):''}</span>`:''}${full}</div>`:''}
+      ${w||bus||full||(opts&&opts.dateLine)?`<div class="when">${opts&&opts.dateLine?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place?`<div class="where">${esc(a.place)}</div>`:''}
     </div>
     ${info?`<div class="card-info">${info}</div>`:''}
@@ -797,7 +835,7 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const left=`<aside class="dcol"><div class="cal-ico"><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>
-    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span class="rg"><span><small>de</small> ${fmtT(a)}</span><span><small>à</small> ${fmtT(b)}</span></span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
+    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
   if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(day.note)}</span></div>`;
@@ -845,14 +883,43 @@ function mountPublic(root,data,opts){
       ${info.phone||info.email||info.address?`<div class="contact">${info.address?`<div class="adr"><span>📍</span><p>${esc(info.address).replace(/\n/g,'<br>')}</p></div>`:''}${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}</div>`:''}
     </div></div>`;
   }
+  function split(day){
+    // retire les séjours et les activités épinglées de la journée
+    const stays=[], d=JSON.parse(JSON.stringify(day));
+    d.slots=(d.slots||[]).map(s=>Object.assign(s,{acts:(s.acts||[]).filter(a=>{if(a.pinned)return false;if(a.cat==='sejour'){stays.push(a);return false}return true})}));
+    const left=d.slots.reduce((n,s)=>n+s.acts.length,0), had=(day.slots||[]).reduce((n,s)=>n+(s.acts||[]).length,0);
+    return {d,stays,skip:had>0&&left===0&&!d.note&&!d.closed};
+  }
+  function stayHTML(a,date){
+    const end=a.endDate&&a.endDate>date?a.endDate:date, d1=parse(date), d2=parse(end);
+    const sameM=d1.getMonth()===d2.getMonth()&&d1.getFullYear()===d2.getFullYear();
+    const m=sameM?MONTHS_S[d1.getMonth()].replace('.',''):MONTHS_S[d1.getMonth()].replace('.','')+' – '+MONTHS_S[d2.getMonth()].replace('.','');
+    const f1=DAYS_S[dow(date)]+'. '+d1.getDate()+(sameM?'':' '+MONTHS_S[d1.getMonth()]);
+    const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+' '+MONTHS_S[d2.getMonth()];
+    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span>${esc(f1)}</span><i>↓</i><span>${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,opts)}</div></div></div></section>`;
+  }
   function withSeps(ks){
     let prev, h='';
     ks.forEach(k=>{
       const p=periodOf(k,st.settings&&st.settings.periods), id=p?p.name:'';
       if(id!==prev){h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
-      h+=dayHTML(st.days[k],st.settings,opts);
+      const sp=split(st.days[k]);
+      sp.stays.forEach(a=>{h+=stayHTML(a,k)});
+      if(!sp.skip)h+=dayHTML(sp.d,st.settings,opts);
     });
     return h;
+  }
+  function pinnedHTML(){
+    const today=iso(new Date()), items=[];
+    Object.keys(st.days).sort().forEach(k=>(st.days[k].slots||[]).forEach(s=>(s.acts||[]).forEach(a=>{
+      if(a.pinned&&((a.endDate||k)>=today||opts.allDays))items.push([k,a]);
+    })));
+    if(!items.length)return '';
+    return `<section class="pinned"><div class="pin-t"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 2.5l7 7-3 1-4.5 4.5.5 4-2 2-4-4-5 5-1-1 5-5-4-4 2-2 4 .5L14 6z" fill="currentColor"/></svg>À la une</div><div class="cards">${items.map(([k,a])=>{
+      const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
+      const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
+      return cardHTML(a,Object.assign({},opts,{dateLine:esc(dl)}));
+    }).join('')}</div></section>`;
   }
   function render(){
     const all=Object.keys(st.days).sort(), info=(st.settings&&st.settings.info)||{};
@@ -863,8 +930,9 @@ function mountPublic(root,data,opts){
     const pastBtn=!opts.allDays&&!st.past&&next.length&&past.length?`<button class="past-btn" data-past="1">Voir les jours passés (${past.length})</button>`:'';
     setLabels(info.labels);
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
-    root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${headHTML(info)}
-      <main class="days">${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}</main>
+    const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
+    root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${wm}${headHTML(info)}
+      <main class="days">${pinnedHTML()}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();
   }
@@ -1134,7 +1202,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.16';
+const APP_VERSION='v261120.17';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1582,6 +1650,7 @@ function openComposer({mode,initial,onSave,onDelete}){
         <label class="sw"><input type="checkbox" id="fmorning" ${f.morning?'checked':''}> ☀️ Activité du matin (en orange)</label>
         <label class="sw"><input type="checkbox" id="ffull" ${f.full?'checked':''}> Complet</label>
         <label class="sw"><input type="checkbox" id="fhl" ${f.highlight?'checked':''}> Mettre en évidence l'activité</label>
+        <label class="sw"><input type="checkbox" id="fpin" ${f.pinned?'checked':''}> Épingler en tête de page</label>
       </div>
       <div>
         <label class="fld"><span>Titre</span><input class="in" id="ftitle" value="${esc(f.title)}" placeholder="ex. Piscine à l'IloBulles de Contres" style="font-weight:800;font-size:17px"></label>
@@ -1589,6 +1658,9 @@ function openComposer({mode,initial,onSave,onDelete}){
         <div class="box"><h4>🕑 Horaires</h4>${seg('tmode',t.mode,[['none','Sans horaire particulier'],['range','Début – fin'],['depart','Départ / retour']])}
           ${t.mode!=='none'?`<div class="row" style="margin-top:8px"><span class="kbd">${t.mode==='depart'?'Départ':'Début'}</span><input class="in t" type="time" id="tstart" value="${esc(t.start)}"><span class="kbd">${t.mode==='depart'?'Retour':'Fin'}</span><input class="in t" type="time" id="tend" value="${esc(t.end)}"></div>`:''}
           <label class="fld"><span>Lieu (facultatif)</span><input class="in" id="fplace" value="${esc(f.place)}" placeholder="ex. Salle des fêtes, gymnase…"></label>
+          ${f.cat==='sejour'?`<div class="row"><label class="fld" style="flex:1"><span>Jusqu'au (date de retour)</span><input class="in" type="date" id="fend" value="${esc(f.endDate||'')}"></label>
+          <label class="fld" style="flex:1"><span>Intitulé du calendrier</span><input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="séjour"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist></label></div>
+          <p class="kbd" style="margin:0">Le séjour part le jour où il est placé. Mets les horaires en « Départ / retour ».</p>`:''}
         </div>
         <div class="box"><h4>🚍 Transport & 📋 réservation</h4>
           <label class="sw"><input type="checkbox" id="ftransport" ${f.transport?'checked':''}> Transport assuré par l'Espace jeunes</label>
@@ -1617,11 +1689,11 @@ function openComposer({mode,initial,onSave,onDelete}){
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
-    inp('#ftitle',v=>f.title=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fimp',v=>f.important=v);
+    inp('#ftitle',v=>f.title=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fend',v=>f.endDate=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
-    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     $('#fcat').onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
     $$('[data-seg]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -1762,6 +1834,9 @@ function renderSettings(main){
     ${fold('infos','Informations publiques',`<p class="hint">En-tête de la page publique et bouton « Infos ».</p>
       <div class="fld"><span>Logo</span><div class="row"><span class="logo-prev">${logoSrc?`<img src="${esc(logoSrc)}" alt="">`:'—'}</span>
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="logoup" hidden>${st.info.logo?'Changer le logo':'Téléverser un logo'}</label>`:''}${st.info.logo?'<button class="btn sm ghost warn" id="logodel">Retirer</button>':''}</div></div>
+      <div class="fld"><span>Logo en filigrane (haut à droite)</span><div class="row"><span class="logo-prev">${st.info.watermark?`<img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+st.info.watermark)}" alt="">`:'—'}</span>
+        ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="wmup" hidden>${st.info.watermark?'Changer':'Téléverser'}</label>`:''}${st.info.watermark?'<button class="btn sm ghost warn" id="wmdel">Retirer</button>':''}
+        <select class="in t" id="wmstyle" style="width:auto">${[['doux','Doux (transparent)'],['couleur','Couleur'],['mono','Monochrome'],['fondu','Fondu']].map(([k,l])=>`<option value="${k}" ${(st.info.wmStyle||'doux')===k?'selected':''}>${l}</option>`).join('')}</select></div></div>
       <div class="fld"><span>Logos partenaires (bas de page)</span><div class="row partners-ed">${(st.info.partners||[]).map((id,i)=>`<span class="logo-prev wide"><img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+id)}" alt=""><button type="button" class="rm" data-prm="${i}" title="Retirer">✕</button></span>`).join('')}
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="partup" multiple hidden>＋ Ajouter</label>`:''}</div></div>
       <label class="fld"><span>Texte sous les logos</span><textarea class="in" data-if="partnersText" style="min-height:60px" placeholder="ex. Avec le soutien de…">${esc(st.info.partnersText)}</textarea></label>
@@ -1796,6 +1871,11 @@ function renderSettings(main){
   if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;toast('Envoi du logo…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.logo=r.id},'Logo enregistré ✓')}catch(e){toast('Envoi du logo impossible',true)}};
   const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>saveInfo(i=>{delete i.logo},'Logo retiré');
+  const wu=main.querySelector('#wmup');
+  if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
+    try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
+  const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  const ws=main.querySelector('#wmstyle');if(ws)ws.onchange=()=>saveInfo(i=>{i.wmStyle=ws.value},'Style enregistré ✓');
   const pu=main.querySelector('#partup');
   if(pu)pu.onchange=async()=>{const fs=[...pu.files];pu.value='';if(!fs.length)return;toast('Envoi…');
     try{const ids=[];for(const f of fs)ids.push((await S.assets.upload(f,{logo:true})).id);await saveInfo(i=>{i.partners=(i.partners||[]).concat(ids)},ids.length>1?'Logos ajoutés ✓':'Logo ajouté ✓')}catch(e){toast('Envoi impossible',true)}};
