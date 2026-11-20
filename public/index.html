@@ -25,7 +25,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .vis{display:block;width:100%;height:100%}
 
 /* ---------- Page publique ---------- */
-.pub{--pf:'Outfit',system-ui,-apple-system,Segoe UI,sans-serif;--top:0px;--hh:74px;font-family:var(--pf);max-width:680px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--cream)}
+.pub{--pf:'Poppins',system-ui,-apple-system,Segoe UI,sans-serif;--top:0px;--hh:74px;font-family:var(--pf);max-width:680px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--cream)}
 .pub-head{position:sticky;top:var(--top);z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;height:var(--hh);padding:0 18px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(20,19,23,.06)}
 .brand{display:flex;gap:12px;align-items:center;min-width:0}
 .logo{width:44px;height:44px;border-radius:13px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:600;font-size:16px;letter-spacing:.02em;flex:0 0 auto;overflow:hidden;box-shadow:0 0 0 2px #fff,0 0 0 4px #EE2A7B}
@@ -78,7 +78,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .stl .pill{font-family:var(--body)}
 .pub-foot{padding:18px 16px 30px;color:var(--ink2);font-size:13px;text-align:center;line-height:1.5}
 .pub-empty{margin:40px 16px;text-align:center;color:var(--ink2)}
-.sheet-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--pf,'Outfit',system-ui,sans-serif);background:rgba(20,19,23,.32);-webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);animation:shFade .2s ease-out}
+.sheet-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--pf,'Poppins',system-ui,sans-serif);background:rgba(20,19,23,.32);-webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);animation:shFade .2s ease-out}
 .sheet{position:relative;width:100%;max-width:440px;max-height:min(82vh,680px);display:flex;flex-direction:column;border-radius:22px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:0 30px 70px -20px rgba(98,40,215,.45),0 12px 30px -12px rgba(238,42,123,.35);animation:shPop .26s cubic-bezier(.2,.9,.3,1.2)}
 .sh-head{display:flex;align-items:center;gap:12px;padding:16px 16px 12px;border-bottom:1px solid #F0EDE8}
 .sh-t{flex:1;min-width:0}
@@ -116,6 +116,43 @@ button{font:inherit;color:inherit;cursor:pointer}
 .realview{position:fixed;inset:0;z-index:200;background:var(--cream);overflow:auto}
 .realview .pub{--top:0px}
 .rv-exit{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:210;border:0;border-radius:999px;padding:11px 18px;background:rgba(20,19,23,.86);color:#fff;font:500 14px/1 var(--body);box-shadow:0 8px 24px -6px rgba(20,19,23,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+
+/* --- v8 : étiquettes, horaires, alerte, infos pratiques, partenaires --- */
+.card h3{font-weight:700}
+.when{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when i{flex:0 0 6px;height:6px;border-radius:50%;background:var(--ig)}
+.badges{align-items:center;gap:5px;margin-top:8px}
+.badge{font-size:12px;line-height:1.25;padding:2px 7px;border-radius:5px}
+.bus{font-size:15px;line-height:1;flex:0 0 auto;display:inline-flex;align-items:center;height:20px}
+.imps{margin-top:12px;padding-top:10px;border-top:1px dashed #ECE8E2}
+.imps .imp{margin:0}
+.imps .imp+.imp{margin-top:6px}
+.cal-ico{width:86px}
+.dgrid{grid-template-columns:86px minmax(0,1fr)}
+.cal-ico .h{font-size:12.5px;padding:7px 2px 8px}
+.cal-ico .h span{white-space:nowrap}
+.alert{background:none;box-shadow:none;padding:2px 0 0;color:var(--red);font-weight:600;font-size:16px;line-height:1.35;align-items:center;gap:10px}
+.alert .warn{flex:0 0 24px;width:24px;height:24px;filter:drop-shadow(0 2px 4px rgba(238,42,123,.3))}
+.sheet .txt{font-size:16px;line-height:1.5}
+.sheet .txt p{margin:0 0 .5em}
+.sheet .txt .emo{font-size:1.25em;line-height:1;vertical-align:-.08em}
+.partners{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:14px 22px;margin:0 0 14px}
+.partners img{height:40px;max-width:120px;object-fit:contain}
+@media (max-width:380px){.cal-ico{width:76px}.dgrid{grid-template-columns:76px minmax(0,1fr)}.cal-ico .h{font-size:11.5px}}
+@media (min-width:600px){.cal-ico{width:92px}.dgrid{grid-template-columns:92px minmax(0,1fr)}}
+
+.card .badges{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none;padding-right:0}
+.when{font-size:13.5px}
+@media (max-width:430px){
+  .dgrid{grid-template-columns:90px minmax(0,1fr);gap:10px}
+  .cal-ico{width:90px}
+  .cal-ico .h{font-size:11.5px;letter-spacing:-.01em}
+  .card{grid-template-columns:70px minmax(0,1fr)}
+  .card-img{min-height:90px}
+  .card-body{padding:11px 11px 12px}
+  .card h3{font-size:17.5px}
+  .when{font-size:13px}
+}
 </style>
 
 <style>
@@ -396,6 +433,11 @@ textarea.in{min-height:64px;resize:vertical}
 .fp span{font-size:15px}
 .fp small{font-family:var(--body);font-size:12.5px;color:var(--ink2)}
 .fp.on{border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box}
+
+.logo-prev.wide{width:auto;min-width:64px;padding:0 6px;position:relative;overflow:visible}
+.logo-prev.wide img{height:40px;width:auto;max-width:110px}
+.logo-prev .rm{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:11px;line-height:1}
+.partners-ed{gap:10px}
 </style>
 </head>
 <body>
@@ -506,8 +548,8 @@ function actImage(a,opts){
 }
 function whenText(a){
   const t=a.timing||{};
-  if(t.mode==='range'&&(t.start||t.end))return cap(rng(t.start,t.end));
-  if(t.mode==='depart'&&(t.start||t.end))return [t.start?'Départ à '+fmtT(t.start):'',t.end?'retour à '+fmtT(t.end):''].filter(Boolean).join(', ');
+  if(t.mode==='range'&&(t.start||t.end))return rng(t.start,t.end);
+  if(t.mode==='depart'&&(t.start||t.end))return t.start&&t.end?'départ '+fmtT(t.start)+' → '+fmtT(t.end):t.start?'départ '+fmtT(t.start):'retour '+fmtT(t.end);
   return '';
 }
 function priceText(p){
@@ -520,11 +562,13 @@ function priceText(p){
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
 function badgesHTML(a){
   const b=[];
-  if(a.transport)b.push('<span class="badge ico" title="Transport assuré" aria-label="Transport assuré">🚌</span>');
-  if(a.booking&&a.booking.on)b.push(`<span class="badge">Résa${a.booking.places?' · '+esc(a.booking.places)+' pl.':''}</span>`);
+  if(a.transport)b.push('<span class="bus" title="Transport assuré" aria-label="Transport assuré">🚌</span>');
+  if(a.booking&&a.booking.on)b.push(`<span class="badge">Sur réservation${a.booking.places?' · '+esc(a.booking.places)+' places':''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=a.price||{};
-  if(pm==='ccv2cc')b.push(`<span class="badge" title="${esc(priceText(pr))}">${esc([pr.cc!==''&&pr.cc!=null?euro(pr.cc):'',pr.hc!==''&&pr.hc!=null?euro(pr.hc)+' hors CC':''].filter(Boolean).join(' · '))}</span>`);
-  else if(pm!=='free')b.push(`<span class="badge">${esc(priceText(pr))}</span>`);
+  if(pm==='ccv2cc'){
+    if(pr.cc!==''&&pr.cc!=null)b.push(`<span class="badge">${esc(euro(pr.cc))} CCV2CC</span>`);
+    if(pr.hc!==''&&pr.hc!=null)b.push(`<span class="badge">${esc(euro(pr.hc))} hors communauté</span>`);
+  }else if(pm!=='free')b.push(`<span class="badge">${esc(priceText(pr))}</span>`);
   else if(a.booking&&a.booking.on)b.push('<span class="badge">Gratuit</span>');
   if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics])}</span>`);
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
@@ -537,18 +581,17 @@ function cardHTML(a,opts){
     <div class="card-body">
       ${a.morning?'<span class="tag-morning">Le matin</span>':''}
       <h3>${esc(a.title||'Activité')}</h3>
-      ${w?`<div class="when">${esc(w)}</div>`:''}
+      ${w?`<div class="when"><i></i>${esc(w)}</div>`:''}
       ${a.place?`<div class="where">${esc(a.place)}</div>`:''}
       ${a.desc?`<p class="desc">${esc(a.desc)}</p>`:''}
       ${badgesHTML(a)}
-      ${a.closedDuring?'<p class="imp"><span class="em">💥</span><span>L\'accueil est fermé pendant cette sortie.</span></p>':''}
-      ${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}
       ${a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>À prévoir :</b> ${a.bring.map(esc).join(', ')}</span></p>`:''}
+      ${a.closedDuring||a.important?`<div class="imps">${a.closedDuring?'<p class="imp"><span class="em">💥</span><span>L\'accueil est fermé pendant cette sortie.</span></p>':''}${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:''}
     </div></article>`;
 }
 const FONTS={
-  'Outfit':{label:'Outfit',hint:'géométrique et douce',w:'400;500;600;700'},
   'Poppins':{label:'Poppins',hint:'ronde, style réseaux sociaux',w:'400;500;600;700'},
+  'Outfit':{label:'Outfit',hint:'géométrique et douce',w:'400;500;600;700'},
   'Plus Jakarta Sans':{label:'Plus Jakarta Sans',hint:'moderne, façon appli',w:'400;500;600;700'},
   'DM Sans':{label:'DM Sans',hint:'sobre et chaleureuse',w:'400;500;600;700'},
   'Nunito':{label:'Nunito',hint:'arrondie, très amicale',w:'400;500;600;700'},
@@ -569,6 +612,11 @@ document.addEventListener('click',e=>{
   if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
   else{const r=el.requestFullscreen||el.webkitRequestFullscreen;if(r)try{const p=r.call(el);if(p&&p.catch)p.catch(()=>{})}catch(_){}}
 });
+function sepLabel(p){
+  if(!p)return 'Hors période';
+  if(p.type==='vacances'){const y=(p.start||'').slice(0,4);return p.name+(y&&!/\d{4}/.test(p.name)?' '+y:'')}
+  return 'Reprise des cours';
+}
 function periodOf(date,periods){
   return (periods||[]).find(p=>p.start&&p.end&&date>=p.start&&date<=p.end)||null;
 }
@@ -581,10 +629,10 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const left=`<aside class="dcol"><div class="cal-ico"><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS[dow(day.date)]}</div>
-    <div class="h">${day.closed?'<span class="off">Fermé</span>':sl.map(x=>`<span><small>de</small> ${fmtT(x.start)}</span><span><small>à</small> ${fmtT(x.end)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div></aside>`;
+    <div class="h">${day.closed?'<span class="off">Fermé</span>':sl.map(x=>`<span><small>de</small> ${fmtT(x.start)} <small>à</small> ${fmtT(x.end)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div></aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
-  if(day.note)r+=`<div class="alert"><span class="warn" aria-hidden="true">⚠️</span><span>${esc(day.note)}</span></div>`;
+  if(day.note)r+=`<div class="alert"><svg class="warn" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><defs><linearGradient id="wg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F9CE34"/><stop offset=".55" stop-color="#EE2A7B"/><stop offset="1" stop-color="#6228D7"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wg)" stroke="url(#wg)" stroke-width="1.6" stroke-linejoin="round"/><rect x="11" y="8.4" width="2" height="6" rx="1" fill="#fff"/><circle cx="12" cy="17.2" r="1.25" fill="#fff"/></svg><span>${esc(day.note)}</span></div>`;
   if(day.closed)r+=`<div class="closed-box"><b>L'accueil est fermé</b>${day.closedReason?esc(day.closedReason):''}</div>`;
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
@@ -612,13 +660,18 @@ function mountPublic(root,data,opts){
     return `<header class="pub-head"><div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
   }
   function footHTML(info){
-    return `<footer class="pub-foot">${esc(info.footer||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</footer>`;
+    const pl=(info.partners||[]).filter(Boolean);
+    const logos=pl.length&&!opts.noAssets?`<div class="partners">${pl.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'';
+    return `<footer class="pub-foot">${logos}<div>${esc(info.footer||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</div></footer>`;
+  }
+  function richText(t){
+    return String(t||'').split('\n').map(l=>l.trim()?`<p>${esc(l).replace(/(\p{Extended_Pictographic}\uFE0F?)/gu,'<span class="emo">$1</span>')}</p>`:'<p class="gap"></p>').join('');
   }
   function sheetHTML(info){
-    const font=FONTS[info.font]?info.font:'Outfit';
+    const font=FONTS[info.font]?info.font:'Poppins';
     return `<div class="sheet-bg" data-close="1" style="--pf:'${font}',system-ui,sans-serif"><div class="sheet" role="dialog" aria-modal="true" aria-label="Infos pratiques">
       <div class="sh-head">${logoHTML(info)}<div class="sh-t"><h2>Infos pratiques</h2><small>${esc(info.name||'Espace jeunes')}</small></div><button class="close" data-close="1" aria-label="Fermer">✕</button></div>
-      <div class="txt">${esc(info.text||'')}</div>
+      <div class="txt">${richText(info.text)}</div>
       ${info.phone||info.email||info.address?`<div class="contact">${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}${info.address?`<div><span>📍</span>${esc(info.address)}</div>`:''}</div>`:''}
     </div></div>`;
   }
@@ -626,7 +679,7 @@ function mountPublic(root,data,opts){
     let prev, h='';
     ks.forEach(k=>{
       const p=periodOf(k,st.settings&&st.settings.periods), id=p?p.name:'';
-      if(id!==prev){h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(p?p.name:'Hors période')}</span></div>`;prev=id}
+      if(id!==prev){h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
       h+=dayHTML(st.days[k],st.settings,opts);
     });
     return h;
@@ -638,7 +691,7 @@ function mountPublic(root,data,opts){
     let ks=opts.allDays||st.past?all:next;
     if(!ks.length&&past.length)ks=past.slice(-7);
     const pastBtn=!opts.allDays&&!st.past&&next.length&&past.length?`<button class="past-btn" data-past="1">Voir les jours passés (${past.length})</button>`:'';
-    const font=FONTS[info.font]?info.font:'Outfit';loadFont(font);
+    const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${headHTML(info)}
       <main class="days">${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -654,7 +707,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -712,21 +765,24 @@ window.EJ={FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,ad
       return {path:k,doc:id=>db.doc(k+'/'+id),onSnapshot:(next,onErr)=>sub(k,()=>{const docs=Object.keys(store[k]).sort().map(x=>snap(k,x));next({docs,size:docs.length,empty:!docs.length,docChanges:()=>[],metadata:{fromCache:false}})},onErr)}}
   };
   // Réduit l'image (1600 px max, JPEG) avant envoi
-  async function shrink(file){
+  async function shrink(file,png){
     const url=URL.createObjectURL(file);
     try{
       const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
-      const sc=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+      const sc=Math.min(1,(png?800:1600)/Math.max(img.naturalWidth||800,img.naturalHeight||800));
       const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
       c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      if(png){const d=c.toDataURL('image/png');if(d.length<1300000)return d.split(',')[1]}
       let q=0.82,d=c.toDataURL('image/jpeg',q);
       while(d.length>1300000&&q>0.4){q-=0.12;d=c.toDataURL('image/jpeg',q)}
       return d.split(',')[1];
     }finally{URL.revokeObjectURL(url)}
   }
-  const assets={async upload(file){
-    const data=await shrink(file);
-    const r=await fetch('/api/img',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},auth()),body:JSON.stringify({type:'image/jpeg',data})});
+  const assets={async upload(file,o){
+    const png=!!(o&&o.logo);
+    let data=await shrink(file,png);
+    const type=png&&data&&atob(data.slice(0,8)).charCodeAt(1)===80?'image/png':'image/jpeg';
+    const r=await fetch('/api/img',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},auth()),body:JSON.stringify({type,data})});
     if(!r.ok)throw err('unavailable','API '+r.status);
     return await r.json();
   }};
@@ -890,7 +946,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.7';
+const APP_VERSION='v261120.9';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1041,7 +1097,7 @@ function renderCalendar(main){
   const monthDays=[];for(let d=first;d<=last;d=addDays(d,1))monthDays.push(d);
   const draftsInMonth=monthDays.filter(d=>['draft','mod'].includes(status(d))&&S.drafts[d]);
   let cells='';
-  {const pk=d=>{const p=periodOf(d,st.periods);return p?p.name:''},sep=(d,cls,extra)=>{const p=periodOf(d,st.periods);return `<div class="${cls}${p&&p.type==='vacances'?' vac':''}"><span>${esc(p?p.name:'Hors période')}${extra||''}</span></div>`};
+  {const pk=d=>{const p=periodOf(d,st.periods);return p?p.name:''},sep=(d,cls,extra)=>{const p=periodOf(d,st.periods);return `<div class="${cls}${p&&p.type==='vacances'?' vac':''}"><span>${esc(EJ.sepLabel(p))}${extra||''}</span></div>`};
    let prev=null;
    for(let w=start;w<=end;w=addDays(w,7)){
      // séparateur « semaine » (grille ordinateur) quand une période commence dans la semaine
@@ -1516,8 +1572,10 @@ function renderSettings(main){
       <button class="btn sm" id="hadd">＋ Jour de fermeture</button>`,st.holidays.length+' jours')}
     ${fold('infos','Informations publiques',`<p class="hint">En-tête de la page publique et bouton « Infos ».</p>
       <div class="fld"><span>Logo</span><div class="row"><span class="logo-prev">${logoSrc?`<img src="${esc(logoSrc)}" alt="">`:'—'}</span>
-        ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="logoup" hidden>Téléverser un logo</label>`:''}${st.info.logo?'<button class="btn sm ghost warn" id="logodel">Retirer</button>':''}</div></div>
-      <div class="fld"><span>Police de la page publique</span><div class="fontpick">${Object.keys(EJ.FONTS).map(f=>{EJ.loadFont(f);const on=(st.info.font||'Outfit')===f;return `<button type="button" class="fp${on?' on':''}" data-font="${esc(f)}" style="font-family:'${f}',system-ui"><b>${esc(f)}</b><span>Piscine de 14h à 17h · Soirée ciné</span><small>${esc(EJ.FONTS[f].hint)}</small></button>`}).join('')}</div></div>
+        ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="logoup" hidden>${st.info.logo?'Changer le logo':'Téléverser un logo'}</label>`:''}${st.info.logo?'<button class="btn sm ghost warn" id="logodel">Retirer</button>':''}</div></div>
+      <div class="fld"><span>Logos partenaires (bas de page)</span><div class="row partners-ed">${(st.info.partners||[]).map((id,i)=>`<span class="logo-prev wide"><img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+id)}" alt=""><button type="button" class="rm" data-prm="${i}" title="Retirer">✕</button></span>`).join('')}
+        ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="partup" multiple hidden>＋ Ajouter</label>`:''}</div></div>
+      <div class="fld"><span>Police de la page publique</span><div class="fontpick">${Object.keys(EJ.FONTS).map(f=>{EJ.loadFont(f);const on=(st.info.font||'Poppins')===f;return `<button type="button" class="fp${on?' on':''}" data-font="${esc(f)}" style="font-family:'${f}',system-ui"><b>${esc(f)}</b><span>Piscine de 14h à 17h · Soirée ciné</span><small>${esc(EJ.FONTS[f].hint)}</small></button>`}).join('')}</div></div>
       <label class="fld"><span>Nom</span><input class="in" data-if="name" value="${esc(st.info.name)}"></label>
       <label class="fld"><span>Sous-titre</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
@@ -1536,9 +1594,20 @@ function renderSettings(main){
   <div class="sticky-save">${changed?'<button class="btn" id="sreset">Annuler</button>':''}<button class="btn pri" id="ssave" ${changed?'':'disabled'}>${changed?'Enregistrer les paramètres':'Paramètres enregistrés'}</button></div>`;
   main.querySelectorAll('details[data-fold]').forEach(d=>d.addEventListener('toggle',()=>{UI.open[d.dataset.fold]=d.open}));
   const lu=main.querySelector('#logoup');
-  if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;try{const r=await S.assets.upload(f);st.info.logo=r.id;render();toast('Logo ajouté : pense à enregistrer')}catch(e){toast('Envoi du logo impossible',true)}};
+  // les logos s'enregistrent tout de suite (sans attendre « Enregistrer les paramètres »)
+  const saveInfo=async(mut,msg)=>{
+    mut(st.info);const base=clone(settings());base.info=base.info||{};mut(base.info);base.updatedAt=new Date().toISOString();
+    try{await docSet('config/settings',base);S.settings=base;toast(msg)}catch(e){}
+    render();
+  };
+  if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;toast('Envoi du logo…');
+    try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.logo=r.id},'Logo enregistré ✓')}catch(e){toast('Envoi du logo impossible',true)}};
+  const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>saveInfo(i=>{delete i.logo},'Logo retiré');
+  const pu=main.querySelector('#partup');
+  if(pu)pu.onchange=async()=>{const fs=[...pu.files];pu.value='';if(!fs.length)return;toast('Envoi…');
+    try{const ids=[];for(const f of fs)ids.push((await S.assets.upload(f,{logo:true})).id);await saveInfo(i=>{i.partners=(i.partners||[]).concat(ids)},ids.length>1?'Logos ajoutés ✓':'Logo ajouté ✓')}catch(e){toast('Envoi impossible',true)}};
+  main.querySelectorAll('[data-prm]').forEach(b=>b.onclick=()=>{const k=+b.dataset.prm;saveInfo(i=>{i.partners=(i.partners||[]).filter((_,j)=>j!==k)},'Logo retiré')});
   main.querySelectorAll('[data-font]').forEach(b=>b.onclick=()=>{st.info.font=b.dataset.font;render()});
-  const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>{delete st.info.logo;render()};
   bindSettings(main,st);
 }
 function overlapWarn(ps){
