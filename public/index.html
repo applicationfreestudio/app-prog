@@ -804,7 +804,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modals.length)mo
 function confirmBox(msg,{ok='Confirmer',danger=false}={}){
   return new Promise(res=>{
     const m=openModal(`<div class="mh"><h3>Confirmer</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf"><button class="btn" data-a="no">Annuler</button><button class="btn ${danger?'warn':'pri'}" data-a="ok">${esc(ok)}</button></div>`,{cls:'sm',onClose:()=>res(false)});
-    m.el.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const v=a.dataset.a==='ok';m.close();res(v)});
+    // répondre AVANT de fermer : la fermeture répond « non » par défaut (clic à côté, Échap)
+    m.el.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;res(a.dataset.a==='ok');m.close()});
   });
 }
 
