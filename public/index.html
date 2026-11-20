@@ -187,6 +187,30 @@ button{font:inherit;color:inherit;cursor:pointer}
 .night{display:block;margin-top:8px;text-align:center;font-size:12px;font-weight:600;color:#fff;padding:4px 6px;border-radius:9px;background:linear-gradient(135deg,#2B1B6B,#6228D7 60%,#EE2A7B);box-shadow:0 4px 12px -4px rgba(98,40,215,.55);white-space:nowrap}
 @media (max-width:430px){.card,.card.morning{grid-template-columns:64px minmax(0,1fr);padding:9px}.card-img{width:64px;height:64px}.card h3{font-size:17px}.badge{font-size:12px}}
 @media (min-width:600px){.card,.card.morning{grid-template-columns:96px minmax(0,1fr)}.card-img{width:96px;height:96px}}
+
+/* --- v13 --- */
+.card,.card.morning{grid-template-columns:minmax(0,1fr) 72px;grid-template-areas:"head img" "info info";padding:0;gap:0}
+.card-img{grid-area:img;width:72px;height:72px;border-radius:0 0 0 16px;align-self:start}
+.card-head{padding:11px 12px 10px 13px;align-self:start}
+.card-info{margin:0 13px;padding:9px 0 12px}
+.card.morning .card-img{border-radius:0 0 0 14px}
+.card-head .tags{display:flex;gap:8px;align-items:center;margin-bottom:3px}
+.card-head .tags .tag-morning{margin:0}
+.card-head .full-tag{position:static;font-size:11.5px;padding:2px 7px}
+.card{overflow:visible}
+.card-img{overflow:hidden;border-top-right-radius:calc(var(--r) - 1px)}
+.card.isfull h3{padding-right:0}
+@media (max-width:430px){.card,.card.morning{grid-template-columns:minmax(0,1fr) 66px}.card-img{width:66px;height:66px}}
+@media (min-width:600px){.card,.card.morning{grid-template-columns:minmax(0,1fr) 92px}.card-img{width:92px;height:92px}}
+.night{font-weight:400;font-size:12px;letter-spacing:.01em;background:linear-gradient(45deg,#D9AE14 0%,#D01C68 55%,#5220BE 100%);box-shadow:0 3px 8px -4px rgba(98,40,215,.45);padding:3px 6px}
+.dnote{margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:12.5px;font-weight:500;line-height:1.3;color:#9A5B00}
+.dnote .warn{width:22px;height:22px}
+.fs-btn:not(.dark){border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:var(--lift)}
+.sheet .txt{font-size:15px}
+.sheet .txt .emo{font-size:19px}
+.sheet .txt p,.desc,.bring>span,.imp>span,.closed-box,.empty-day,.contact .adr p{text-align:justify;-webkit-hyphens:auto;hyphens:auto}
+.contact .adr{align-items:flex-start}
+.contact .adr p{margin:3px 0 0;line-height:1.45}
 </style>
 
 <style>
@@ -472,6 +496,16 @@ textarea.in{min-height:64px;resize:vertical}
 .logo-prev.wide img{height:40px;width:auto;max-width:110px}
 .logo-prev .rm{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:11px;line-height:1}
 .partners-ed{gap:10px}
+
+/* relief plus léger, décalé vers la droite */
+.btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),1.5px 1.5px 3px -1px rgba(20,19,23,.10)}
+.btn.pri{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),2px 3px 8px -4px rgba(20,19,23,.35)}
+.btn.go{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),2px 3px 8px -4px rgba(31,138,76,.4)}
+.cell,.slot,.box,.act,.tpl,.fp{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),1.5px 1.5px 3px -1px rgba(20,19,23,.07)}
+.panel{box-shadow:2px 3px 12px -8px rgba(20,19,23,.22)}
+.act:hover,.tpl:hover,.cat-tile:hover,.cell:hover{box-shadow:3px 4px 14px -8px rgba(20,19,23,.28)}
+.seg button.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),1px 1px 3px -1px rgba(20,19,23,.16)}
+.hint,.note,.kbd,.desc{text-align:justify;-webkit-hyphens:auto;hyphens:auto}
 </style>
 </head>
 <body>
@@ -620,10 +654,9 @@ function cardHTML(a,opts){
     +(a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${a.bring.map(esc).join(', ')}</span></p>`:'')
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
   return `<article class="card${a.morning?' morning':''}${a.full?' isfull':''}">
-    ${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
-      ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
+      ${a.morning||a.full?`<div class="tags">${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${a.desc?`<p class="desc">${esc(a.desc)}</p>`:''}
       ${w?`<div class="when">${esc(w)}</div>`:''}
@@ -660,6 +693,21 @@ function sepLabel(p){
   if(p.type==='vacances'){const y=(p.start||'').slice(0,4);return p.name+(y&&!/\d{4}/.test(p.name)?' '+y:'')}
   return 'Reprise des cours';
 }
+const tm=t=>{if(!t)return null;const [h,m]=t.split(':').map(Number);let v=h*60+(m||0);if(v<5*60)v+=24*60;return v};
+const tt=v=>{v=v%(24*60);return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0')};
+function dayRanges(day){
+  if(day.closed)return [];
+  const r=[];
+  (day.slots||[]).forEach(s=>{
+    let a=tm(s.start),b=tm(s.end);
+    (s.acts||[]).forEach(x=>{const t=x.timing||{};if(t.mode!=='none'){const e=tm(t.end),st=tm(t.start);if(e!=null&&(b==null||e>b))b=e;if(st!=null&&a==null)a=st}});
+    if(a!=null||b!=null)r.push([a,b]);
+  });
+  r.sort((x,y)=>(x[0]??0)-(y[0]??0));
+  const m=[];
+  r.forEach(x=>{const l=m[m.length-1];if(l&&x[0]!=null&&l[1]!=null&&x[0]<=l[1]){if(x[1]!=null&&x[1]>l[1])l[1]=x[1]}else m.push([x[0],x[1]])});
+  return m.map(([a,b])=>[a==null?'':tt(a),b==null?'':tt(b)]);
+}
 function isNight(day){
   if(day.closed)return false;
   return (day.slots||[]).some(s=>(s.start&&s.start>='18:00')||(s.end&&(s.end>='21:00'||s.end<'05:00'))||(s.acts||[]).some(a=>a.cat==='soiree'||((a.timing||{}).start||'')>='19:00'));
@@ -676,10 +724,9 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const left=`<aside class="dcol"><div class="cal-ico"><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS[dow(day.date)]}</div>
-    <div class="h">${day.closed?'<span class="off">Fermé</span>':sl.map(x=>`<span><small>de</small> ${fmtT(x.start)} <small>à</small> ${fmtT(x.end)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night">✨ ${esc(LBL.night)}</span>`:''}</aside>`;
+    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span><small>de</small> ${fmtT(a)} <small>à</small> ${fmtT(b)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night">✨ ${esc(cap(LBL.night))}</span>`:''}${day.note?`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(day.note)}</span></div>`:''}</aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
-  if(day.note)r+=`<div class="alert"><span class="bang" aria-hidden="true">!</span><span>${esc(day.note)}</span></div>`;
   if(day.closed)r+=`<div class="closed-box"><b>L'accueil est fermé</b>${day.closedReason?esc(day.closedReason):''}</div>`;
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
@@ -719,7 +766,7 @@ function mountPublic(root,data,opts){
     return `<div class="sheet-bg" data-close="1" style="--pf:'${font}',system-ui,sans-serif"><div class="sheet" role="dialog" aria-modal="true" aria-label="Infos pratiques">
       <div class="sh-head">${logoHTML(info)}<div class="sh-t"><h2>Infos pratiques</h2><small>${esc(info.name||'Espace jeunes')}</small></div><button class="close" data-close="1" aria-label="Fermer">✕</button></div>
       <div class="txt">${richText(info.text)}</div>
-      ${info.phone||info.email||info.address?`<div class="contact">${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}${info.address?`<div><span>📍</span>${esc(info.address)}</div>`:''}</div>`:''}
+      ${info.phone||info.email||info.address?`<div class="contact">${info.address?`<div class="adr"><span>📍</span><p>${esc(info.address).replace(/\n/g,'<br>')}</p></div>`:''}${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}</div>`:''}
     </div></div>`;
   }
   function withSeps(ks){
@@ -994,7 +1041,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.12';
+const APP_VERSION='v261120.13';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1628,7 +1675,7 @@ function renderSettings(main){
       <label class="fld"><span>Sous-titre</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
-      <label class="fld"><span>Adresse</span><input class="in" data-if="address" value="${esc(st.info.address)}"></label>
+      <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Mention en bas de page</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
