@@ -310,7 +310,7 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .days{position:relative;z-index:9}
 
 /* filigrane : sous les cartes, visible dans le bandeau */
-.pub>.wm{z-index:8}
+.pub>.wm{z-index:8;position:fixed;top:calc(var(--top,0px) - 40px);right:calc(max(0px,(100vw - 680px) / 2) - 56px)}
 .days{position:relative;z-index:9}
 .pub-head{overflow:hidden}
 .pub-head .wm-in{position:absolute;z-index:0;top:-40px;right:-56px}
@@ -1210,7 +1210,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.18';
+const APP_VERSION='v261120.19';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
