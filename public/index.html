@@ -211,6 +211,34 @@ button{font:inherit;color:inherit;cursor:pointer}
 .sheet .txt p,.desc,.bring>span,.imp>span,.closed-box,.empty-day,.contact .adr p{text-align:justify;-webkit-hyphens:auto;hyphens:auto}
 .contact .adr{align-items:flex-start}
 .contact .adr p{margin:3px 0 0;line-height:1.45}
+
+/* --- v14 --- */
+.card,.card.morning{grid-template-columns:72px minmax(0,1fr);grid-template-areas:"img head" "info info";border:1px solid rgba(20,19,23,.06);background:var(--paper);overflow:hidden;padding:0;gap:0}
+.card-img{grid-area:img;width:72px;height:72px;border-radius:0 0 14px 0;align-self:start}
+.card.morning .card-img{border-radius:0 0 14px 0}
+.card.noinfo{grid-template-areas:"img head"}
+.card.noinfo .card-img{height:100%;min-height:72px;border-radius:0;align-self:stretch}
+.card-head{padding:11px 13px 10px 13px}
+.card-info{grid-area:info;margin:0;border-top:0;padding:9px 13px 12px calc(72px + 13px);position:relative}
+.card-info::before{content:"";position:absolute;top:0;left:calc(72px + 13px);right:13px;height:1px;background:#EEEAE4}
+.card-info .badges,.card-info .bring,.card-info .imps{margin-left:calc(-72px)}
+.when{display:flex;align-items:center;gap:4px 7px;flex-wrap:wrap}
+.when .wt{white-space:nowrap}
+.when .bus{height:auto;font-size:15px}
+.when .full-tag{position:static;margin-left:auto;font-size:11.5px;padding:2px 7px;flex:0 0 auto}
+.badge .sep{margin:0 7px;width:4px;height:4px}
+.sheet .txt p,.desc,.bring>span,.imp>span,.closed-box,.empty-day,.contact .adr p{text-align:left;-webkit-hyphens:manual;hyphens:manual}
+.j,.j>span{text-align:justify!important}
+.dnote{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:15px;font-weight:600;line-height:1.35;color:#9A5B00;margin:0;padding:10px 12px;border-radius:16px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:var(--lift)}
+.dnote .warn{flex:0 0 24px;width:24px;height:24px}
+.night{border-radius:6px;padding:2px 5px;font-size:11.5px}
+.cal-ico .w{font-size:15px;font-weight:500;color:var(--ink)}
+.partners-box{background:#fff;border-radius:16px;padding:16px 14px;margin:0 0 14px;box-shadow:var(--lift)}
+.partners{margin:0;gap:16px 26px}
+.partners img{height:52px;max-width:140px}
+.partners-box p{margin:12px 0 0;font-size:13px;color:var(--ink2);text-align:center;line-height:1.5}
+@media (max-width:430px){.card,.card.morning{grid-template-columns:64px minmax(0,1fr)}.card-img{width:64px;height:64px}.card-info{padding-left:calc(64px + 13px)}.card-info::before{left:calc(64px + 13px)}.card-info .badges,.card-info .bring,.card-info .imps{margin-left:-64px}.card.noinfo .card-img{min-height:64px}}
+@media (min-width:600px){.card,.card.morning{grid-template-columns:92px minmax(0,1fr)}.card-img{width:92px;height:92px}.card-info{padding-left:calc(92px + 13px)}.card-info::before{left:calc(92px + 13px)}.card-info .badges,.card-info .bring,.card-info .imps{margin-left:-92px}.card.noinfo .card-img{min-height:92px}}
 </style>
 
 <style>
@@ -505,7 +533,7 @@ textarea.in{min-height:64px;resize:vertical}
 .panel{box-shadow:2px 3px 12px -8px rgba(20,19,23,.22)}
 .act:hover,.tpl:hover,.cat-tile:hover,.cell:hover{box-shadow:3px 4px 14px -8px rgba(20,19,23,.28)}
 .seg button.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),1px 1px 3px -1px rgba(20,19,23,.16)}
-.hint,.note,.kbd,.desc{text-align:justify;-webkit-hyphens:auto;hyphens:auto}
+.hint,.note{text-align:justify;hyphens:manual}
 </style>
 </head>
 <body>
@@ -634,8 +662,7 @@ function priceText(p){
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
 function badgesHTML(a){
   const b=[];
-  if(a.transport)b.push('<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>');
-  if(a.booking&&a.booking.on)b.push(`<span class="badge">${esc(LBL.resa)}${a.booking.places?', '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
+  if(a.booking&&a.booking.on)b.push(`<span class="badge">${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=a.price||{};
   let t=[];
   if(pm==='ccv2cc'){
@@ -644,22 +671,25 @@ function badgesHTML(a){
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
   else if(pm==='qf')t.push(esc(pr.text||'selon quotient familial'));
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
-  if(t.length)b.push(`<span class="badge">${t.join(', ')}</span>`);
+  if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
   if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics].toLowerCase())}</span>`);
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
 }
+const jc=t=>String(t||'').length>=90?' j':'';
 function cardHTML(a,opts){
   const w=whenText(a);
   const info=badgesHTML(a)
-    +(a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${a.bring.map(esc).join(', ')}</span></p>`:'')
-    +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
-  return `<article class="card${a.morning?' morning':''}${a.full?' isfull':''}">
+    +(a.bring&&a.bring.length?(()=>{const t=a.bring.join(', ');return `<p class="bring${jc(t)}"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${esc(t)}</span></p>`})():'')
+    +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
+  const bus=a.transport?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
+  const full=a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
+  return `<article class="card${info?'':' noinfo'}">
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
-      ${a.morning||a.full?`<div class="tags">${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
+      ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
-      ${a.desc?`<p class="desc">${esc(a.desc)}</p>`:''}
-      ${w?`<div class="when">${esc(w)}</div>`:''}
+      ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
+      ${w||bus||full?`<div class="when">${bus}${w?`<span class="wt">${esc(w)}</span>`:''}${full}</div>`:''}
       ${a.place?`<div class="where">${esc(a.place)}</div>`:''}
     </div>
     ${info?`<div class="card-info">${info}</div>`:''}
@@ -723,10 +753,11 @@ function hoursText(day){
 function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
-  const left=`<aside class="dcol"><div class="cal-ico"><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS[dow(day.date)]}</div>
-    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span><small>de</small> ${fmtT(a)} <small>à</small> ${fmtT(b)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night">✨ ${esc(cap(LBL.night))}</span>`:''}${day.note?`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(day.note)}</span></div>`:''}</aside>`;
+  const left=`<aside class="dcol"><div class="cal-ico"><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>
+    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span><small>de</small> ${fmtT(a)} <small>à</small> ${fmtT(b)}</span>`).join('<i></i>')||'<span class="off">—</span>'}</div></div>${isNight(day)?`<span class="night">✨ ${esc(cap(LBL.night))}</span>`:''}</aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
+  if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(day.note)}</span></div>`;
   if(day.closed)r+=`<div class="closed-box"><b>L'accueil est fermé</b>${day.closedReason?esc(day.closedReason):''}</div>`;
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
@@ -755,11 +786,11 @@ function mountPublic(root,data,opts){
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
-    const logos=pl.length&&!opts.noAssets?`<div class="partners">${pl.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'';
+    const logos=(pl.length&&!opts.noAssets)||info.partnersText?`<div class="partners-box">${pl.length&&!opts.noAssets?`<div class="partners">${pl.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:''}${info.partnersText?`<p>${esc(info.partnersText).replace(/\n/g,'<br>')}</p>`:''}</div>`:'';
     return `<footer class="pub-foot">${logos}<div>${esc(info.footer||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</div></footer>`;
   }
   function richText(t){
-    return String(t||'').split('\n').map(l=>l.trim()?`<p>${esc(l).replace(/(\p{Extended_Pictographic}\uFE0F?)/gu,'<span class="emo">$1</span>')}</p>`:'<p class="gap"></p>').join('');
+    return String(t||'').split('\n').map(l=>l.trim()?`<p${l.length>=90?' class="j"':''}>${esc(l).replace(/(\p{Extended_Pictographic}\uFE0F?)/gu,'<span class="emo">$1</span>')}</p>`:'<p class="gap"></p>').join('');
   }
   function sheetHTML(info){
     const font=FONTS[info.font]?info.font:'Poppins';
@@ -1041,7 +1072,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.13';
+const APP_VERSION='v261120.14';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1670,6 +1701,7 @@ function renderSettings(main){
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="logoup" hidden>${st.info.logo?'Changer le logo':'Téléverser un logo'}</label>`:''}${st.info.logo?'<button class="btn sm ghost warn" id="logodel">Retirer</button>':''}</div></div>
       <div class="fld"><span>Logos partenaires (bas de page)</span><div class="row partners-ed">${(st.info.partners||[]).map((id,i)=>`<span class="logo-prev wide"><img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+id)}" alt=""><button type="button" class="rm" data-prm="${i}" title="Retirer">✕</button></span>`).join('')}
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="partup" multiple hidden>＋ Ajouter</label>`:''}</div></div>
+      <label class="fld"><span>Texte sous les logos</span><textarea class="in" data-if="partnersText" style="min-height:60px" placeholder="ex. Avec le soutien de…">${esc(st.info.partnersText)}</textarea></label>
       <div class="fld"><span>Police de la page publique</span><div class="fontpick">${Object.keys(EJ.FONTS).map(f=>{EJ.loadFont(f);const on=(st.info.font||'Poppins')===f;return `<button type="button" class="fp${on?' on':''}" data-font="${esc(f)}" style="font-family:'${f}',system-ui"><b>${esc(f)}</b><span>Piscine de 14h à 17h · Soirée ciné</span><small>${esc(EJ.FONTS[f].hint)}</small></button>`}).join('')}</div></div>
       <label class="fld"><span>Nom</span><input class="in" data-if="name" value="${esc(st.info.name)}"></label>
       <label class="fld"><span>Sous-titre</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
