@@ -1,6 +1,6 @@
-// API de l'application « le Programme » — Cloudflare Pages Functions + D1.
+// API de l'application « le Programme » — Cloudflare Worker + D1.
 // Liaisons attendues : D1 « DB », variable secrète « ADMIN_PASSWORD ».
-import SEED from '../_seed.js';
+import SEED from './seed.js';
 
 const JSONH = { 'content-type': 'application/json; charset=utf-8' };
 const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), { status, headers: { ...JSONH, ...extra } });
@@ -53,10 +53,10 @@ async function allDocs(env, prefixes) {
   return out;
 }
 
-export async function onRequest({ request, env, params }) {
+export async function handleApi(request, env) {
   if (!env.DB) return bad('Base D1 non liée (liaison « DB » manquante dans Cloudflare).', 500);
   await init(env);
-  const seg = [].concat(params.path || []);
+  const seg = new URL(request.url).pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
   const route = seg[0] || '';
   const m = request.method;
 
