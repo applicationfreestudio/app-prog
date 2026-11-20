@@ -6,7 +6,7 @@
 <title>Espace jeunes de Selles-sur-Cher — le Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="public-css">
 :root{
   --cream:#F5F4F1; --paper:#FFFFFF; --ink:#141317; --ink2:#6A6772; --line:#E5E2DC;
@@ -78,12 +78,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 .stl .pill{font-family:var(--body)}
 .pub-foot{padding:18px 16px 30px;color:var(--ink2);font-size:13px;text-align:center;line-height:1.5}
 .pub-empty{margin:40px 16px;text-align:center;color:var(--ink2)}
-.sheet-bg{position:fixed;inset:0;background:rgba(20,19,23,.4);z-index:50;display:flex;align-items:flex-end;justify-content:center;font-family:'Outfit',system-ui,sans-serif}
-.sheet{background:var(--paper);width:100%;max-width:680px;max-height:86vh;overflow:auto;border-radius:20px 20px 0 0;padding:20px 20px 30px}
-.sheet h2{margin:0 0 10px;font-size:22px;font-weight:600}
-.sheet .txt{white-space:pre-wrap;line-height:1.6;font-size:15.5px}
-.sheet .close{float:right;border:0;background:#F1EFEB;border-radius:999px;width:34px;height:34px;font-size:16px}
-.contact{margin-top:14px;background:#F6F5F2;border-radius:10px;padding:12px;line-height:1.7}
+.sheet-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--pf,'Outfit',system-ui,sans-serif);background:rgba(20,19,23,.32);-webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);animation:shFade .2s ease-out}
+.sheet{position:relative;width:100%;max-width:440px;max-height:min(82vh,680px);display:flex;flex-direction:column;border-radius:22px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:0 30px 70px -20px rgba(98,40,215,.45),0 12px 30px -12px rgba(238,42,123,.35);animation:shPop .26s cubic-bezier(.2,.9,.3,1.2)}
+.sh-head{display:flex;align-items:center;gap:12px;padding:16px 16px 12px;border-bottom:1px solid #F0EDE8}
+.sh-t{flex:1;min-width:0}
+.sheet h2{margin:0;font-size:20px;font-weight:600;line-height:1.2}
+.sh-t small{display:block;color:var(--ink2);font-size:13px}
+.sheet .txt{white-space:pre-wrap;line-height:1.6;font-size:15px;padding:14px 18px 6px;overflow:auto}
+.sheet .close{flex:0 0 auto;border:0;background:#F4F2EE;border-radius:12px;width:36px;height:36px;font-size:15px;box-shadow:var(--hi)}
+.contact{margin:10px 16px 16px;background:#F7F5F2;border-radius:14px;padding:10px 12px;line-height:1.5;font-size:15px;display:flex;flex-direction:column;gap:6px}
+.contact div{display:flex;gap:10px;align-items:center}
+.contact span{width:28px;height:28px;border-radius:9px;background:#fff;display:grid;place-items:center;font-size:14px;box-shadow:0 1px 2px rgba(20,19,23,.08);flex:0 0 auto}
+@keyframes shFade{from{opacity:0}to{opacity:1}}
+@keyframes shPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @media (max-width:430px){.card{grid-template-columns:86px minmax(0,1fr)}.card-body{padding:12px 12px 13px}}
 @media (max-width:380px){.dgrid{grid-template-columns:66px minmax(0,1fr);gap:10px}.cal-ico{width:66px}.cal-ico .d{font-size:28px}.card{grid-template-columns:84px minmax(0,1fr)}.card h3{font-size:18px}}
 @media (min-width:600px){.dgrid{grid-template-columns:88px minmax(0,1fr);gap:18px}.cal-ico{width:88px}.card{grid-template-columns:140px minmax(0,1fr)}}
@@ -382,6 +389,13 @@ textarea.in{min-height:64px;resize:vertical}
 .cal .psep{display:none}
 @media (max-width:820px){.cal .psep{display:flex}.cal .wsep{display:none}}
 .pv-bar{top:var(--hdr,96px)}
+
+.fontpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.fp{border:1px solid var(--cr-line);background:#fff;border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;box-shadow:var(--hi),0 1px 2px rgba(20,19,23,.05)}
+.fp b{font-size:18px;font-weight:600}
+.fp span{font-size:15px}
+.fp small{font-family:var(--body);font-size:12.5px;color:var(--ink2)}
+.fp.on{border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box}
 </style>
 </head>
 <body>
@@ -532,6 +546,21 @@ function cardHTML(a,opts){
       ${a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>À prévoir :</b> ${a.bring.map(esc).join(', ')}</span></p>`:''}
     </div></article>`;
 }
+const FONTS={
+  'Outfit':{label:'Outfit',hint:'géométrique et douce',w:'400;500;600;700'},
+  'Poppins':{label:'Poppins',hint:'ronde, style réseaux sociaux',w:'400;500;600;700'},
+  'Plus Jakarta Sans':{label:'Plus Jakarta Sans',hint:'moderne, façon appli',w:'400;500;600;700'},
+  'DM Sans':{label:'DM Sans',hint:'sobre et chaleureuse',w:'400;500;600;700'},
+  'Nunito':{label:'Nunito',hint:'arrondie, très amicale',w:'400;500;600;700'},
+  'Fredoka':{label:'Fredoka',hint:'ludique, bords ronds',w:'400;500;600'}
+};
+const loadedFonts={};
+function loadFont(name){
+  if(!FONTS[name]||loadedFonts[name])return;loadedFonts[name]=1;
+  const l=document.createElement('link');l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family='+name.replace(/ /g,'+')+':wght@'+FONTS[name].w+'&display=swap';
+  document.head.appendChild(l);
+}
 function fsOK(){return !!(document.fullscreenEnabled||document.webkitFullscreenEnabled)}
 function fsBtn(cls){return fsOK()?`<button class="fs-btn ${cls||''}" data-fs="1" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>`:''}
 document.addEventListener('click',e=>{
@@ -586,9 +615,11 @@ function mountPublic(root,data,opts){
     return `<footer class="pub-foot">${esc(info.footer||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</footer>`;
   }
   function sheetHTML(info){
-    return `<div class="sheet-bg" data-close="1"><div class="sheet" role="dialog" aria-label="Informations"><button class="close" data-close="1" aria-label="Fermer">✕</button><h2>Infos pratiques</h2>
+    const font=FONTS[info.font]?info.font:'Outfit';
+    return `<div class="sheet-bg" data-close="1" style="--pf:'${font}',system-ui,sans-serif"><div class="sheet" role="dialog" aria-modal="true" aria-label="Infos pratiques">
+      <div class="sh-head">${logoHTML(info)}<div class="sh-t"><h2>Infos pratiques</h2><small>${esc(info.name||'Espace jeunes')}</small></div><button class="close" data-close="1" aria-label="Fermer">✕</button></div>
       <div class="txt">${esc(info.text||'')}</div>
-      ${info.phone||info.email||info.address?`<div class="contact">${info.address?esc(info.address)+'<br>':''}${info.phone?esc(info.phone)+'<br>':''}${info.email?esc(info.email):''}</div>`:''}
+      ${info.phone||info.email||info.address?`<div class="contact">${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}${info.address?`<div><span>📍</span>${esc(info.address)}</div>`:''}</div>`:''}
     </div></div>`;
   }
   function withSeps(ks){
@@ -607,7 +638,8 @@ function mountPublic(root,data,opts){
     let ks=opts.allDays||st.past?all:next;
     if(!ks.length&&past.length)ks=past.slice(-7);
     const pastBtn=!opts.allDays&&!st.past&&next.length&&past.length?`<button class="past-btn" data-past="1">Voir les jours passés (${past.length})</button>`:'';
-    root.innerHTML=`<div class="pub">${headHTML(info)}
+    const font=FONTS[info.font]?info.font:'Outfit';loadFont(font);
+    root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${headHTML(info)}
       <main class="days">${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
   }
@@ -622,7 +654,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -858,7 +890,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.6';
+const APP_VERSION='v261120.7';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1485,6 +1517,7 @@ function renderSettings(main){
     ${fold('infos','Informations publiques',`<p class="hint">En-tête de la page publique et bouton « Infos ».</p>
       <div class="fld"><span>Logo</span><div class="row"><span class="logo-prev">${logoSrc?`<img src="${esc(logoSrc)}" alt="">`:'—'}</span>
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="logoup" hidden>Téléverser un logo</label>`:''}${st.info.logo?'<button class="btn sm ghost warn" id="logodel">Retirer</button>':''}</div></div>
+      <div class="fld"><span>Police de la page publique</span><div class="fontpick">${Object.keys(EJ.FONTS).map(f=>{EJ.loadFont(f);const on=(st.info.font||'Outfit')===f;return `<button type="button" class="fp${on?' on':''}" data-font="${esc(f)}" style="font-family:'${f}',system-ui"><b>${esc(f)}</b><span>Piscine de 14h à 17h · Soirée ciné</span><small>${esc(EJ.FONTS[f].hint)}</small></button>`}).join('')}</div></div>
       <label class="fld"><span>Nom</span><input class="in" data-if="name" value="${esc(st.info.name)}"></label>
       <label class="fld"><span>Sous-titre</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
@@ -1504,6 +1537,7 @@ function renderSettings(main){
   main.querySelectorAll('details[data-fold]').forEach(d=>d.addEventListener('toggle',()=>{UI.open[d.dataset.fold]=d.open}));
   const lu=main.querySelector('#logoup');
   if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;try{const r=await S.assets.upload(f);st.info.logo=r.id;render();toast('Logo ajouté : pense à enregistrer')}catch(e){toast('Envoi du logo impossible',true)}};
+  main.querySelectorAll('[data-font]').forEach(b=>b.onclick=()=>{st.info.font=b.dataset.font;render()});
   const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>{delete st.info.logo;render()};
   bindSettings(main,st);
 }
