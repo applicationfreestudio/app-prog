@@ -315,6 +315,27 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pub-head{overflow:hidden}
 .pub-head .wm-in{position:absolute;z-index:0;top:-40px;right:-56px}
 .pub-head>.brand,.pub-head>.hb{position:relative;z-index:1}
+
+/* --- v20 --- */
+.card h3{text-shadow:none}
+.when{font-size:12.5px}
+.cal-ico .h{font-size:11.5px}
+.dnote{padding:5px 10px;border-radius:10px;border-width:1.5px}
+.badge .bi{margin-right:1px;margin-left:-2px}
+.badge .sep{margin:0 0;width:3px;height:3px;margin:0 1px}
+.pub-head{background:rgba(232,230,226,.62)}
+.pub-head .wm-in{display:none}
+.pub-foot>div{color:var(--ink);font-weight:500}
+.partners-box{border-width:1px;box-shadow:0 6px 18px -12px rgba(98,40,215,.25)}
+.zoom-bg{padding:8px}
+.card.zoomed{width:100%;max-width:640px}
+.card.zoomed h3{font-size:23px}
+.card.zoomed .desc{font-size:16px}
+.card.zoomed .when{font-size:15px}
+.card.zoomed .where{font-size:15px}
+.card.zoomed .badge{font-size:14px;padding:3px 8px}
+.card.zoomed .bring,.card.zoomed .imp{font-size:16px}
+.card.zoomed .tag-morning{font-size:14px}
 </style>
 
 <style>
@@ -712,7 +733,7 @@ function visualSVG(key){
   const v=VIS[key]||VIS.etoile;
   return `<svg class="vis" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(v.label)}"><rect width="200" height="200" fill="${v.c1}"/><rect width="200" height="200" fill="#fff" opacity=".72"/><text x="100" y="106" text-anchor="middle" dominant-baseline="central" font-size="104">${v.emoji}</text></svg>`;
 }
-const fmtTH=t=>{if(!t)return'';const [h,m]=t.split(':');return (+h)+'h'+(m&&m!=='00'?'<sup>'+m+'</sup>':'')};
+const fmtTH=t=>fmtT(t);
 const rngH=(a,b)=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'dès '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'';
 const rng=(a,b)=>a&&b?'de '+fmtT(a)+' à '+fmtT(b):a?'dès '+fmtT(a):b?'jusqu\'à '+fmtT(b):'';
 const fmtShortDate=s=>{const d=parse(s);return cap(DAYS_S[dow(s)])+'. '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+String(d.getFullYear()).slice(2)};
@@ -846,7 +867,7 @@ function dayHTML(day,settings,opts){
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
   if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(day.note)}</span></div>`;
-  if(day.closed)r+=`<div class="closed-box"><b>L'accueil est fermé</b>${day.closedReason?esc(day.closedReason):''}</div>`;
+  if(day.closed&&!(day.slots||[]).some(x=>(x.acts||[]).length))r+=`<div class="closed-box"><b>L'accueil est fermé</b>${day.closedReason?esc(day.closedReason):''}</div>`;
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
   if(!total&&!day.closed)r+=`<div class="empty-day">Pas d'activité programmée. L'accueil est ouvert : passe nous voir.</div>`;
@@ -870,8 +891,7 @@ function mountPublic(root,data,opts){
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info){
-    const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-in wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
-    return `<header class="pub-head">${wm}<div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
+    return `<header class="pub-head"><div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -1210,7 +1230,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.19';
+const APP_VERSION='v261120.20';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1523,7 +1543,7 @@ function renderDrawer(){
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="fld"><span>💥 Information importante du jour (affichée en rouge)</span><input class="in red" id="dnote" value="${esc(day.note)}" placeholder="ex. Il n'y a pas de navette ce matin !"></label>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      <button class="btn sm" id="addslot" style="margin-top:4px">＋ Ajouter une période horaire</button>
+      <div class="row" style="margin-top:4px"><button class="btn sm" id="addslot">＋ Ajouter une période horaire</button>${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="btn sm" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}</div>
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
@@ -1570,6 +1590,8 @@ function bindDrawer(dr){
     if((s.acts||[]).length&&!await confirmBox('Supprimer cette période horaire et ses '+s.acts.length+' activité(s) ?',{ok:'Supprimer',danger:true}))return;
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
+  const af=dr.querySelector('#addfree');
+  if(af)af.onclick=()=>openComposer({mode:'day',cats:['sejour','projet'],onSave:a=>{let fs=day.slots.find(x=>x.free);if(!fs){fs={id:uid(),start:'',end:'',label:'Sans horaire',free:true,acts:[]};day.slots.push(fs)}fs.acts.push(a);scheduleSave();renderDrawer()}});
   dr.querySelector('#addslot').onclick=()=>{const last=day.slots[day.slots.length-1];day.slots.push({id:uid(),start:last?last.end:'14:00',end:'',label:'',acts:[]});day.closed=false;scheduleSave();renderDrawer()};
   dr.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
     const si=+b.dataset.add;
@@ -1609,7 +1631,7 @@ function tplMeta(a){
   if((a.bring||[]).length)x.push('🎒 '+a.bring.length+' à prévoir');
   return x;
 }
-function openComposer({mode,initial,onSave,onDelete}){
+function openComposer({mode,initial,onSave,onDelete,cats}){
   // mode : 'day' (dans une journée) ou 'template' (bibliothèque)
   let step=initial?3:1, cat=initial?initial.cat:null, f=initial?normalize(initial):null, q='';
   let saveAsTpl=false;
@@ -1618,7 +1640,7 @@ function openComposer({mode,initial,onSave,onDelete}){
   function draw(){
     let body='',foot='';
     if(step===1){
-      body=`<div class="cat-grid">${Object.entries(CATS).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div>
+      body=`<div class="cat-grid">${Object.entries(CATS).filter(([k])=>!cats||cats.includes(k)).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div>
         <div class="sec-t">ou cherche directement dans les activités types</div>
         <input class="in" id="q" placeholder="ex. piscine, patinoire, couture…" value="${esc(q)}">
         <div class="tpl-grid" style="margin-top:10px" id="qres">${q?searchRes():''}</div>`;
