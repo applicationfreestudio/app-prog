@@ -389,6 +389,18 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v34 --- */
+.card-head .sj-when{margin:8px 0 2px!important}
+.tbus{display:inline-block;width:auto!important;height:auto!important;font-size:1.05em;line-height:1;vertical-align:.06em;margin-right:.3em!important}
+.when .bus{margin-right:0!important}
+.sj-when svg.ar,svg.ar{color:var(--ink)!important}
+.sj-where{font-size:14.5px!important;color:var(--ink2)}
+.sj-where .full-tag,.when .full-tag,.sj-when .full-tag{font-size:13px!important;padding:3px 9px!important;border-radius:6px}
+.pj-from{margin-bottom:6px!important}
+.dnote{border:0!important;background:#fff!important;box-shadow:var(--lift)}
+.partners-box{border:1px solid #DAD6CF!important;background:#fff!important;box-shadow:0 4px 14px -10px rgba(0,0,0,.25)!important}
+.card:not(.hasdesc):not(.tw) .card-head .when{margin-top:9px}
+
 /* --- v33 --- */
 .card-info .sj-when{margin:0 0 10px -72px!important}
 @media (max-width:430px){.card-info .sj-when{margin-left:-64px!important}}
@@ -407,8 +419,8 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card-head .when{flex-wrap:nowrap!important;white-space:nowrap;overflow:hidden}
 .card-head .when .wt,.card-head .when .wtx{white-space:nowrap}
 .card-head .when .full-tag{margin-left:auto}
-svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-align:baseline;color:var(--ac);overflow:visible}
-.when svg.ar{margin:0 .35em}
+svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-align:baseline;color:var(--ink);overflow:visible}
+.when svg.ar{margin:0 .45em}
 .sj-when .ic svg.ar{margin:0 .5em 0 .2em;vertical-align:baseline}
 
 /* --- v31 --- */
@@ -933,19 +945,19 @@ function whenHTML(a){
   const t=a.timing||{};
   if(t.mode==='range'&&(t.start||t.end))return rngH(t.start,t.end);
   if(t.mode==='depart'&&(t.start||t.end)){
-    const sep=a.cat==='sejour'?' · retour ':' '+ARR_SVG+' ';
+    const sep=a.cat==='sejour'?' · retour ':ARR_SVG;
     return t.start&&t.end?esc(LBL.depart)+' '+fmtTH(t.start)+sep+fmtTH(t.end):t.start?esc(LBL.depart)+' '+fmtTH(t.start):'retour '+fmtTH(t.end);
   }
   return '';
 }
 const INFO_SVG='<svg class="warn info" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E0A100"/><stop offset=".55" stop-color="#C81F66"/><stop offset="1" stop-color="#4C1DB0"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#wi)"/><circle cx="12" cy="7.4" r="1.45" fill="#fff"/><rect x="10.85" y="10.2" width="2.3" height="7.6" rx="1.15" fill="#fff"/></svg>';
-const BUS_SVG='<svg class="tbus" viewBox="0 0 20 16" role="img" aria-label="transport assuré"><title>transport assuré</title><rect x="1.5" y="0.8" width="17" height="11.6" rx="3" fill="#3E7BE0"/><rect x="3.6" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="11" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="1.5" y="8.6" width="17" height="1.4" fill="#2A5DB3"/><circle cx="5.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="14.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="5.5" cy="13.4" r="1" fill="#C9C4BC"/><circle cx="14.5" cy="13.4" r="1" fill="#C9C4BC"/></svg>';
+const BUS_SVG='<span class="tbus" role="img" aria-label="transport assuré">🚍</span>';
 const busHTML=()=>BUS_SVG;
 const ARR_SVG='<svg class="ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
 function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
-const dShort=k=>{const d=parse(k);return '<i class="wd">'+DAYS_S[dow(k)]+'. </i>'+pad(d.getDate())+'.'+pad(d.getMonth()+1)};
+const dShort=k=>{const d=parse(k);return '<i class="wd">'+DAYS_S[dow(k)]+'. </i>'+d.getDate()+'.'+pad(d.getMonth()+1)};
 const dLong=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
 function stayWhen(a,date){
   const t=a.timing||{}, end=a.endDate&&a.endDate>date?a.endDate:date;
@@ -961,8 +973,8 @@ function cardHTML(a,opts){
   const stay=a.cat==='sejour'&&opts.date;
   const w=stay||a.cat==='projet'?'':whenHTML(a);
   const pj=a.cat==='projet';
-  const stayW=a.cat==='sejour'&&opts.date?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span>${ARR_SVG}<span>${d2}</span></div></div>`})():'';
-  const info=stayW+badgesHTML(a)
+  const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span>${ARR_SVG}<span>${d2}</span></div></div>`})():'';
+  const info=badgesHTML(a)
     +(pj&&a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -975,14 +987,14 @@ function cardHTML(a,opts){
   const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.32)}">
+  return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
       ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||'à partir du '+esc(dLong(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
-      ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
-      
+      ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
+      ${stayW}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
@@ -1489,7 +1501,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.33';
+const APP_VERSION='v261120.34';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
