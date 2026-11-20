@@ -1,6 +1,7 @@
 // API de l'application « le Programme » — Cloudflare Worker + D1.
 // Liaisons attendues : D1 « DB », secret « APP_TOKEN ».
 import SEED from './seed.js';
+import { ACCES_SQL, accesPublic, accesAdmin, delegue } from './acces.js';
 
 const JSONH = { 'content-type': 'application/json; charset=utf-8' };
 const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), { status, headers: { ...JSONH, ...extra } });
@@ -15,6 +16,7 @@ async function init(env) {
     await env.DB.batch([
       env.DB.prepare('CREATE TABLE IF NOT EXISTS docs (path TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at TEXT NOT NULL)'),
       env.DB.prepare('CREATE TABLE IF NOT EXISTS images (id TEXT PRIMARY KEY, type TEXT NOT NULL, data TEXT NOT NULL, created_at TEXT NOT NULL)'),
+      env.DB.prepare(ACCES_SQL),
     ]);
     const now = new Date().toISOString();
     await env.DB.batch(Object.entries(SEED).map(([p, d]) =>
@@ -72,9 +74,26 @@ export async function handleApi(request, env) {
     return json({ app: 'app-prog', ok: true, db: !!env.DB, token: !!env.APP_TOKEN, variables: Object.keys(env).filter(k => !['ASSETS', 'DB'].includes(k)) }, 200, { 'cache-control': 'no-store' });
   }
 
-  // ----- Créateur (authentifié) -----
+  // ----- Utilisateurs externes -----
+  if (!isAdmin(request, env)) {
+    const pa = await accesPublic(request, env, seg);
+    if (pa) return pa;
+    // Droit « brouillons » : consulter le calendrier non publié (lecture seule)
+    if (route === 'brouillons' && m === 'GET') {
+      const d = await delegue(request, env);
+      if (!d || d.status !== 'active' || !d.droits.includes('brouillons')) return bad('Accès non autorisé.', 403);
+      await env.DB.prepare('UPDATE acces SET last = ?2 WHERE id = ?1').bind(d.id, new Date().toISOString()).run();
+      const a = await allDocs(env, ['settings', 'drafts', 'public']);
+      const s = a.settings || {};
+      return json({ drafts: a.drafts, public: a.public, settings: { info: s.info || {}, periods: s.periods || [] } }, 200, { 'cache-control': 'no-store' });
+    }
+  }
+
+  // ----- Administrateur (APP_TOKEN) -----
   if (!env.APP_TOKEN) return bad('Secret APP_TOKEN non défini dans Cloudflare.', 503);
   if (!isAdmin(request, env)) return bad('Jeton non reconnu.', 401);
+  const aa = await accesAdmin(request, env, seg);
+  if (aa) return aa;
 
   if (route === 'me' && m === 'GET') return json({ ok: true });
   if (route === 'all' && m === 'GET') return json(await allDocs(env), 200, { 'cache-control': 'no-store' });

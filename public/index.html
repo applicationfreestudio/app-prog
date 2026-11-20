@@ -429,7 +429,7 @@ function hoursHTML(day){
 }
 function dayHTML(day,settings,opts){
   const per=periodOf(day.date,settings&&settings.periods);
-  let h=`<section class="day-hero">${per?`<span class="kicker">${esc(per.name)}</span>`:''}<h1>${esc(fmtLong(day.date))}</h1>${hoursHTML(day)}</section>`;
+  let h=`<section class="day-hero">${per?`<span class="kicker">${esc(per.name)}</span>`:''}${opts&&opts.statusOf?opts.statusOf(day.date):''}<h1>${esc(fmtLong(day.date))}</h1>${hoursHTML(day)}</section>`;
   if(day.note)h+=`<div class="alert">💥 ${esc(day.note)}</div>`;
   if(day.closed){
     h+=`<div class="closed-box"><div class="big">🔒</div><b>L'accueil est fermé</b>${day.closedReason?`<p>${esc(day.closedReason)}</p>`:''}</div>`;
@@ -606,22 +606,110 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
       const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('API '+r.status));return j.restored;
     },
     renderLogin(app){
+      const dg=getDel();
+      const h=(location.hash||'').slice(1);
+      if(dg&&h!=='acces-admin')return renderDelegue(app,dg);
+      const ask=h==='acces';
       app.innerHTML=`<div class="cr"><header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>Espace créateur</b><small>Connexion</small></div></div></header>
-      <div class="cr-main" style="max-width:460px"><section class="panel"><h2>🔐 Jeton d'accès</h2>
-        <p class="hint">Colle le jeton <b>APP_TOKEN</b> défini dans Cloudflare. Il reste enregistré sur cet appareil jusqu'à « Se déconnecter ».</p>
-        <form id="cflogin"><label class="fld"><span>Jeton</span><input class="in" id="cfpw" type="password" autocomplete="off" autofocus></label>
-        <p id="cferr" style="color:var(--red);font-weight:800;min-height:1.2em;margin:4px 0"></p>
-        <div class="row"><button class="btn pri" type="submit">Se connecter</button><a class="btn ghost" href="#">← Page publique</a></div></form>
-      </section></div></div>`;
-      app.querySelector('#cflogin').onsubmit=async e=>{
+      <div class="cr-main" style="max-width:520px">
+        <div class="seg" style="margin-bottom:12px"><button data-m="ask" class="${ask?'on':''}">Demander un accès</button><button data-m="adm" class="${ask?'':'on'}">Administrateur</button></div>
+        ${ask?`<section class="panel"><h2>🙋 Demander un accès</h2>
+          <p class="hint">Ta demande est envoyée à l'administrateur de l'Espace jeunes. Une fois acceptée, tu pourras consulter ce qu'il t'a ouvert depuis cet appareil.</p>
+          <form id="askf"><div class="row"><label class="fld" style="flex:1"><span>Prénom</span><input class="in" id="ap" autocomplete="given-name" required></label><label class="fld" style="flex:1"><span>Nom</span><input class="in" id="an" autocomplete="family-name" required></label></div>
+          <label class="fld"><span>Adresse mail</span><input class="in" id="am" type="email" autocomplete="email" required></label>
+          <p id="aerr" style="color:var(--red);font-weight:800;min-height:1.2em;margin:4px 0"></p>
+          <div class="row"><button class="btn pri" type="submit">Envoyer la demande</button><a class="btn ghost" href="#">← Page publique</a></div></form></section>`
+        :`<section class="panel"><h2>🔐 Jeton d'accès</h2>
+          <p class="hint">Colle le jeton <b>APP_TOKEN</b> défini dans Cloudflare. Il reste enregistré sur cet appareil jusqu'à « Se déconnecter ».</p>
+          <form id="cflogin"><label class="fld"><span>Jeton</span><input class="in" id="cfpw" type="password" autocomplete="off" autofocus></label>
+          <p id="cferr" style="color:var(--red);font-weight:800;min-height:1.2em;margin:4px 0"></p>
+          <div class="row"><button class="btn pri" type="submit">Se connecter</button><a class="btn ghost" href="#">← Page publique</a></div></form></section>`}
+      </div></div>`;
+      app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.m==='ask'?'acces':'createur'});
+      const lf=app.querySelector('#cflogin');
+      if(lf)lf.onsubmit=async e=>{
         e.preventDefault();const out=app.querySelector('#cferr'),t=app.querySelector('#cfpw').value.trim();if(!t)return;out.textContent='Vérification…';
         try{
           const r=await fetch('/api/me',{headers:{'Authorization':'Bearer '+t},cache:'no-store'});
           if(!r.ok){const j=await r.json().catch(()=>({}));out.textContent=j.error||'Jeton non reconnu.';return}
-          try{localStorage.setItem(LS,t)}catch(e){}location.reload();
+          try{localStorage.setItem(LS,t)}catch(e){}location.hash='createur';location.reload();
         }catch(e){out.textContent='Serveur injoignable.'}
       };
+      const af=app.querySelector('#askf');
+      if(af)af.onsubmit=async e=>{
+        e.preventDefault();const out=app.querySelector('#aerr');out.textContent='Envoi…';
+        const k=Array.from(crypto.getRandomValues(new Uint8Array(24)),x=>('0'+x.toString(16)).slice(-2)).join('');
+        try{
+          const r=await fetch('/api/acces',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prenom:app.querySelector('#ap').value,nom:app.querySelector('#an').value,email:app.querySelector('#am').value,k})});
+          const j=await r.json().catch(()=>({}));
+          if(!r.ok){out.textContent=j.error||'Envoi impossible.';return}
+          setDel({id:j.id,k});renderDelegue(app,getDel());
+        }catch(e){out.textContent='Serveur injoignable.'}
+      };
+    },
+    async mountAccess(el,{toast,confirmBox}){
+      const STL={attente:'En attente',active:'Accès accordé',refusee:'Refusée',revoquee:'Révoquée'};
+      const PC={attente:'p-draft',active:'p-pub',refusee:'p-todo',revoquee:'p-todo'};
+      let data;
+      try{const r=await fetch('/api/acces',{headers:auth(),cache:'no-store'});if(!r.ok)throw 0;data=await r.json()}
+      catch(e){el.innerHTML='<h2>👥 Accès des utilisateurs</h2><p class="hint">Liste indisponible pour le moment.</p>';return}
+      const link=location.href.split('#')[0]+'#acces';
+      const fmt=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'';
+      const row=d=>`<div class="box" data-id="${d.id}">
+        <div class="row"><b style="flex:1">${esc(d.prenom)} ${esc(d.nom)}</b><span class="pill ${PC[d.status]}">${STL[d.status]||esc(d.status)}</span></div>
+        <div class="kbd">${esc(d.email)} · demande du ${fmt(d.at)}${d.last?' · dernière visite le '+fmt(d.last):''}</div>
+        <div style="margin-top:6px">${data.catalogue.map(c=>`<label class="sw" style="font-size:14px"><input type="checkbox" data-dr="${c.key}" ${d.droits.includes(c.key)?'checked':''}> ${esc(c.label)}</label>`).join('')}</div>
+        <div class="row" style="margin-top:6px">
+          ${d.status!=='active'?'<button class="btn sm go" data-ac="accepter">Accepter</button>':''}
+          ${d.status==='attente'?'<button class="btn sm" data-ac="refuser">Refuser</button>':''}
+          ${d.status==='active'?'<button class="btn sm warn" data-ac="revoquer">Révoquer</button>':''}
+          ${d.status!=='attente'&&d.status!=='active'?'<button class="btn sm ghost warn" data-ac="supprimer">Supprimer</button>':''}
+        </div></div>`;
+      const L=data.demandes, groups=[['attente','En attente'],['active','Accès accordés'],['autres','Refusées ou révoquées']];
+      el.innerHTML=`<h2>👥 Accès des utilisateurs</h2>
+        <p class="hint">Lien à transmettre pour demander un accès : <b>${esc(link)}</b>. Les droits cochés s'appliquent dès que l'accès est accordé.</p>
+        ${L.length?groups.map(([g,t])=>{const xs=L.filter(d=>g==='autres'?!['attente','active'].includes(d.status):d.status===g);return xs.length?`<div class="sec-t">${t} (${xs.length})</div>${xs.map(row).join('')}`:''}).join(''):'<p class="kbd">Aucune demande pour l\'instant.</p>'}`;
+      const post=async(id,body)=>{const r=await fetch('/api/acces/'+id,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},auth()),body:JSON.stringify(body)});if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||'erreur')};
+      el.querySelectorAll('[data-id]').forEach(box=>{
+        const id=box.dataset.id,d=L.find(x=>x.id===id);
+        box.querySelectorAll('[data-dr]').forEach(cb=>cb.onchange=async()=>{
+          const dr=[...box.querySelectorAll('[data-dr]:checked')].map(x=>x.dataset.dr);
+          try{await post(id,{action:'droits',droits:dr});toast('Droits mis à jour ✓')}catch(e){cb.checked=!cb.checked;toast('Modification impossible',true)}
+        });
+        box.querySelectorAll('[data-ac]').forEach(b=>b.onclick=async()=>{
+          const a=b.dataset.ac;
+          if(a==='supprimer'&&!await confirmBox(`Supprimer définitivement la demande de ${d.prenom} ${d.nom} ?`,{ok:'Supprimer',danger:true}))return;
+          if(a==='revoquer'&&!await confirmBox(`Révoquer l'accès de ${d.prenom} ${d.nom} ? Ses droits sont conservés si tu l'acceptes à nouveau.`,{ok:'Révoquer',danger:true}))return;
+          try{await post(id,{action:a});toast('Fait ✓');window.EJ_CF.mountAccess(el,{toast,confirmBox})}catch(e){toast('Action impossible',true)}
+        });
+      });
     }};
+  // ----- Utilisateur externe -----
+  const LSD='ej-cf-delegue';
+  function getDel(){try{return JSON.parse(localStorage.getItem(LSD)||'null')}catch(e){return null}}
+  function setDel(v){try{v?localStorage.setItem(LSD,JSON.stringify(v)):localStorage.removeItem(LSD)}catch(e){}}
+  const dAuth=dg=>({'Authorization':'Bearer '+dg.id+'.'+dg.k});
+  async function renderDelegue(app,dg){
+    const shell=(title,body)=>`<div class="cr"><header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>${title}</b><small>Espace jeunes</small></div></div><span class="sp"></span><button class="tab" id="dgout">Se déconnecter</button></header><div class="cr-main" style="max-width:640px">${body}</div></div>`;
+    const bind=()=>{const o=app.querySelector('#dgout');if(o)o.onclick=()=>{setDel(null);location.hash='';location.reload()};const r=app.querySelector('#dgref');if(r)r.onclick=()=>renderDelegue(app,dg)};
+    app.innerHTML=shell('Mon accès','<div class="loading">Vérification…</div>');bind();
+    let me;
+    try{const r=await fetch('/api/acces/moi',{headers:dAuth(dg),cache:'no-store'});if(r.status===404){setDel(null);app.innerHTML=shell('Mon accès','<section class="panel"><h2>Demande introuvable</h2><p class="hint">Elle a peut-être été supprimée. Tu peux en faire une nouvelle.</p><a class="btn pri" href="#acces" onclick="setTimeout(()=>location.reload(),0)">Nouvelle demande</a></section>');bind();return}me=await r.json()}
+    catch(e){app.innerHTML=shell('Mon accès','<section class="panel"><p class="hint">Serveur injoignable. Réessaie plus tard.</p><button class="btn" id="dgref">Réessayer</button></section>');bind();return}
+    const hello=`Bonjour ${esc(me.prenom)}`;
+    if(me.status==='attente'){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>⏳ Demande envoyée</h2><p class="hint">${hello}, ta demande est en attente de validation par l'administrateur. Reviens sur cette page plus tard, depuis cet appareil.</p><button class="btn" id="dgref">Actualiser</button></section>`);bind();return}
+    if(me.status!=='active'){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>🚫 Accès ${me.status==='refusee'?'refusé':'révoqué'}</h2><p class="hint">${hello}, ton accès n'est pas ouvert. Contacte l'équipe de l'Espace jeunes si besoin.</p></section>`);bind();return}
+    if(!me.droits.includes('brouillons')){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>✅ Accès accordé</h2><p class="hint">${hello}, ton accès est validé, mais aucun droit ne t'a encore été attribué.</p><button class="btn" id="dgref">Actualiser</button></section>`);bind();return}
+    // Droit « brouillons » : calendrier de travail en lecture seule
+    let d;
+    try{const r=await fetch('/api/brouillons',{headers:dAuth(dg),cache:'no-store'});if(!r.ok)throw 0;d=await r.json()}
+    catch(e){app.innerHTML=shell('Calendrier de travail','<section class="panel"><p class="hint">Calendrier indisponible pour le moment.</p><button class="btn" id="dgref">Réessayer</button></section>');bind();return}
+    const days=Object.assign({},d.public,d.drafts);
+    const st=k=>{const dr=d.drafts[k],p=d.public[k];if(p&&(!dr||dr.rev===dr.pubRev))return['p-pub','En ligne'];if(p)return['p-mod','Modifié, pas encore en ligne'];return['p-draft','Non publié']};
+    app.innerHTML=`<div style="background:var(--ink);color:#fff;padding:8px 12px;display:flex;gap:6px;align-items:center;font-size:13px;position:sticky;top:0;z-index:6"><span style="flex:1;line-height:1.2"><b>🗂️ Calendrier de travail</b><br><span style="color:#C9C2D1">Non publié · ${hello}</span></span><button class="ico" id="dgref" title="Actualiser" style="color:#fff">↻</button><button class="tab" id="dgout" style="color:#fff;font-size:13px">Déconnexion</button></div><div id="dgpub"></div>`;
+    bind();
+    window.EJ.mountPublic(app.querySelector('#dgpub'),{days,settings:d.settings},{statusOf:k=>{const [c,l]=st(k);return `<span class="pill ${c}" style="margin-left:6px">${l}</span>`}});
+  }
   window.EJ_GH=window.EJ_CF; // même point d'entrée pour l'écran de connexion
 })();
 </script>
@@ -722,7 +810,7 @@ function confirmBox(msg,{ok='Confirmer',danger=false}={}){
 
 /* ---------- Rendu principal ---------- */
 function render(){
-  if(!S.canEdit){const h=(location.hash||'').slice(1);if(window.EJ_GH&&['createur','activites','parametres','apercu'].includes(h)){window.EJ_GH.renderLogin(app);return}renderPublicOnly();return}
+  if(!S.canEdit){const h=(location.hash||'').slice(1);if(window.EJ_GH&&['createur','activites','parametres','apercu','acces'].includes(h)){window.EJ_GH.renderLogin(app);return}renderPublicOnly();return}
   const v=UI.view;
   app.innerHTML=`<div class="cr">
     <header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>Espace créateur</b><small>${esc(settings().info.name||'Espace jeunes')}</small></div></div>
@@ -1222,6 +1310,7 @@ function renderSettings(main){
       ${st.holidays.map((h,i)=>`<div class="row" style="margin-bottom:6px" data-hi="${i}"><input class="in t" type="date" data-hf="date" value="${esc(h.date)}"><input class="in" data-hf="label" value="${esc(h.label)}" placeholder="ex. Jour férié"><button class="ico" data-hdel="${i}">🗑️</button></div>`).join('')}
       <button class="btn sm" id="hadd">＋ Jour de fermeture</button>
     </section>
+    ${window.EJ_CF?'<section class="panel" id="accespanel"><h2>👥 Accès des utilisateurs</h2><p class="hint">Chargement…</p></section>':''}
     ${window.EJ_CF?`<section class="panel"><h2>💾 Sauvegarde</h2><p class="hint">Télécharge une copie complète (paramètres, activités types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
       <div class="row"><button class="btn" id="bkdl">⬇️ Télécharger une sauvegarde</button><label class="btn warn"><input type="file" accept="application/json,.json" id="bkup" hidden>↩️ Restaurer une sauvegarde…</label></div></section>`:''}
     <section class="panel"><h2>ℹ️ Informations publiques</h2><p class="hint">Affichées sur la page publique (bouton « Infos »).</p>
@@ -1277,6 +1366,7 @@ function bindSettings(main,st){
     });
     sec.querySelector('[data-copyfrom]').onclick=()=>{const src=wk[2];if(!src.open){toast('Le mercredi est fermé dans cette semaine type',true);return}wk.forEach((d,i)=>{if(i!==2&&d.open)d.slots=clone(src.slots)});rerender()};
   });
+  const ap=main.querySelector('#accespanel');if(ap)window.EJ_CF.mountAccess(ap,{toast,confirmBox});
   const bk=main.querySelector('#bkdl');if(bk)bk.onclick=()=>window.EJ_CF.backup().then(()=>toast('Sauvegarde téléchargée ✓')).catch(()=>toast('Sauvegarde impossible',true));
   const bu=main.querySelector('#bkup');if(bu)bu.onchange=async()=>{const f=bu.files[0];bu.value='';if(!f)return;
     if(!await confirmBox('Remplacer TOUT le contenu actuel par cette sauvegarde ? Pense à télécharger une sauvegarde de l\'état actuel avant.',{ok:'Restaurer',danger:true}))return;

@@ -27,6 +27,17 @@ La base D1 `app-prog` existe déjà et elle est déclarée dans `wrangler.jsonc`
 Ensuite, chaque modification poussée sur `main` est redéployée automatiquement.
 Les tables sont créées automatiquement à la première visite.
 
+## Accès des utilisateurs externes
+
+Même principe qu'App Budget, avec une liste propre à app-prog :
+
+1. La personne ouvre `…/#acces` et envoie une demande (prénom, nom, adresse mail). Son appareil garde une clé personnelle ; le serveur n'en garde que l'empreinte.
+2. L'administrateur accepte, refuse, révoque ou supprime depuis **Paramètres → Accès des utilisateurs**, et coche les droits.
+3. Droits disponibles :
+   - `brouillons` : consulter le calendrier non publié (lecture seule).
+
+Le catalogue des droits est dans `src/acces.js` (`DROITS`).
+
 ## Sauvegardes
 
 - Espace créateur → **Paramètres** → **Sauvegarde** : télécharge un fichier JSON complet (paramètres, activités types, brouillons, journées en ligne). Il peut être restauré au même endroit.
