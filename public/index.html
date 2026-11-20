@@ -389,9 +389,20 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v31 --- */
+.tbus{display:inline-block;width:1.15em;height:.92em;vertical-align:baseline;overflow:visible}
+.bus{display:inline!important;height:auto!important;font-size:inherit!important;margin-right:.35em!important}
+.when .wt{align-items:baseline}
+.sj-when .ic .tbus{width:1.1em;height:.88em;margin-right:.3em}
+.box h4 .tbus,.fchip .tbus,.mini-badges .tbus,.act .tx .tbus{margin-right:.15em}
+.card.zoomed .gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card.zoomed .gal img{width:100%!important;aspect-ratio:4/3;border-radius:12px}
+.card.zoomed .gal img:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:16/9}
+
 /* --- v30 --- */
 .card-info .badges+.bring,.card-info .badges+.about{margin-top:12px}
-.pj-from{display:block;font-size:13px;font-weight:600;color:var(--ac);filter:brightness(.75);margin-bottom:2px}
+.pj-from{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.card.zoomed .pj-from{font-size:15px}
 .about{margin:8px 0 0;font-size:14px;line-height:1.5;color:#3E3B44}
 .card-info .about{margin-left:-72px}
 @media (max-width:430px){.card-info .about{margin-left:-64px}}
@@ -434,12 +445,12 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .sj-when .bus{display:inline-block;width:auto;margin-right:0!important}
 .bring .nw{white-space:nowrap}
 .sj-when .bus.sp{text-align:center;color:var(--ac);font-weight:700}
-.card.zoomed .sj-when{font-size:17px!important}
+
 .sj-when>div{display:block!important;white-space:nowrap;overflow:hidden}
 .sj-when .ic{display:inline-block;width:1.4em;vertical-align:baseline}
 .sj-when svg.tbus{width:1.1em;height:.88em;margin-right:.3em;overflow:visible}
 .sj-when svg.ar{width:.7em;height:.6em;margin:0 .5em 0 .2em;color:var(--ac)}
-.sj-when .ic:not(svg){height:1px}
+.sj-when .ic.sp{height:1px}
 
 .card.zoomed .sj-where{font-size:15.5px}
 .cal-ico .h:empty{display:none}
@@ -906,6 +917,8 @@ function whenHTML(a){
   return '';
 }
 const INFO_SVG='<svg class="warn info" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E0A100"/><stop offset=".55" stop-color="#C81F66"/><stop offset="1" stop-color="#4C1DB0"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#wi)"/><circle cx="12" cy="7.4" r="1.45" fill="#fff"/><rect x="10.85" y="10.2" width="2.3" height="7.6" rx="1.15" fill="#fff"/></svg>';
+const BUS_SVG='<svg class="tbus" viewBox="0 0 20 16" role="img" aria-label="transport assuré"><title>transport assuré</title><rect x="1.5" y="0.8" width="17" height="11.6" rx="3" fill="#3E7BE0"/><rect x="3.6" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="11" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="1.5" y="8.6" width="17" height="1.4" fill="#2A5DB3"/><circle cx="5.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="14.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="5.5" cy="13.4" r="1" fill="#C9C4BC"/><circle cx="14.5" cy="13.4" r="1" fill="#C9C4BC"/></svg>';
+const busHTML=()=>BUS_SVG;
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
 function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
@@ -933,7 +946,7 @@ function cardHTML(a,opts){
       return `<p class="bring${jc(t)}"><span class="em">${it.length?'📣':'✍️'}</span><span><b>${esc(LBL.bring)} :</b> ${btn?esc(t.replace(/\s+\S+$/,''))+` <span class="nw">${esc(t.match(/\S+$/)[0])}<button type="button" class="pdf-chip" data-auth="${esc(a.id||'')}" title="Télécharger l'autorisation parentale">PDF</button></span>`:esc(t)}</span></p>`})()
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
     +((a.cat==='sejour'||a.cat==='projet')&&(a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'');
-  const bus=a.transport&&!stay?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
+  const bus=a.transport&&!stay?'<span class="bus">'+BUS_SVG+'</span>':'';
   const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
@@ -944,7 +957,7 @@ function cardHTML(a,opts){
       ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||'à partir du '+esc(dLong(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
-      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<svg class="ic tbus" viewBox="0 0 20 16" aria-label="transport assuré"><title>transport assuré</title><rect x="1.5" y="0.8" width="17" height="11.6" rx="3" fill="#3E7BE0"/><rect x="3.6" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="11" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="1.5" y="8.6" width="17" height="1.4" fill="#2A5DB3"/><circle cx="5.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="14.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="5.5" cy="13.4" r="1" fill="#C9C4BC"/><circle cx="14.5" cy="13.4" r="1" fill="#C9C4BC"/></svg>':'<span class="ic"></span>'):'<svg class="ic ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
+      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<span class="ic">'+BUS_SVG+'</span>':'<span class="ic sp"></span>'):'<svg class="ic ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
@@ -1115,7 +1128,7 @@ function mountPublic(root,data,opts){
   function fitStay(){
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when').forEach(w=>{
       const over=()=>[...w.children].some(d=>d.scrollWidth>d.clientWidth+.5);
-      const fit=()=>{let f=14.5;w.style.fontSize=f+'px';while(over()&&f>9){f-=.25;w.style.fontSize=f+'px'}return f};
+      const fit=()=>{let f=w.closest('.zoomed')?17:14.5;w.style.fontSize=f+'px';while(over()&&f>9){f-=.25;w.style.fontSize=f+'px'}return f};
       fit();
     }));
   }
@@ -1149,7 +1162,7 @@ function mountPublic(root,data,opts){
     const ov=document.createElement('div');ov.className='zoom-bg';
     const cl=card.cloneNode(true);cl.classList.add('zoomed');
     ov.appendChild(cl);root.querySelector('.pub').appendChild(ov);
-    requestAnimationFrame(()=>ov.classList.add('on'));
+    requestAnimationFrame(()=>ov.classList.add('on'));fitStay();setTimeout(fitStay,260);
     ov.addEventListener('click',()=>{ov.classList.remove('on');setTimeout(()=>ov.remove(),200)});
   }
   root.addEventListener('click',e=>{
@@ -1444,7 +1457,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.30';
+const APP_VERSION='v261120.31';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1776,10 +1789,10 @@ function slotHTML(s,i){
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
-  const meta=[whenText(a),a.transport?'🚍':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
+  const meta=[whenText(a),a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
   return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
     <div class="th">${actImage(a)}</div>
-    <div class="tx"><b>${esc(a.title||'Activité')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta):''}</small></div>
+    <div class="tx"><b>${esc(a.title||'Activité')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
       <button class="ico" data-mvup="${i}:${j}" ${j===0?'disabled':''} title="Monter">↑</button>
       <button class="ico" data-mvdn="${i}:${j}" ${j===n-1?'disabled':''} title="Descendre">↓</button>
@@ -1839,7 +1852,7 @@ function normalize(a){
 }
 function tplMeta(a){
   const x=[];
-  if(a.transport)x.push('🚍 transport');
+  if(a.transport)x.push('[[bus]] transport');
   if(a.booking&&a.booking.on)x.push('📋 réservation');
   x.push((a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'gratuit');
   if((a.timing||{}).mode!=='none'&&whenText(a))x.push(whenText(a).replace(/^\S+ /,''));
@@ -1880,7 +1893,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
     bind();
   }
   function tplCard(t){
-    return `<button class="tpl" data-tpl="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x)}</span>`).join('')}</div></div></button>`;
+    return `<button class="tpl" data-tpl="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x).replace('[[bus]]',BUS_SVG)}</span>`).join('')}</div></div></button>`;
   }
   function searchRes(){
     const qq=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -1912,7 +1925,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
           <label class="fld" style="flex:1"><span>Intitulé du calendrier</span><input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="séjour"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist></label></div>
           <p class="kbd" style="margin:0">Le séjour part le jour où il est placé. Mets les horaires en « Départ / retour ».</p>`:''}
         </div>
-        <div class="box"><h4>🚍 Transport & 📋 réservation</h4>
+        <div class="box"><h4>${BUS_SVG} Transport & 📋 réservation</h4>
           <label class="sw"><input type="checkbox" id="ftransport" ${f.transport?'checked':''}> Transport assuré par l'Espace jeunes</label>
           <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'accueil est fermé pendant cette sortie</label>
           <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
@@ -2024,7 +2037,7 @@ async function saveTemplate(t){
   try{await saveLibrary(items)}catch(e){}
 }
 const FILTERS=[
-  ['transport','🚍 Avec transport',a=>a.transport],
+  ['transport','[[bus]] Avec transport',a=>a.transport],
   ['sanstransport','Sans transport',a=>!a.transport],
   ['payant','🤑 Payantes',a=>(a.price||{}).mode&&a.price.mode!=='free'],
   ['gratuit','Gratuites',a=>!(a.price||{}).mode||a.price.mode==='free'],
@@ -2044,9 +2057,9 @@ function renderLibrary(main){
   const count=k=>library().filter(a=>a.cat===k).length;
   main.innerHTML=`<div class="h-row"><h1>Activités types</h1><span class="kbd">${library().length} modèles réutilisables</span><span style="flex:1"></span><input class="in" id="lq" placeholder="Rechercher…" value="${esc(UI.libQ)}" style="max-width:240px"><button class="btn pri" id="newtpl">＋ Nouvelle activité type</button></div>
     <div class="filters"><button class="fchip${UI.libCat==='all'?' on':''}" data-lc="all">Toutes</button>${Object.entries(CATS).map(([k,c])=>`<button class="fchip${UI.libCat===k?' on':''}" data-lc="${k}">${c.emoji} ${esc(c.label)} <span style="opacity:.6">${count(k)}</span></button>`).join('')}</div>
-    <div class="filters">${FILTERS.map(([k,l])=>`<button class="fchip${UI.libFlt===k?' on':''}" data-lf="${k}">${l}</button>`).join('')}</div>
+    <div class="filters">${FILTERS.map(([k,l])=>`<button class="fchip${UI.libFlt===k?' on':''}" data-lf="${k}">${l.replace('[[bus]]',BUS_SVG)}</button>`).join('')}</div>
     ${!library().length?'<div class="note">La bibliothèque est vide. Crée une première activité type, ou coche « Enregistrer aussi comme activité type » quand tu ajoutes une activité dans une journée.</div>':''}
-    <div class="tpl-grid">${list.map(t=>`<button class="tpl" data-id="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><small>${(CATS[t.cat]||{}).emoji||''} ${esc((CATS[t.cat]||{}).label||'')}</small><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x)}</span>`).join('')}</div></div></button>`).join('')}</div>
+    <div class="tpl-grid">${list.map(t=>`<button class="tpl" data-id="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><small>${(CATS[t.cat]||{}).emoji||''} ${esc((CATS[t.cat]||{}).label||'')}</small><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x).replace('[[bus]]',BUS_SVG)}</span>`).join('')}</div></div></button>`).join('')}</div>
     ${library().length&&!list.length?'<p class="kbd">Aucune activité ne correspond à ces filtres.</p>':''}`;
   main.querySelectorAll('[data-lc]').forEach(b=>b.onclick=()=>{UI.libCat=b.dataset.lc;render()});
   main.querySelectorAll('[data-lf]').forEach(b=>b.onclick=()=>{UI.libFlt=UI.libFlt===b.dataset.lf?null:b.dataset.lf;render()});
