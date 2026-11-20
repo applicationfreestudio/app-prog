@@ -249,7 +249,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .when .bus{font-size:14px;line-height:1;margin-right:6px}
 .when .wt{display:inline-flex;align-items:baseline}
 .bring b{font-weight:500}
-.card h3{display:inline;padding:0 3px;margin-left:-3px;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:linear-gradient(transparent 58%,color-mix(in srgb,var(--ac) 55%,#fff) 58%,color-mix(in srgb,var(--ac) 55%,#fff) 92%,transparent 92%);line-height:1.3}
+.card h3{display:inline;padding:0 3px;margin-left:-3px;-webkit-box-decoration-break:clone;box-decoration-break:clone;line-height:1.3}
 .card-head{display:block}
 .card-head .when,.card-head .desc,.card-head .where{display:flex}
 .card-head .desc{display:block;margin-top:4px}
@@ -284,7 +284,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* --- v17 --- */
 .dnote{flex-direction:row;justify-content:center}
-.card h3{background:linear-gradient(transparent 60%,color-mix(in srgb,var(--ac) 32%,#fff) 60%,color-mix(in srgb,var(--ac) 32%,#fff) 92%,transparent 92%);text-shadow:0 0 1px #fff,1px 1px 0 #fff,-1px 1px 0 #fff,1px -1px 0 #fff,-1px -1px 0 #fff,0 1px 0 #fff,0 -1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff}
+.card h3{background:linear-gradient(transparent 60%,var(--hlx) 60%,var(--hlx) 92%,transparent 92%);text-shadow:0 0 1px #fff,1px 1px 0 #fff,-1px 1px 0 #fff,1px -1px 0 #fff,-1px -1px 0 #fff,0 1px 0 #fff,0 -1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff}
 .badge .sep{margin:0 3px}
 .badge .bi{font-size:12px;margin-right:4px}
 sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
@@ -352,6 +352,38 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 @media (max-width:430px){.card-info .auth{margin-left:-64px}}
 @media (min-width:600px){.card-info .auth{margin-left:-92px}}
 .card.zoomed .card-info .auth{margin-left:-110px}
+
+/* --- document PDF (rendu hors écran, A4 à 96 dpi) --- */
+.pdfdoc{position:fixed;left:-10000px;top:0;width:794px;min-height:auto;max-width:none;background:#fff;padding:46px 56px 40px;display:block;color:var(--ink);font-family:var(--pf)}
+.pdfdoc .pd-head{display:flex;align-items:center;gap:14px}
+.pdfdoc .pd-logo{width:64px;height:64px;object-fit:contain}
+.pdfdoc .pd-head .logo{width:56px;height:56px;font-size:20px}
+.pdfdoc .pd-head b{display:block;font-size:22px;font-weight:600}
+.pdfdoc .pd-head small{display:block;font-size:14px;color:var(--ink2)}
+.pdfdoc .pd-t{margin:30px 0 22px;text-align:center;font-size:30px;font-weight:700;letter-spacing:-.01em}
+.pdfdoc .pd-t::after{content:"";display:block;width:90px;height:4px;border-radius:4px;margin:10px auto 0;background:var(--ig)}
+.pdfdoc .pd-lines p{display:flex;align-items:flex-end;gap:8px;margin:0 0 14px;font-size:16px}
+.pdfdoc .pd-lines i{flex:1;border-bottom:1.5px dotted #9A97A0;height:18px}
+.pdfdoc .pd-card{position:relative;margin:18px 0 22px;padding:16px;border-radius:18px;border:2px solid #D7C6F7;background:#fff}
+.pdfdoc .partners-box{border:1px solid #E5DDF5;background:#fff}
+.pdfdoc .pd-date{font-size:15px;font-weight:600;color:#6228D7;margin:0 0 10px}
+.pdfdoc .pd-card .stay-tag{margin:0 0 10px}
+.pdfdoc .card{box-shadow:none;border:1px solid #EEEAE4;cursor:default}
+.pdfdoc .card h3{font-size:21px}
+.pdfdoc .card .desc,.pdfdoc .card .bring,.pdfdoc .card .imp{font-size:15px}
+.pdfdoc .card .when,.pdfdoc .sj-when{font-size:14.5px}
+.pdfdoc .card .badge{font-size:13px}
+.pdfdoc .card-info .auth{display:none}
+.pdfdoc .pd-check{display:flex;gap:12px;align-items:flex-start;margin:6px 0 30px;font-size:15px;line-height:1.5}
+.pdfdoc .pd-check .box{flex:0 0 20px;height:20px;border:2px solid var(--ink);border-radius:5px;margin-top:2px}
+.pdfdoc .pd-check p{margin:0;text-align:justify}
+.pdfdoc .pd-sign{display:flex;gap:30px;align-items:flex-start;font-size:15px;margin-bottom:30px}
+.pdfdoc .pd-sign>div:first-child{flex:1;padding-top:6px}
+.pdfdoc .pd-sign i{display:inline-block;width:38px;border-bottom:1.5px dotted #9A97A0;height:14px}
+.pdfdoc .pd-sign i.y{width:64px}
+.pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
+.pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
+.pdfdoc .partners-box{box-shadow:none;margin:0}
 </style>
 
 <style>
@@ -817,12 +849,13 @@ function cardHTML(a,opts){
   const w=stay?'':whenHTML(a);
   const info=badgesHTML(a)
     +(a.bring&&a.bring.length?(()=>{const t=a.bring.join(', ');return `<p class="bring${jc(t)}"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${esc(t)}</span></p>`})():'')
-    +(auth?`<div class="auth"><span class="em">✍️</span><span>autorisation parentale à faire signer</span>${opts.date&&!opts.noAssets?`<button type="button" class="auth-btn" data-auth="${esc(a.id||'')}">PDF</button>`:''}</div>`:'')
+    +(auth?`<div class="auth"><span class="em">✍️</span><span>autorisation parentale à faire signer</span>${opts.date&&!opts.noAssets&&!opts.noAuthBtn?`<button type="button" class="auth-btn" data-auth="${esc(a.id||'')}">PDF</button>`:''}</div>`:'')
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
   const bus=a.transport&&!stay?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
   const full=a.full&&!stay?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
-  return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1}">
+  const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
+  return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.32)}">
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1024,51 +1057,41 @@ function mountPublic(root,data,opts){
     return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';sc.onload=()=>res(window.jspdf);sc.onerror=rej;document.head.appendChild(sc)});
   }
   const noEmo=t=>String(t||'').replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu,'').replace(/[⩽]/g,'<=').replace(/[⩾]/g,'>=').replace(/→/g,'->').replace(/\s+/g,' ').trim();
+  function loadH2C(){
+    if(window.html2canvas)return Promise.resolve(window.html2canvas);
+    return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';sc.onload=()=>res(window.html2canvas);sc.onerror=rej;document.head.appendChild(sc)});
+  }
+  const AUTH_TXT='J\'ai bien pris note des conditions d\'organisation de l\'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s\'il n\'a pas le matériel prévu ci-dessus.';
   async function authPDF(id,btn){
     const reg=ACTS_REG[id];if(!reg)return;
     const {a,date}=reg, info=(st.settings&&st.settings.info)||{};
     const old=btn.textContent;btn.textContent='…';
+    const base=window.EJ_ASSET_BASE||'/_blob/';
+    const font=FONTS[info.font]?info.font:'Poppins';
+    const box=document.createElement('div');
+    box.className='pub pdfdoc';box.style.setProperty('--pf',`'${font}',system-ui,sans-serif`);
+    const pl=(info.partners||[]).filter(Boolean);
+    const ctext=(info.authText||AUTH_TXT).trim();
+    box.innerHTML=`<div class="pd-head">${info.logo?`<img class="pd-logo" src="${base}${esc(info.logo)}" alt="">`:`<span class="logo">${esc((info.name||'EJ').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase())}</span>`}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'')}</small></div></div>
+      <h1 class="pd-t">Autorisation parentale</h1>
+      <div class="pd-lines"><p>Je soussigné(e), Madame / Monsieur <i></i></p><p>représentant(e) légal(e) de <i></i></p><p>autorise sa participation à l'activité suivante :</p></div>
+      <div class="pd-card">${a.cat==='sejour'?`<span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span>`:`<div class="pd-date">${esc(cap(fmtLong(date)))} ${parse(date).getFullYear()}</div>`}${cardHTML(a,{date,noAuthBtn:true})}</div>
+      ${info.authCheck===false||!ctext?'':`<div class="pd-check"><span class="box"></span><p>${esc(ctext).replace(/\n/g,'<br>')}</p></div>`}
+      <div class="pd-sign"><div>Fait le <i></i> / <i></i> / <i class="y"></i></div><div class="sig"><span>Signature du représentant légal</span></div></div>
+      ${pl.length?`<div class="partners-box"><div class="partners">${pl.map(x=>`<img src="${base}${esc(x)}" alt="">`).join('')}</div>${info.partnersText?`<p>${esc(info.partnersText)}</p>`:''}</div>`:''}`;
+    document.body.appendChild(box);
     try{
-      const {jsPDF}=await loadJsPDF();
-      const doc=new jsPDF({unit:'mm',format:'a4'}), W=210, L=20, R=190;let y=20;
-      if(info.logo){try{const im=await fetch((window.EJ_ASSET_BASE||'/_blob/')+info.logo).then(r=>r.blob()).then(b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)}));doc.addImage(im,L,y-6,18,18)}catch(_){}}
-      doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(noEmo(info.name||'Espace jeunes'),info.logo?L+22:L,y+1);
-      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(100);doc.text(noEmo(info.sub||''),info.logo?L+22:L,y+7);doc.setTextColor(0);
-      y+=26;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('Autorisation parentale',W/2,y,{align:'center'});
-      y+=14;doc.setFont('helvetica','normal');doc.setFontSize(11.5);
-      const lines=[
-        'Je soussigné(e), Madame / Monsieur ..............................................................................',
-        'représentant(e) légal(e) de ............................................................................................',
-        'autorise sa participation à l\'activité suivante :'];
-      lines.forEach(l=>{doc.text(l,L,y);y+=8});
-      // encart de l'activité
-      const end=a.endDate&&a.endDate>date?a.endDate:date, t=a.timing||{};
-      const box=[];
-      box.push(['b',noEmo(cap(a.title||'Activité'))+(a.cat==='sejour'&&a.stayLabel?'  ('+noEmo(a.stayLabel)+')':'')]);
-      if(a.desc)box.push(['n',noEmo(a.desc)]);
-      if(a.cat==='sejour'){box.push(['n','Départ : '+dLong(date)+(t.start?' à '+fmtT(t.start):'')+(a.transport?'  (transport assuré)':'')]);box.push(['n','Retour : '+dLong(end)+(t.end?' à '+fmtT(t.end):'')])}
-      else box.push(['n',cap(fmtLong(date))+' '+parse(date).getFullYear()+(whenText(a)?' : '+noEmo(whenText(a)):'')+(a.transport?'  (transport assuré)':'')]);
-      if(a.place)box.push(['n','Lieu : '+noEmo(a.place)]);
-      const pr=a.price||{};
-      if(pr.mode&&pr.mode!=='free')box.push(['n','Tarif : '+noEmo(pr.mode==='qf'?String(pr.text||'').split('\n').join(' ; '):priceText(pr))]);
-      if(a.booking&&a.booking.on)box.push(['n','Sur réservation'+(a.booking.places?' : '+a.booking.places+' places':'')]);
-      const br=(a.bring||[]).filter(x=>!AUTH_RE.test(x));
-      if(br.length)box.push(['n','À prévoir : '+noEmo(br.join(', '))]);
-      if(a.important)box.push(['r',noEmo(a.important)]);
-      let bh=6;const wrapped=box.map(([k,tx])=>{doc.setFont('helvetica',k==='b'?'bold':'normal');doc.setFontSize(k==='b'?13:11);const ls=doc.splitTextToSize(tx,R-L-10);bh+=ls.length*(k==='b'?6.2:5.4)+2;return [k,ls]});
-      y+=2;doc.setDrawColor(98,40,215);doc.setLineWidth(.6);doc.roundedRect(L,y,R-L,bh+4,3,3);
-      let yy=y+8;wrapped.forEach(([k,ls])=>{doc.setFont('helvetica',k==='b'?'bold':'normal');doc.setFontSize(k==='b'?13:11);doc.setTextColor(k==='r'?196:0,k==='r'?43:0,k==='r'?58:0);doc.text(ls,L+5,yy);yy+=ls.length*(k==='b'?6.2:5.4)+2});
-      doc.setTextColor(0);y+=bh+14;
-      // case à cocher
-      doc.setLineWidth(.4);doc.setDrawColor(0);doc.rect(L,y-4,4.5,4.5);
-      doc.setFontSize(11);const cb=doc.splitTextToSize('J\'ai bien pris note des conditions d\'organisation '+(a.cat==='sejour'?'du séjour':'de l\'activité')+' et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s\'il n\'a pas le matériel prévu ci-dessus.',R-L-9);
-      doc.text(cb,L+8,y);y+=cb.length*5.4+16;
-      doc.text('Fait le ...... / ...... / ............',L,y);doc.text('Signature du représentant légal :',W/2+5,y);
-      doc.setDrawColor(180);doc.roundedRect(W/2+5,y+4,R-W/2-5,30,2,2);
-      const fn='autorisation-'+noEmo(a.title||'activite').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+date+'.pdf';
+      const [{jsPDF},h2c]=await Promise.all([loadJsPDF(),loadH2C()]);
+      await Promise.all([...box.querySelectorAll('img')].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r})));
+      try{await document.fonts.ready}catch(_){}
+      const cv=await h2c(box,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+      const doc=new jsPDF({unit:'mm',format:'a4'});
+      const W=210,H=297, r=cv.height/cv.width;let w=W,h=W*r;if(h>H){h=H;w=H/r}
+      doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',(W-w)/2,0,w,h);
+      const fn='autorisation-'+noEmo(a.title||'activite').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+date+'.pdf';
       doc.save(fn);
-    }catch(e){alert('Création du PDF impossible pour le moment.')}
-    finally{btn.textContent=old}
+    }catch(e){console.error('PDF',e&&e.message,e&&e.stack);alert('Création du PDF impossible pour le moment.')}
+    finally{box.remove();btn.textContent=old}
   }
   function update(d){if(d.days)st.days=d.days;if(d.settings)st.settings=d.settings;render()}
   update(data||{});
@@ -1313,7 +1336,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.22';
+const APP_VERSION='v261120.23';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1968,6 +1991,9 @@ function renderSettings(main){
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
+    ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
+      <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
+      <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
     ${window.EJ_CF?fold('acces','Accès des utilisateurs','<div id="accespanel"><p class="hint">Chargement…</p></div>'):''}
     ${window.EJ_CF?fold('sauvegarde','Sauvegarde',`<p class="hint">Copie complète (paramètres, activités types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
       <div class="row"><button class="btn" id="bkdl">Télécharger une sauvegarde</button><label class="btn warn"><input type="file" accept="application/json,.json" id="bkup" hidden>Restaurer…</label></div>`):''}
@@ -1999,6 +2025,7 @@ function renderSettings(main){
     try{const ids=[];for(const f of fs)ids.push((await S.assets.upload(f,{logo:true})).id);await saveInfo(i=>{i.partners=(i.partners||[]).concat(ids)},ids.length>1?'Logos ajoutés ✓':'Logo ajouté ✓')}catch(e){toast('Envoi impossible',true)}};
   main.querySelectorAll('[data-prm]').forEach(b=>b.onclick=()=>{const k=+b.dataset.prm;saveInfo(i=>{i.partners=(i.partners||[]).filter((_,j)=>j!==k)},'Logo retiré')});
   main.querySelectorAll('[data-font]').forEach(b=>b.onclick=()=>{st.info.font=b.dataset.font;render()});
+  {const ac=main.querySelector('#authcheck');if(ac)ac.onchange=()=>{st.info.authCheck=ac.checked;render()}}
   main.querySelectorAll('[data-lbl]').forEach(e=>e.oninput=()=>{st.info.labels=Object.assign({},st.info.labels,{[e.dataset.lbl]:e.value});const b=main.querySelector('#ssave');if(b){b.disabled=false;b.textContent='Enregistrer les paramètres'}});
   bindSettings(main,st);
 }
