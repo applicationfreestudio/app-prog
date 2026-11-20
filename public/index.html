@@ -421,12 +421,12 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card.zoomed .sj-when{font-size:17px!important}
 .card.zoomed .sj-where{font-size:15.5px}
 .cal-ico .h:empty{display:none}
-.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px;margin-top:10px}
-.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:9px;display:block;box-shadow:0 4px 10px -6px rgba(0,0,0,.35)}
-.card-info .gal{margin-left:-72px}
-@media (max-width:430px){.card-info .gal{margin-left:-64px}}
-@media (min-width:600px){.card-info .gal{margin-left:-92px}}
-.card.zoomed .card-info .gal{margin-left:-110px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.gal{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px}
+.gal img{width:72px;aspect-ratio:4/3;object-fit:cover;border-radius:9px;display:block;box-shadow:0 4px 10px -6px rgba(0,0,0,.35)}
+.card-info .gal{margin-left:0}
+@media (min-width:600px){.card-info .gal img{width:96px}}
+.card.zoomed .card-info .gal img{width:120px}
+.when.pj{margin-top:6px;font-weight:600}
 .pdfdoc .gal{display:none}
 .galed{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .galed .gi{position:relative}
@@ -832,8 +832,8 @@ function visualSVG(key){
   return `<svg class="vis" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(v.label)}"><rect width="200" height="200" fill="${v.c1}"/><rect width="200" height="200" fill="#fff" opacity=".72"/><text x="100" y="106" text-anchor="middle" dominant-baseline="central" font-size="104">${v.emoji}</text></svg>`;
 }
 const fmtTH=t=>fmtT(t);
-const rngH=(a,b)=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'dès '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'';
-const rng=(a,b)=>a&&b?'de '+fmtT(a)+' à '+fmtT(b):a?'dès '+fmtT(a):b?'jusqu\'à '+fmtT(b):'';
+const rngH=(a,b)=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'à partir de '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'';
+const rng=(a,b)=>a&&b?'de '+fmtT(a)+' à '+fmtT(b):a?'à partir de '+fmtT(a):b?'jusqu\'à '+fmtT(b):'';
 const fmtShortDate=s=>{const d=parse(s);return cap(DAYS_S[dow(s)])+'. '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+String(d.getFullYear()).slice(2)};
 function actImage(a,opts){
   if(a&&a.asset&&!(opts&&opts.noAssets))return `<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(a.asset)}" alt="" loading="lazy">`;
@@ -910,7 +910,7 @@ function cardHTML(a,opts){
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
     +((a.cat==='sejour'||a.cat==='projet')&&(a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'');
   const bus=a.transport&&!stay?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
-  const full=a.full&&!stay?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
+  const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.32)}">
@@ -918,11 +918,12 @@ function cardHTML(a,opts){
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
-      ${stay&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
+      ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
+      ${a.cat==='projet'&&opts.date&&!opts.dateLine?`<div class="when pj">à partir du ${esc(dLong(opts.date))}</div>`:''}
       ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<span class="bus" title="transport assuré">🚌</span>':'<span class="bus sp"></span>'):'<span class="bus sp">→</span>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine)?`<div class="when">${opts&&opts.dateLine?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
-      ${a.place&&!stay?`<div class="where">${esc(a.place)}</div>`:''}
+      ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
     </div>
     ${info?`<div class="card-info">${info}</div>`:''}
   </article>`;
@@ -1068,7 +1069,7 @@ function mountPublic(root,data,opts){
     return `<section class="pinned"><div class="pin-t"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 2.5l7 7-3 1-4.5 4.5.5 4-2 2-4-4-5 5-1-1 5-5-4-4 2-2 4 .5L14 6z" fill="currentColor"/></svg>À la une</div><div class="cards">${items.map(([k,a])=>{
       const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
       const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
-      return cardHTML(a,Object.assign({},opts,{date:k,dateLine:a.cat==='sejour'?'':esc(dl)}));
+      return cardHTML(a,Object.assign({},opts,{date:k,dateLine:a.cat==='sejour'?'':(a.cat==='projet'&&!e?'à partir du ':'')+esc(dl)}));
     }).join('')}</div></section>`;
   }
   function render(){
@@ -1082,7 +1083,7 @@ function mountPublic(root,data,opts){
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
     root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${wm}${headHTML(info,wm)}
-      <main class="days">${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${pinnedHTML(ks)}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
+      <main class="days">${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();
   }
@@ -1418,7 +1419,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.26';
+const APP_VERSION='v261120.27';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
