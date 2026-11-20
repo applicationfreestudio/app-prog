@@ -153,6 +153,18 @@ button{font:inherit;color:inherit;cursor:pointer}
   .card h3{font-size:17.5px}
   .when{font-size:13px}
 }
+
+/* --- v10 --- */
+.when i{background:var(--ac,#EE2A7B)}
+.card h3{margin-bottom:2px}
+.desc{margin:2px 0 4px;font-size:13.5px;color:var(--ink2)}
+.card .badges{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent);padding-right:12px}
+.card .badges::-webkit-scrollbar{display:none}
+.badge .sep{display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.45;margin:0 6px;vertical-align:middle}
+.card{grid-template-columns:110px minmax(0,1fr)}
+@media (max-width:430px){.card{grid-template-columns:56px minmax(0,1fr)}.card-img{min-height:80px}.badge{font-size:11.5px;padding:2px 6px}}
+@media (min-width:600px){.card{grid-template-columns:120px minmax(0,1fr)}}
+.card.isfull h3{padding-right:72px}
 </style>
 
 <style>
@@ -562,31 +574,34 @@ function priceText(p){
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
 function badgesHTML(a){
   const b=[];
-  if(a.transport)b.push('<span class="bus" title="Transport assuré" aria-label="Transport assuré">🚌</span>');
-  if(a.booking&&a.booking.on)b.push(`<span class="badge">Sur réservation${a.booking.places?' · '+esc(a.booking.places)+' places':''}</span>`);
+  if(a.transport)b.push('<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>');
+  if(a.booking&&a.booking.on)b.push(`<span class="badge">sur réservation${a.booking.places?' · '+esc(a.booking.places)+' places':''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=a.price||{};
+  let t=[];
   if(pm==='ccv2cc'){
-    if(pr.cc!==''&&pr.cc!=null)b.push(`<span class="badge">${esc(euro(pr.cc))} CCV2CC</span>`);
-    if(pr.hc!==''&&pr.hc!=null)b.push(`<span class="badge">${esc(euro(pr.hc))} hors communauté</span>`);
-  }else if(pm!=='free')b.push(`<span class="badge">${esc(priceText(pr))}</span>`);
-  else if(a.booking&&a.booking.on)b.push('<span class="badge">Gratuit</span>');
-  if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics])}</span>`);
+    if(pr.cc!==''&&pr.cc!=null)t.push(esc(euro(pr.cc)));
+    if(pr.hc!==''&&pr.hc!=null)t.push(esc(euro(pr.hc))+' hors communauté');
+  }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
+  else if(pm==='qf')t.push(esc(pr.text||'selon quotient familial'));
+  else if(a.booking&&a.booking.on)t.push('gratuit');
+  if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
+  if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics].toLowerCase())}</span>`);
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
 }
 function cardHTML(a,opts){
-  const w=whenText(a);
-  return `<article class="card${a.morning?' morning':''}">
-    ${a.full?'<span class="full-tag">Complet</span>':''}
+  const w=whenText(a), v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
+  return `<article class="card${a.morning?' morning':''}${a.full?' isfull':''}" style="--ac:${v.c2}">
+    ${a.full?'<span class="full-tag">complet</span>':''}
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-body">
-      ${a.morning?'<span class="tag-morning">Le matin</span>':''}
-      <h3>${esc(a.title||'Activité')}</h3>
+      ${a.morning?'<span class="tag-morning">le matin</span>':''}
+      <h3>${esc(cap(a.title||'activité'))}</h3>
+      ${a.desc?`<p class="desc">${esc(a.desc)}</p>`:''}
       ${w?`<div class="when"><i></i>${esc(w)}</div>`:''}
       ${a.place?`<div class="where">${esc(a.place)}</div>`:''}
-      ${a.desc?`<p class="desc">${esc(a.desc)}</p>`:''}
       ${badgesHTML(a)}
-      ${a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>À prévoir :</b> ${a.bring.map(esc).join(', ')}</span></p>`:''}
-      ${a.closedDuring||a.important?`<div class="imps">${a.closedDuring?'<p class="imp"><span class="em">💥</span><span>L\'accueil est fermé pendant cette sortie.</span></p>':''}${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:''}
+      ${a.bring&&a.bring.length?`<p class="bring"><span class="em">📣</span><span><b>à prévoir :</b> ${a.bring.map(esc).join(', ')}</span></p>`:''}
+      ${a.closedDuring||a.important?`<div class="imps">${a.closedDuring?'<p class="imp"><span class="em">💥</span><span>l\'accueil est fermé pendant cette sortie</span></p>':''}${a.important?`<p class="imp"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:''}
     </div></article>`;
 }
 const FONTS={
@@ -946,7 +961,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.9';
+const APP_VERSION='v261120.10';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
