@@ -1,5 +1,5 @@
 // API de l'application « le Programme » — Cloudflare Worker + D1.
-// Liaisons attendues : D1 « DB », variable secrète « ADMIN_PASSWORD ».
+// Liaisons attendues : D1 « DB », secret « APP_TOKEN ».
 import SEED from './seed.js';
 
 const JSONH = { 'content-type': 'application/json; charset=utf-8' };
@@ -23,21 +23,14 @@ async function init(env) {
   return ready;
 }
 
-// ---- Jeton de session signé (HMAC-SHA256 avec le mot de passe administrateur) ----
-const enc = new TextEncoder();
-const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-async function hmac(secret, msg) {
-  const key = await crypto.subtle.importKey('raw', enc.encode('ej-session:' + secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  return b64u(await crypto.subtle.sign('HMAC', key, enc.encode(msg)));
+// ---- Accès administrateur : en-tête "Authorization: Bearer <APP_TOKEN>" (comme App Budget) ----
+function safeEq(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0;
 }
-function safeEq(a, b) { if (a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
-async function makeToken(env) { const exp = Date.now() + 30 * 864e5; return exp + '.' + await hmac(env.ADMIN_PASSWORD, String(exp)); }
-async function isAdmin(req, env) {
-  if (!env.ADMIN_PASSWORD) return false;
-  const t = (req.headers.get('authorization') || '').replace(/^Bearer /, '');
-  const [exp, sig] = t.split('.');
-  if (!exp || !sig || +exp < Date.now()) return false;
-  return safeEq(sig, await hmac(env.ADMIN_PASSWORD, exp));
+function isAdmin(req, env) {
+  const h = req.headers.get('authorization') || '';
+  return !!env.APP_TOKEN && h.startsWith('Bearer ') && safeEq(h.slice(7), env.APP_TOKEN);
 }
 
 async function allDocs(env, prefixes) {
@@ -54,11 +47,13 @@ async function allDocs(env, prefixes) {
 }
 
 export async function handleApi(request, env) {
-  if (!env.DB) return bad('Base D1 non liée (liaison « DB » manquante dans Cloudflare).', 500);
-  await init(env);
   const seg = new URL(request.url).pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
   const route = seg[0] || '';
   const m = request.method;
+  if (route !== 'health') {
+    if (!env.DB) return bad('Base D1 non liée (liaison « DB » manquante dans Cloudflare).', 500);
+    await init(env);
+  }
 
   // ----- Public -----
   if (route === 'public' && m === 'GET') {
@@ -72,16 +67,14 @@ export async function handleApi(request, env) {
     const bin = Uint8Array.from(atob(r.data), c => c.charCodeAt(0));
     return new Response(bin, { headers: { 'content-type': r.type, 'cache-control': 'public, max-age=31536000, immutable' } });
   }
-  if (route === 'login' && m === 'POST') {
-    if (!env.ADMIN_PASSWORD) return bad('Mot de passe administrateur non configuré (variable ADMIN_PASSWORD).', 500);
-    const { password } = await request.json().catch(() => ({}));
-    await new Promise(r => setTimeout(r, 400)); // freine les essais à répétition
-    if (typeof password !== 'string' || !safeEq(password, env.ADMIN_PASSWORD)) return bad('Mot de passe incorrect.', 401);
-    return json({ token: await makeToken(env) });
+  if (route === 'health') {
+    // diagnostic : noms des variables présentes (jamais leurs valeurs)
+    return json({ app: 'app-prog', ok: true, db: !!env.DB, token: !!env.APP_TOKEN, variables: Object.keys(env).filter(k => !['ASSETS', 'DB'].includes(k)) }, 200, { 'cache-control': 'no-store' });
   }
 
   // ----- Créateur (authentifié) -----
-  if (!(await isAdmin(request, env))) return bad('Connexion requise.', 401);
+  if (!env.APP_TOKEN) return bad('Secret APP_TOKEN non défini dans Cloudflare.', 503);
+  if (!isAdmin(request, env)) return bad('Jeton non reconnu.', 401);
 
   if (route === 'me' && m === 'GET') return json({ ok: true });
   if (route === 'all' && m === 'GET') return json(await allDocs(env), 200, { 'cache-control': 'no-store' });

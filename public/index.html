@@ -510,7 +510,7 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
 <script id="cf-store">
 /* ===== Stockage Cloudflare : l'API /api (Pages Functions + base D1) =====
    - Visiteurs : GET /api/public (aucun compte).
-   - Créateur : mot de passe → jeton de session gardé sur cet appareil (30 jours). */
+   - Créateur : jeton APP_TOKEN (secret Cloudflare), collé une fois et gardé sur cet appareil. */
 (function(){
   if(window.claude&&window.claude.use)return; // sur claude.ai : base de données Claude
   const LS='ej-cf-token';
@@ -594,7 +594,7 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   window.EJ_CF={
     logout(){try{localStorage.removeItem(LS)}catch(e){}location.hash='';location.reload()},
-    expired(){if(!window.EJ_CF._warned){window.EJ_CF._warned=true;try{localStorage.removeItem(LS)}catch(e){}alert('Ta session a expiré : reconnecte-toi.');location.reload()}},
+    expired(){if(!window.EJ_CF._warned){window.EJ_CF._warned=true;try{localStorage.removeItem(LS)}catch(e){}alert('Le jeton n\'est plus valide : reconnecte-toi.');location.reload()}},
     async backup(){
       const r=await fetch('/api/backup',{headers:auth()});if(!r.ok)throw new Error('API '+r.status);
       const blob=await r.blob(),a=document.createElement('a');
@@ -607,19 +607,18 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
     },
     renderLogin(app){
       app.innerHTML=`<div class="cr"><header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>Espace créateur</b><small>Connexion</small></div></div></header>
-      <div class="cr-main" style="max-width:460px"><section class="panel"><h2>🔐 Connexion</h2>
-        <p class="hint">Saisis le mot de passe de l'espace créateur. La connexion reste active 30 jours sur cet appareil.</p>
-        <form id="cflogin"><label class="fld"><span>Mot de passe</span><input class="in" id="cfpw" type="password" autocomplete="current-password" autofocus></label>
+      <div class="cr-main" style="max-width:460px"><section class="panel"><h2>🔐 Jeton d'accès</h2>
+        <p class="hint">Colle le jeton <b>APP_TOKEN</b> défini dans Cloudflare. Il reste enregistré sur cet appareil jusqu'à « Se déconnecter ».</p>
+        <form id="cflogin"><label class="fld"><span>Jeton</span><input class="in" id="cfpw" type="password" autocomplete="off" autofocus></label>
         <p id="cferr" style="color:var(--red);font-weight:800;min-height:1.2em;margin:4px 0"></p>
         <div class="row"><button class="btn pri" type="submit">Se connecter</button><a class="btn ghost" href="#">← Page publique</a></div></form>
       </section></div></div>`;
       app.querySelector('#cflogin').onsubmit=async e=>{
-        e.preventDefault();const out=app.querySelector('#cferr');out.textContent='Connexion…';
+        e.preventDefault();const out=app.querySelector('#cferr'),t=app.querySelector('#cfpw').value.trim();if(!t)return;out.textContent='Vérification…';
         try{
-          const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:app.querySelector('#cfpw').value})});
-          const j=await r.json().catch(()=>({}));
-          if(!r.ok){out.textContent=j.error||'Connexion impossible.';return}
-          try{localStorage.setItem(LS,j.token)}catch(e){}location.reload();
+          const r=await fetch('/api/me',{headers:{'Authorization':'Bearer '+t},cache:'no-store'});
+          if(!r.ok){const j=await r.json().catch(()=>({}));out.textContent=j.error||'Jeton non reconnu.';return}
+          try{localStorage.setItem(LS,t)}catch(e){}location.reload();
         }catch(e){out.textContent='Serveur injoignable.'}
       };
     }};
