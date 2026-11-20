@@ -336,6 +336,22 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card.zoomed .badge{font-size:14px;padding:3px 8px}
 .card.zoomed .bring,.card.zoomed .imp{font-size:16px}
 .card.zoomed .tag-morning{font-size:14px}
+
+/* --- v21 --- */
+.badge.qf{display:block;line-height:1.45;padding:4px 8px;width:fit-content}
+.card-info .badges{flex-wrap:wrap}
+.sj-when{display:flex;flex-direction:column;gap:3px;margin:8px 0 2px;font-size:13px;font-weight:500;position:relative}
+.sj-when .bus{margin-right:6px}
+.sj-when .full-tag{position:static;align-self:flex-start;margin-top:4px;font-size:11.5px;padding:2px 7px}
+.card-head .where{margin-top:6px}
+.auth{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:14px}
+.auth>span:nth-child(2){flex:1}
+.auth-btn{border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;border-radius:8px;padding:3px 10px;font:600 12px var(--pf);box-shadow:var(--lift)}
+.card.zoomed .auth{font-size:16px}
+.card-info .auth{margin-left:-72px}
+@media (max-width:430px){.card-info .auth{margin-left:-64px}}
+@media (min-width:600px){.card-info .auth{margin-left:-92px}}
+.card.zoomed .card-info .auth{margin-left:-110px}
 </style>
 
 <style>
@@ -768,7 +784,7 @@ function badgesHTML(a){
     if(pr.cc!==''&&pr.cc!=null)t.push(esc(euro(pr.cc)));
     if(pr.hc!==''&&pr.hc!=null)t.push(esc(euro(pr.hc))+' '+esc(LBL.hc));
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
-  else if(pm==='qf')t.push(esc(pr.text||'selon quotient familial'));
+  else if(pm==='qf'){const ls=String(pr.text||'selon quotient familial').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
   if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
   if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics].toLowerCase())}</span>`);
@@ -784,13 +800,27 @@ function whenHTML(a){
   }
   return '';
 }
+const AUTH_RE=/autorisation\s+parentale/i;
+function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
+const dLong=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
+function stayWhen(a,date){
+  const t=a.timing||{}, end=a.endDate&&a.endDate>date?a.endDate:date;
+  return [`${esc(LBL.depart)} ${esc(dLong(date))}${t.start?' à '+fmtT(t.start):''}`,`→ retour ${esc(dLong(end))}${t.end?' à '+fmtT(t.end):''}`];
+}
+const ACTS_REG={};
 function cardHTML(a,opts){
-  const w=whenHTML(a);
+  opts=opts||{};
+  if(opts.date&&a.id)ACTS_REG[a.id]={a,date:opts.date};
+  const auth=needsAuth(a);
+  a=Object.assign({},a,{bring:(a.bring||[]).filter(x=>!AUTH_RE.test(x))});
+  const stay=a.cat==='sejour'&&opts.date;
+  const w=stay?'':whenHTML(a);
   const info=badgesHTML(a)
     +(a.bring&&a.bring.length?(()=>{const t=a.bring.join(', ');return `<p class="bring${jc(t)}"><span class="em">📣</span><span><b>${esc(LBL.bring)} :</b> ${esc(t)}</span></p>`})():'')
+    +(auth?`<div class="auth"><span class="em">✍️</span><span>autorisation parentale à faire signer</span>${opts.date&&!opts.noAssets?`<button type="button" class="auth-btn" data-auth="${esc(a.id||'')}">PDF</button>`:''}</div>`:'')
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'');
-  const bus=a.transport?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
-  const full=a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
+  const bus=a.transport&&!stay?'<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>':'';
+  const full=a.full&&!stay?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1}">
     <div class="card-img">${actImage(a,opts)}</div>
@@ -798,6 +828,7 @@ function cardHTML(a,opts){
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
+      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0&&a.transport?'<span class="bus" title="transport assuré">🚌</span>':''}${l}</div>`).join('')}${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
       ${w||bus||full||(opts&&opts.dateLine)?`<div class="when">${opts&&opts.dateLine?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place?`<div class="where">${esc(a.place)}</div>`:''}
     </div>
@@ -875,7 +906,7 @@ function dayHTML(day,settings,opts){
   slots.forEach(s=>{
     if(!(s.acts||[]).length)return;
     if(multi)r+=`<div class="slot-title">${esc(s.label||'Accueil')} <span>${rng(s.start,s.end)}</span></div>`;
-    r+=`<div class="cards">${s.acts.map(a=>cardHTML(a,opts)).join('')}</div>`;
+    r+=`<div class="cards">${s.acts.map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
   });
   return `<section class="day" id="j-${day.date}"><div class="dgrid">${left}<div class="acts">${r}</div></div></section>`;
 }
@@ -924,7 +955,7 @@ function mountPublic(root,data,opts){
     const m=sameM?MONTHS_S[d1.getMonth()].replace('.',''):MONTHS_S[d1.getMonth()].replace('.','')+' – '+MONTHS_S[d2.getMonth()].replace('.','');
     const f1=DAYS_S[dow(date)]+'. '+d1.getDate()+(sameM?'':' '+MONTHS_S[d1.getMonth()]);
     const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+' '+MONTHS_S[d2.getMonth()];
-    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span>${esc(f1)}</span><i>↓</i><span>${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,opts)}</div></div></div></section>`;
+    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span>${esc(f1)}</span><i>↓</i><span>${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
   }
   function withSeps(ks){
     let prev, h='';
@@ -946,7 +977,7 @@ function mountPublic(root,data,opts){
     return `<section class="pinned"><div class="pin-t"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 2.5l7 7-3 1-4.5 4.5.5 4-2 2-4-4-5 5-1-1 5-5-4-4 2-2 4 .5L14 6z" fill="currentColor"/></svg>À la une</div><div class="cards">${items.map(([k,a])=>{
       const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
       const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
-      return cardHTML(a,Object.assign({},opts,{dateLine:esc(dl)}));
+      return cardHTML(a,Object.assign({},opts,{date:k,dateLine:a.cat==='sejour'?'':esc(dl)}));
     }).join('')}</div></section>`;
   }
   function render(){
@@ -981,12 +1012,64 @@ function mountPublic(root,data,opts){
     ov.addEventListener('click',()=>{ov.classList.remove('on');setTimeout(()=>ov.remove(),200)});
   }
   root.addEventListener('click',e=>{
+    const ab=e.target.closest('[data-auth]');if(ab){e.stopPropagation();authPDF(ab.dataset.auth,ab);return}
     const t=e.target.closest('[data-info],[data-close],[data-past]');
     if(!t){const c=e.target.closest('.card');if(c&&!c.closest('.zoom-bg'))zoom(c);return}
     if(t.dataset.close){ if(e.target===t||t.classList.contains('close')){st.sheet=false;render()} return; }
     if(t.dataset.info){st.sheet=true;render();return}
     if(t.dataset.past){st.past=true;render()}
   });
+  function loadJsPDF(){
+    if(window.jspdf)return Promise.resolve(window.jspdf);
+    return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';sc.onload=()=>res(window.jspdf);sc.onerror=rej;document.head.appendChild(sc)});
+  }
+  const noEmo=t=>String(t||'').replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu,'').replace(/[⩽]/g,'<=').replace(/[⩾]/g,'>=').replace(/→/g,'->').replace(/\s+/g,' ').trim();
+  async function authPDF(id,btn){
+    const reg=ACTS_REG[id];if(!reg)return;
+    const {a,date}=reg, info=(st.settings&&st.settings.info)||{};
+    const old=btn.textContent;btn.textContent='…';
+    try{
+      const {jsPDF}=await loadJsPDF();
+      const doc=new jsPDF({unit:'mm',format:'a4'}), W=210, L=20, R=190;let y=20;
+      if(info.logo){try{const im=await fetch((window.EJ_ASSET_BASE||'/_blob/')+info.logo).then(r=>r.blob()).then(b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)}));doc.addImage(im,L,y-6,18,18)}catch(_){}}
+      doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(noEmo(info.name||'Espace jeunes'),info.logo?L+22:L,y+1);
+      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(100);doc.text(noEmo(info.sub||''),info.logo?L+22:L,y+7);doc.setTextColor(0);
+      y+=26;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('Autorisation parentale',W/2,y,{align:'center'});
+      y+=14;doc.setFont('helvetica','normal');doc.setFontSize(11.5);
+      const lines=[
+        'Je soussigné(e), Madame / Monsieur ..............................................................................',
+        'représentant(e) légal(e) de ............................................................................................',
+        'autorise sa participation à l\'activité suivante :'];
+      lines.forEach(l=>{doc.text(l,L,y);y+=8});
+      // encart de l'activité
+      const end=a.endDate&&a.endDate>date?a.endDate:date, t=a.timing||{};
+      const box=[];
+      box.push(['b',noEmo(cap(a.title||'Activité'))+(a.cat==='sejour'&&a.stayLabel?'  ('+noEmo(a.stayLabel)+')':'')]);
+      if(a.desc)box.push(['n',noEmo(a.desc)]);
+      if(a.cat==='sejour'){box.push(['n','Départ : '+dLong(date)+(t.start?' à '+fmtT(t.start):'')+(a.transport?'  (transport assuré)':'')]);box.push(['n','Retour : '+dLong(end)+(t.end?' à '+fmtT(t.end):'')])}
+      else box.push(['n',cap(fmtLong(date))+' '+parse(date).getFullYear()+(whenText(a)?' : '+noEmo(whenText(a)):'')+(a.transport?'  (transport assuré)':'')]);
+      if(a.place)box.push(['n','Lieu : '+noEmo(a.place)]);
+      const pr=a.price||{};
+      if(pr.mode&&pr.mode!=='free')box.push(['n','Tarif : '+noEmo(pr.mode==='qf'?String(pr.text||'').split('\n').join(' ; '):priceText(pr))]);
+      if(a.booking&&a.booking.on)box.push(['n','Sur réservation'+(a.booking.places?' : '+a.booking.places+' places':'')]);
+      const br=(a.bring||[]).filter(x=>!AUTH_RE.test(x));
+      if(br.length)box.push(['n','À prévoir : '+noEmo(br.join(', '))]);
+      if(a.important)box.push(['r',noEmo(a.important)]);
+      let bh=6;const wrapped=box.map(([k,tx])=>{doc.setFont('helvetica',k==='b'?'bold':'normal');doc.setFontSize(k==='b'?13:11);const ls=doc.splitTextToSize(tx,R-L-10);bh+=ls.length*(k==='b'?6.2:5.4)+2;return [k,ls]});
+      y+=2;doc.setDrawColor(98,40,215);doc.setLineWidth(.6);doc.roundedRect(L,y,R-L,bh+4,3,3);
+      let yy=y+8;wrapped.forEach(([k,ls])=>{doc.setFont('helvetica',k==='b'?'bold':'normal');doc.setFontSize(k==='b'?13:11);doc.setTextColor(k==='r'?196:0,k==='r'?43:0,k==='r'?58:0);doc.text(ls,L+5,yy);yy+=ls.length*(k==='b'?6.2:5.4)+2});
+      doc.setTextColor(0);y+=bh+14;
+      // case à cocher
+      doc.setLineWidth(.4);doc.setDrawColor(0);doc.rect(L,y-4,4.5,4.5);
+      doc.setFontSize(11);const cb=doc.splitTextToSize('J\'ai bien pris note des conditions d\'organisation '+(a.cat==='sejour'?'du séjour':'de l\'activité')+' et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s\'il n\'a pas le matériel prévu ci-dessus.',R-L-9);
+      doc.text(cb,L+8,y);y+=cb.length*5.4+16;
+      doc.text('Fait le ...... / ...... / ............',L,y);doc.text('Signature du représentant légal :',W/2+5,y);
+      doc.setDrawColor(180);doc.roundedRect(W/2+5,y+4,R-W/2-5,30,2,2);
+      const fn='autorisation-'+noEmo(a.title||'activite').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+date+'.pdf';
+      doc.save(fn);
+    }catch(e){alert('Création du PDF impossible pour le moment.')}
+    finally{btn.textContent=old}
+  }
   function update(d){if(d.days)st.days=d.days;if(d.settings)st.settings=d.settings;render()}
   update(data||{});
   return {update};
@@ -1230,7 +1313,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.20';
+const APP_VERSION='v261120.21';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1612,7 +1695,7 @@ function bindDrawer(dr){
 }
 
 /* ---------- Composeur d'activité ---------- */
-const BRING_SUGG=['un maillot de bain (pas de short)','une serviette','un goûter','un pique-nique','une tenue de sport','des chaussures de sport propres','des chaussures fermées qui vont dans l\'eau','ton attestation de nage','une paire de gants','des grosses chaussettes','une gourde','tes couverts','2 € pour le repas','une casquette','des affaires de rechange','un vêtement de pluie','une lampe de poche','un duvet et un tapis de sol','l\'autorisation parentale'];
+const BRING_SUGG=['un maillot de bain (pas de short)','une serviette','un goûter','un pique-nique','une tenue de sport','des chaussures de sport propres','des chaussures fermées qui vont dans l\'eau','ton attestation de nage','une paire de gants','des grosses chaussettes','une gourde','tes couverts','2 € pour le repas','une casquette','des affaires de rechange','un vêtement de pluie','une lampe de poche','un duvet et un tapis de sol',];
 function blankActivity(cat){
   return {id:uid(),cat:cat||'jeux',title:'',desc:'',visual:(CATS[cat]||{}).visual||'etoile',asset:'',publics:'tous',morning:false,
     timing:{mode:'none',start:'',end:''},place:'',transport:false,booking:{on:false,places:''},full:false,
@@ -1620,7 +1703,8 @@ function blankActivity(cat){
 }
 function normalize(a){
   const b=blankActivity(a.cat);
-  return Object.assign(b,clone(a),{timing:Object.assign(b.timing,a.timing||{}),booking:Object.assign(b.booking,a.booking||{}),price:Object.assign(b.price,a.price||{}),bring:(a.bring||[]).slice()});
+  const br=(a.bring||[]).slice(), au=br.some(x=>/autorisation\s+parentale/i.test(x));
+  return Object.assign(b,clone(a),{timing:Object.assign(b.timing,a.timing||{}),booking:Object.assign(b.booking,a.booking||{}),price:Object.assign(b.price,a.price||{}),bring:br.filter(x=>!/autorisation\s+parentale/i.test(x)),auth:!!(a.auth||au)});
 }
 function tplMeta(a){
   const x=[];
@@ -1637,6 +1721,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
   let saveAsTpl=false;
   const m=openModal('',{});
   function title(){return step===1?'Quel type d\'activité ?':step===2?(CATS[cat].emoji+' '+CATS[cat].label+' — partir d\'une activité type'):(initial?'Modifier l\'activité':mode==='template'?'Nouvelle activité type':'Nouvelle activité')}
+  let prevStep=null;
   function draw(){
     let body='',foot='';
     if(step===1){
@@ -1658,7 +1743,9 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
         ${mode==='day'?`<label class="sw" style="font-size:13.5px"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme activité type</label>`:''}
         <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button>`;
     }
+    const prevMb=m.el.querySelector('.mb'), keepY=prevMb&&prevStep===step?prevMb.scrollTop:0;prevStep=step;
     m.el.innerHTML=`<div class="mh"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape ${step}/3</span>`:''}<button class="ico" data-a="cancel" title="Fermer">✕</button></div><div class="mb">${body}</div><div class="mf">${foot}</div>`;
+    {const nm=m.el.querySelector('.mb');if(nm&&keepY)nm.scrollTop=keepY}
     bind();
   }
   function tplCard(t){
@@ -1681,6 +1768,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
         <label class="sw"><input type="checkbox" id="ffull" ${f.full?'checked':''}> Complet</label>
         <label class="sw"><input type="checkbox" id="fhl" ${f.highlight?'checked':''}> Mettre en évidence l'activité</label>
         <label class="sw"><input type="checkbox" id="fpin" ${f.pinned?'checked':''}> Épingler en tête de page</label>
+        <label class="sw"><input type="checkbox" id="fauth" ${f.auth?'checked':''}> Autorisation parentale à faire signer</label>
       </div>
       <div>
         <label class="fld"><span>Titre</span><input class="in" id="ftitle" value="${esc(f.title)}" placeholder="ex. Piscine à l'IloBulles de Contres" style="font-weight:800;font-size:17px"></label>
@@ -1700,7 +1788,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
         <div class="box"><h4>🤑 Tarif</h4>${seg('pmode',p.mode,[['free','Gratuit'],['single','Prix unique'],['ccv2cc','CCV2CC / hors comm.'],['qf','Selon QF / autre']])}
           ${p.mode==='single'?`<div class="row" style="margin-top:8px"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:110px"> €</div>`:''}
           ${p.mode==='ccv2cc'?`<div class="row" style="margin-top:8px"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:100px"> €<span class="kbd">Hors communauté</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:100px"> €</div>`:''}
-          ${p.mode==='qf'?`<input class="in" id="ptext" style="margin-top:8px" value="${esc(p.text)}" placeholder="ex. CCV2CC ⩽ 900 : 200 € | ⩽ 1400 : 250 € | > 1400 : 300 €">`:''}
+          ${p.mode==='qf'?`<textarea class="in" id="ptext" style="margin-top:8px;min-height:84px" placeholder="Une ligne par tarif, ex.&#10;QF ⩽ 900 : 200 €&#10;QF ⩽ 1400 : 250 €&#10;QF > 1400 : 300 €">${esc(p.text)}</textarea>`:''}
         </div>
         <div class="box"><h4>🎒 À prévoir (matériel, repas…)</h4>
           <div class="chips">${f.bring.map((x,i)=>`<span class="chipx">${esc(x)}<button type="button" data-rmb="${i}" aria-label="Retirer">✕</button></span>`).join('')||'<span class="kbd">Rien de particulier</span>'}</div>
@@ -1723,7 +1811,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
-    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     $('#fcat').onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
     $$('[data-seg]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
