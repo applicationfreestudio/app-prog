@@ -93,24 +93,37 @@ button{font:inherit;color:inherit;cursor:pointer}
 <style>
 /* ---------- Espace créateur ---------- */
 .cr{min-height:100vh;background:#F6F3EF;--cr-line:#E4DDD3}
-.cr-top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;display:flex;align-items:center;gap:6px;padding:8px 14px;flex-wrap:wrap}
-.cr-top .brand b{font-size:17px;color:#fff}
-.cr-top .brand small{color:#C9C2D1}
-.cr-top .logo{width:34px;height:34px;font-size:16px;border-radius:11px}
-.tabs{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}
-.tab{border:0;background:transparent;color:#D9D3E0;padding:8px 12px;border-radius:10px;font-weight:800;font-size:14px}
+.cr{font-size:16px}
+.cr-top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:8px 12px 6px}
+.cr-top .r1{display:flex;align-items:center;gap:10px}
+.cr-top .app{font-family:var(--head);font-weight:800;font-size:22px;line-height:1;color:#fff;letter-spacing:-.01em}
+.cr-top .ver{font-size:12px;font-weight:800;color:#FFD23F;margin-left:6px;vertical-align:2px}
+.role{margin-left:auto;font-size:13px;font-weight:800;padding:5px 11px;border-radius:999px;background:#FFD23F;color:var(--ink);white-space:nowrap}
+.role.ed{background:#9BE3C3}
+.tabs{display:flex;gap:4px;overflow-x:auto;flex-wrap:nowrap;margin:8px -12px 0;padding:0 12px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;color:#D9D3E0;padding:9px 14px;border-radius:11px;font-weight:800;font-size:16px;white-space:nowrap;flex:0 0 auto}
 .tab.on{background:#fff;color:var(--ink)}
 .cr-top .sp{flex:1}
 .who{font-size:12px;color:#C9C2D1;font-weight:700}
-.cr-main{padding:18px;max-width:1280px;margin:0 auto}
+.cr-main{padding:14px;max-width:1280px;margin:0 auto}
+@media (min-width:821px){.cr-main{padding:18px}}
 .h-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.h-row h1{font-family:var(--head);font-size:28px;margin:0;letter-spacing:-.02em}
-.btn{border:1.5px solid var(--cr-line);background:#fff;border-radius:11px;padding:8px 13px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.h-row h1{font-family:var(--head);font-size:28px;margin:0;letter-spacing:-.02em;line-height:1.1}
+.cal-bar{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.cal-bar .l1,.cal-bar .l2{display:flex;align-items:center;gap:8px}
+.cal-bar .l1 h1{flex:1;text-align:center;font-family:var(--head);font-size:26px;margin:0;line-height:1.1}
+.cal-bar .l2 select{flex:1;min-width:0}
+@media (min-width:821px){.cal-bar{flex-direction:row;align-items:center}.cal-bar .l1{flex:1}.cal-bar .l1 h1{flex:0 1 auto;text-align:left;min-width:220px}}
+.leg-row{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:16px;font-weight:700;border-top:1px solid #F0EAE2}
+.leg-row:first-child{border-top:0}
+.leg-row .dot{width:14px;height:14px}
+.btn{border:1.5px solid var(--cr-line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:800;font-size:15px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .btn:hover{border-color:#BDB3A6}
 .btn.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
 .btn.go{background:var(--green);color:#fff;border-color:var(--green)}
 .btn.warn{color:var(--red)}
-.btn.sm{padding:5px 9px;font-size:13px;border-radius:9px}
+.btn.sm{padding:7px 11px;font-size:14px;border-radius:10px}
 .btn.ghost{border-color:transparent;background:transparent}
 .btn:disabled{opacity:.45;cursor:default}
 select.btn{appearance:auto}
@@ -128,11 +141,11 @@ select.btn{appearance:auto}
 .cell.t-vacances{background:linear-gradient(#FFF4E8,#fff 40%)}
 .cell.t-off{background:#F1EEEA;border-style:dashed}
 .cell.today{box-shadow:0 0 0 2px var(--orange)}
-.cell .num{font-family:var(--head);font-weight:800;font-size:20px;line-height:1}
+.cell .num{font-family:var(--head);font-weight:800;font-size:22px;line-height:1}
 .cell .top{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.cell .ty{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cell .hr{font-size:12px;font-weight:800;color:#3B3545}
-.cell .al{font-size:12px;line-height:1.25;color:#3B3545;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .ty{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .hr{font-size:14px;font-weight:800;color:#3B3545}
+.cell .al{font-size:14px;line-height:1.25;color:#3B3545;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell .al.m{color:#C2560F;font-weight:700}
 .cell .more{font-size:11px;color:var(--ink2);font-weight:700}
 .cell .ghost-txt{font-size:12px;color:#9B9184;font-style:italic}
@@ -142,27 +155,37 @@ select.btn{appearance:auto}
   .cal-h{display:none}
   .cell{min-height:auto}
   .cell.out{display:none}
-  .cell .num::after{content:attr(data-dn);font-family:var(--body);font-size:13px;margin-left:6px;color:var(--ink2)}
+  .cell .num::after{content:attr(data-dn);font-family:var(--body);font-size:15px;margin-left:8px;color:var(--ink2)}
+  .cell{padding:10px 12px;gap:4px}
 }
 /* Panneau de journée */
 .scrim{position:fixed;inset:0;background:rgba(20,16,26,.42);z-index:40}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:#FBF9F6;z-index:41;display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.18)}
-.dr-head{padding:12px 16px;border-bottom:1px solid var(--cr-line);background:#fff}
+.dr-head{padding:10px 12px;border-bottom:1px solid var(--cr-line);background:#fff}
 .dr-head .r1{display:flex;align-items:center;gap:8px}
-.dr-head h2{font-family:var(--head);font-size:24px;margin:0;flex:1;line-height:1.1}
+.dr-head h2{font-family:var(--head);font-size:23px;margin:0;flex:1;line-height:1.1}
+.dr-head .r2 .pill{font-size:13px}
+.dr-head .r2 .st{margin-left:auto}
+.dr-foot{border-top:1px solid var(--cr-line);background:#fff;padding:8px 12px calc(10px + env(safe-area-inset-bottom))}
+.dr-foot .sec{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+.dr-foot .sec::-webkit-scrollbar{display:none}
+.dr-foot .sec .btn{flex:0 0 auto}
+.dr-foot .pri{display:flex;gap:8px}
+.dr-foot .pri .btn{flex:1 1 0;min-width:0;justify-content:center;padding:12px 8px;font-size:16px;white-space:normal;line-height:1.15;text-align:center}
+.dr-foot .saving{display:block;margin:0 0 6px;text-align:right}
 .dr-head .r2{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 .pill{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:#EFEAE3}
 .pill.p-draft{background:#FFF0C7;color:#7A5300}.pill.p-pub{background:#DDF4E7;color:#146B3E}.pill.p-mod{background:#E2ECFD;color:#1D57B5}.pill.p-todo{background:#EFEAE3;color:#6B6257}
 .saving{font-size:12px;color:var(--ink2);font-weight:700;margin-left:auto}
-.dr-body{flex:1;overflow:auto;padding:14px 16px 40px}
+.dr-body{flex:1;overflow:auto;padding:12px 14px 24px}
 .fld{display:block;margin:10px 0}
-.fld>span{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);margin-bottom:5px}
-.in,textarea.in,select.in{width:100%;border:1.5px solid var(--cr-line);border-radius:10px;padding:9px 11px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
+.fld>span{display:block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);margin-bottom:5px}
+.in,textarea.in,select.in{width:100%;border:1.5px solid var(--cr-line);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
 .in:focus{outline:2px solid var(--ink);outline-offset:-1px}
 textarea.in{min-height:64px;resize:vertical}
 .in.t{width:auto;padding:6px 8px;font-weight:800}
 .in.red{color:var(--red);font-weight:700}
-.sw{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;cursor:pointer;user-select:none;padding:4px 0}
+.sw{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;cursor:pointer;user-select:none;padding:4px 0}
 .sw input{appearance:none;width:42px;height:24px;border-radius:999px;background:#D8D0C5;position:relative;transition:.15s;flex:0 0 auto;cursor:pointer;margin:0}
 .sw input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
 .sw input:checked{background:var(--green)}
@@ -177,12 +200,12 @@ textarea.in{min-height:64px;resize:vertical}
 .act .th{width:72px;height:44px;border-radius:9px;overflow:hidden;flex:0 0 auto}
 .act .th img{width:100%;height:100%;object-fit:cover}
 .act .tx{flex:1;min-width:0}
-.act .tx b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.act .tx small{display:block;font-size:12.5px;color:var(--ink2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .tx b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .tx small{display:block;font-size:14px;color:var(--ink2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .act .tools{display:flex;gap:2px}
 .ico{border:0;background:transparent;width:30px;height:30px;border-radius:8px;font-size:15px;display:grid;place-items:center}
 .ico:hover{background:#EFEAE3}
-.add-act{width:100%;border:2px dashed #CFC5B8;background:transparent;border-radius:12px;padding:12px;font-weight:800;color:#6B6257;font-size:15px}
+.add-act{width:100%;border:2px dashed #CFC5B8;background:transparent;border-radius:12px;padding:14px;font-weight:800;color:#6B6257;font-size:16px}
 .add-act:hover{border-color:var(--ink);color:var(--ink);background:#fff}
 .empty-slot{color:#9B9184;font-size:14px;text-align:center;padding:6px 0 0}
 /* Modales */
@@ -240,20 +263,41 @@ textarea.in{min-height:64px;resize:vertical}
 /* Paramètres */
 .panel{background:#fff;border:1.5px solid var(--cr-line);border-radius:18px;padding:14px 16px;margin-bottom:16px}
 .panel h2{font-family:var(--head);font-size:21px;margin:0 0 4px}
-.panel .hint{color:var(--ink2);font-size:14px;margin:0 0 10px}
+.panel .hint{color:var(--ink2);font-size:15px;margin:0 0 10px;line-height:1.45}
 .ptable{width:100%;border-collapse:collapse}
 .ptable td,.ptable th{padding:5px 4px;text-align:left;font-size:14px}
 .ptable th{font-size:12px;text-transform:uppercase;color:var(--ink2)}
-.ptable td:nth-child(2){width:38%}.ptable td:nth-child(2) .in{min-width:130px}
+.ptable td:nth-child(2){width:38%}
+@media (max-width:640px){
+  .ptable thead{display:none}
+  .ptable tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px;gap:6px;padding:10px 0;border-top:1px solid #F0EAE2}
+  .ptable tr:first-child{border-top:0}
+  .ptable td{padding:0;width:auto!important}
+  .ptable td:nth-child(1){grid-column:1}
+  .ptable td:nth-child(2){grid-column:2/4}
+  .ptable td:nth-child(3){grid-column:1}
+  .ptable td:nth-child(4){grid-column:2}
+  .ptable td:nth-child(5){grid-column:3;grid-row:2}
+  .ptable .in.t{width:100%}
+}.ptable td:nth-child(2) .in{min-width:130px}
 @media (max-width:520px){.act .th{width:50px;height:34px}.act .tools .ico{width:26px}.drawer .dr-body{padding:12px 10px 40px}}
 .wk{display:grid;grid-template-columns:110px 70px 1fr;gap:8px;align-items:start;padding:8px 0;border-top:1px solid #F0EAE2}
 .wk:first-of-type{border-top:0}
 .wk .dn{font-weight:800;padding-top:6px}
 .wk .sl{display:flex;flex-direction:column;gap:6px}
 .wk .sl .row{flex-wrap:nowrap}
-@media (max-width:640px){.wk{grid-template-columns:1fr}}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:980px){.two{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .wk{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .wk .sl{grid-column:1/-1}
+  .wk .sl .row{flex-wrap:wrap}
+  .wk .sl .row .in.t[type=time]{flex:0 0 auto;width:8.2em}
+  .wk .sl .row .ico{margin-left:auto}
+  .wk .sl .row .in.t[data-wf=label]{flex:1 1 100%;order:3;width:auto!important;min-width:0}
+}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:980px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{min-width:0;overflow-wrap:anywhere}
+.panel .row .in{min-width:0}
 .sticky-save{position:sticky;bottom:12px;display:flex;justify-content:flex-end;gap:8px;pointer-events:none}
 .sticky-save>*{pointer-events:auto;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 /* Aperçu téléphone */
@@ -264,7 +308,7 @@ textarea.in{min-height:64px;resize:vertical}
 .toast.err{background:var(--red)}
 .loading{padding:60px 20px;text-align:center;color:var(--ink2);font-weight:700}
 .note{background:#FFF8E6;border:1.5px solid #F2DDA5;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.45;margin-bottom:14px}
-.kbd{font-size:12px;color:var(--ink2)}
+.kbd{font-size:14px;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -610,7 +654,7 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
       const h=(location.hash||'').slice(1);
       if(dg&&h!=='acces-admin')return renderDelegue(app,dg);
       const ask=h==='acces';
-      app.innerHTML=`<div class="cr"><header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>Espace créateur</b><small>Connexion</small></div></div></header>
+      app.innerHTML=`<div class="cr"><header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${window.EJ_VERSION||''}</span></span><span class="role" style="background:#D9D3E0">Connexion</span></div></header>
       <div class="cr-main" style="max-width:520px">
         <div class="seg" style="margin-bottom:12px"><button data-m="ask" class="${ask?'on':''}">Demander un accès</button><button data-m="adm" class="${ask?'':'on'}">Administrateur</button></div>
         ${ask?`<section class="panel"><h2>🙋 Demander un accès</h2>
@@ -645,6 +689,25 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
           if(!r.ok){out.textContent=j.error||'Envoi impossible.';return}
           setDel({id:j.id,k});renderDelegue(app,getDel());
         }catch(e){out.textContent='Serveur injoignable.'}
+      };
+    },
+    mountToken(el,{toast,confirmBox}){
+      const t=token||'';
+      el.innerHTML=`<h2>🔑 Token de sauvegarde</h2>
+        <p class="hint">Ce jeton (secret <b>APP_TOKEN</b> dans Cloudflare) donne l'accès <b>administrateur</b> sur cet appareil. Sans lui, l'appareil n'affiche que la page publique.</p>
+        <div class="row"><input class="in" id="tkv" type="password" value="${esc(t)}" autocomplete="off" style="font-family:monospace"><button class="btn" id="tkshow" title="Afficher">👁️</button></div>
+        <div class="row" style="margin-top:8px"><button class="btn pri" id="tksave">Enregistrer le jeton</button><button class="btn warn" id="tkdel">Retirer de cet appareil</button></div>`;
+      const v=el.querySelector('#tkv');
+      el.querySelector('#tkshow').onclick=()=>{v.type=v.type==='password'?'text':'password'};
+      el.querySelector('#tksave').onclick=async()=>{
+        const n=v.value.trim();if(!n||n===token){toast('Jeton inchangé');return}
+        const r=await fetch('/api/me',{headers:{'Authorization':'Bearer '+n},cache:'no-store'}).catch(()=>null);
+        if(!r||!r.ok){toast('Ce jeton n\'est pas reconnu',true);return}
+        try{localStorage.setItem(LS,n)}catch(e){}toast('Jeton enregistré ✓');setTimeout(()=>location.reload(),800);
+      };
+      el.querySelector('#tkdel').onclick=async()=>{
+        if(!await confirmBox('Retirer le jeton de cet appareil ? Il n\'affichera plus que la page publique, jusqu\'à ce que tu recolles le jeton.',{ok:'Retirer',danger:true}))return;
+        window.EJ_CF.logout();
       };
     },
     async mountAccess(el,{toast,confirmBox}){
@@ -690,7 +753,7 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
   function setDel(v){try{v?localStorage.setItem(LSD,JSON.stringify(v)):localStorage.removeItem(LSD)}catch(e){}}
   const dAuth=dg=>({'Authorization':'Bearer '+dg.id+'.'+dg.k});
   async function renderDelegue(app,dg){
-    const shell=(title,body)=>`<div class="cr"><header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>${title}</b><small>Espace jeunes</small></div></div><span class="sp"></span><button class="tab" id="dgout">Se déconnecter</button></header><div class="cr-main" style="max-width:640px">${body}</div></div>`;
+    const shell=(title,body,role)=>`<div class="cr"><header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${window.EJ_VERSION||''}</span></span><span class="role ${role?'ed':''}" style="${role?'':'background:#D9D3E0'}">${role||'Demande d\'accès'}</span></div></header><div class="cr-main" style="max-width:640px">${body}<p style="margin-top:18px"><button class="btn ghost warn" id="dgout">Oublier mon accès sur cet appareil</button></p></div></div>`;
     const bind=()=>{const o=app.querySelector('#dgout');if(o)o.onclick=()=>{setDel(null);location.hash='';location.reload()};const r=app.querySelector('#dgref');if(r)r.onclick=()=>renderDelegue(app,dg)};
     app.innerHTML=shell('Mon accès','<div class="loading">Vérification…</div>');bind();
     let me;
@@ -699,14 +762,14 @@ window.EJ={MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmt
     const hello=`Bonjour ${esc(me.prenom)}`;
     if(me.status==='attente'){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>⏳ Demande envoyée</h2><p class="hint">${hello}, ta demande est en attente de validation par l'administrateur. Reviens sur cette page plus tard, depuis cet appareil.</p><button class="btn" id="dgref">Actualiser</button></section>`);bind();return}
     if(me.status!=='active'){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>🚫 Accès ${me.status==='refusee'?'refusé':'révoqué'}</h2><p class="hint">${hello}, ton accès n'est pas ouvert. Contacte l'équipe de l'Espace jeunes si besoin.</p></section>`);bind();return}
-    if(!me.droits.includes('brouillons')){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>✅ Accès accordé</h2><p class="hint">${hello}, ton accès est validé, mais aucun droit ne t'a encore été attribué.</p><button class="btn" id="dgref">Actualiser</button></section>`);bind();return}
+    if(!me.droits.includes('brouillons')){app.innerHTML=shell('Mon accès',`<section class="panel"><h2>✅ Accès accordé</h2><p class="hint">${hello}, ton accès est validé, mais aucun droit ne t'a encore été attribué.</p><button class="btn" id="dgref">Actualiser</button></section>`,'Éditeur');bind();return}
     // Droit « brouillons » : calendrier de travail en lecture seule
     let d;
     try{const r=await fetch('/api/brouillons',{headers:dAuth(dg),cache:'no-store'});if(!r.ok)throw 0;d=await r.json()}
     catch(e){app.innerHTML=shell('Calendrier de travail','<section class="panel"><p class="hint">Calendrier indisponible pour le moment.</p><button class="btn" id="dgref">Réessayer</button></section>');bind();return}
     const days=Object.assign({},d.public,d.drafts);
     const st=k=>{const dr=d.drafts[k],p=d.public[k];if(p&&(!dr||dr.rev===dr.pubRev))return['p-pub','En ligne'];if(p)return['p-mod','Modifié, pas encore en ligne'];return['p-draft','Non publié']};
-    app.innerHTML=`<div style="background:var(--ink);color:#fff;padding:8px 12px;display:flex;gap:6px;align-items:center;font-size:13px;position:sticky;top:0;z-index:6"><span style="flex:1;line-height:1.2"><b>🗂️ Calendrier de travail</b><br><span style="color:#C9C2D1">Non publié · ${hello}</span></span><button class="ico" id="dgref" title="Actualiser" style="color:#fff">↻</button><button class="tab" id="dgout" style="color:#fff;font-size:13px">Déconnexion</button></div><div id="dgpub"></div>`;
+    app.innerHTML=`<div class="cr-top" style="position:sticky;top:0;z-index:6"><div class="r1"><span class="app">AppProg<span class="ver">${window.EJ_VERSION||''}</span></span><button class="ico" id="dgref" title="Actualiser" style="color:#fff;font-size:18px">↻</button><span class="role ed">Éditeur</span></div><div style="color:#C9C2D1;font-size:14px;font-weight:700;margin-top:6px">🗂️ Calendrier de travail, non publié · ${hello}</div></div><div id="dgpub"></div>`;
     bind();
     window.EJ.mountPublic(app.querySelector('#dgpub'),{days,settings:d.settings},{statusOf:k=>{const [c,l]=st(k);return `<span class="pill ${c}" style="margin-left:6px">${l}</span>`}});
   }
@@ -721,6 +784,8 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
+const APP_VERSION='v261120.2';
+window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
   settings:null,library:null,drafts:{},pub:{},
@@ -814,10 +879,8 @@ function render(){
   if(!S.canEdit){const h=(location.hash||'').slice(1);if(window.EJ_GH&&['createur','activites','parametres','apercu','acces'].includes(h)){window.EJ_GH.renderLogin(app);return}renderPublicOnly();return}
   const v=UI.view;
   app.innerHTML=`<div class="cr">
-    <header class="cr-top"><div class="brand"><span class="logo">EJ</span><div><b>Espace créateur</b><small>${esc(settings().info.name||'Espace jeunes')}</small></div></div>
-      <nav class="tabs">
-        ${tabBtn('createur','📅 Calendrier')}${tabBtn('activites','🗂️ Activités types')}${tabBtn('parametres','⚙️ Paramètres')}${tabBtn('apercu','📱 Aperçu public')}
-      </nav><span class="sp"></span>${window.EJ_GH?'<button class="tab" id="ghout" title="Se déconnecter de cet appareil">Se déconnecter</button>':''}${S.stale?'<span class="who">⚠️ données peut-être pas à jour</span>':''}</header>
+    <header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${APP_VERSION}</span></span>${S.stale?'<span class="who">⚠️ pas à jour</span>':''}<span class="role">Administrateur</span></div>
+      <nav class="tabs">${tabBtn('createur','📅 Calendrier')}${tabBtn('activites','🗂️ Activités')}${tabBtn('parametres','⚙️ Paramètres')}${tabBtn('apercu','📱 Aperçu')}</nav></header>
     <div class="cr-main" id="crmain"></div></div>`;
   const main=document.getElementById('crmain');
   if(v==='activites')renderLibrary(main);
@@ -825,7 +888,7 @@ function render(){
   else if(v==='apercu')renderPreview(main);
   else renderCalendar(main);
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>go(b.dataset.tab));
-  const go2=document.getElementById('ghout');if(go2)go2.onclick=()=>window.EJ_GH.logout();
+  const on=app.querySelector('.tab.on');if(on&&on.scrollIntoView)on.parentNode.scrollLeft=on.offsetLeft-12;
 }
 const tabBtn=(k,l)=>`<button class="tab${UI.view===k||(k==='createur'&&UI.view==='programme')?' on':''}" data-tab="${k}">${l}</button>`;
 function go(view){if(location.hash!=='#'+view)location.hash=view;else route()}
@@ -865,19 +928,24 @@ function renderCalendar(main){
   for(let d=start;d<=end;d=addDays(d,1))cells+=cellHTML(d,d.slice(0,7)!==UI.month);
   main.innerHTML=`
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
-    <div class="h-row">
-      <button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button>
-      <h1>${cap(MONTHS[m-1])} ${y}</h1>
-      <button class="btn" data-mv="1" aria-label="Mois suivant">›</button>
-      <button class="btn sm" data-mv="0">Aujourd'hui</button>
-      <select class="btn sm" id="jump"><option value="">Aller à une période…</option>${pers.map(p=>`<option value="${p.start}">${p.type==='vacances'?'🏖️':'🎒'} ${esc(p.name)} (${fmtShort(p.start)} → ${fmtShort(p.end)})</option>`).join('')}</select>
-      <span style="flex:1"></span>
-      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'}>${draftsInMonth.length?`🚀 Mettre en ligne ${draftsInMonth.length>1?'les '+draftsInMonth.length+' brouillons':'le brouillon'} du mois`:'Aucun brouillon à mettre en ligne'}</button>
+    <div class="cal-bar">
+      <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button><button class="btn" id="legend" title="Légende" aria-label="Légende">ⓘ</button></div>
+      <div class="l2"><select class="btn" id="jump"><option value="">Aller à une période…</option>${pers.map(p=>`<option value="${p.start}">${p.type==='vacances'?'🏖️':'🎒'} ${esc(p.name)} (${fmtShort(p.start)} → ${fmtShort(p.end)})</option>`).join('')}</select>
+      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">🚀 ${draftsInMonth.length?draftsInMonth.length+' à publier':'Rien à publier'}</button></div>
     </div>
-    <div class="legend" style="margin-bottom:10px"><span><i class="dot st-todo"></i>À construire</span><span><i class="dot st-draft"></i>Brouillon</span><span><i class="dot st-pub"></i>En ligne</span><span><i class="dot st-mod"></i>Modifié depuis la mise en ligne</span><span class="kbd">Clique sur un jour pour le construire.</span></div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
   main.querySelector('#jump').onchange=e=>{if(e.target.value){UI.month=e.target.value.slice(0,7);render()}};
+  main.querySelector('#legend').onclick=()=>{
+    const m=openModal(`<div class="mh"><h3>Légende</h3><button class="ico" data-x>✕</button></div><div class="mb">
+      <div class="leg-row"><i class="dot st-todo"></i>À construire : pré-rempli depuis la semaine type</div>
+      <div class="leg-row"><i class="dot st-draft"></i>Brouillon : pas encore visible par le public</div>
+      <div class="leg-row"><i class="dot st-pub"></i>En ligne : visible sur la page publique</div>
+      <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
+      <div class="leg-row">🏖️ Vacances · 🎒 Période scolaire · 🚫 Fermeture</div>
+      <div class="leg-row"><span style="color:#C2560F">● Texte orange</span> : activité du matin</div></div>`,{cls:'sm'});
+    m.el.querySelector('[data-x]').onclick=()=>m.close();
+  };
   main.querySelectorAll('.cell').forEach(c=>c.onclick=()=>openDrawer(c.dataset.date));
   main.querySelector('#pubmonth').onclick=async()=>{
     if(!await confirmBox(`Mettre en ligne ${draftsInMonth.length} journée(s) de ${MONTHS[m-1]} ? Elles seront visibles sur la page publique.`,{ok:'Mettre en ligne'}))return;
@@ -932,22 +1000,36 @@ function flushSave(){
 function setSaving(t){const el=document.getElementById('saving');if(el)el.textContent=t}
 function refreshDrawerStatus(){
   if(!UI.drawer)return;
-  const el=document.getElementById('drstatus');if(!el)return;
-  el.innerHTML=statusBar(UI.drawer.date);bindStatus();
+  const el=document.getElementById('drstatus'),ft=document.getElementById('drfoot');if(!el||!ft)return;
+  const sv=(document.getElementById('saving')||{}).textContent;
+  el.innerHTML=statusBar(UI.drawer.date);ft.innerHTML=footHTML(UI.drawer.date);if(sv)setSaving(sv);bindStatus();
 }
+const ST_SHORT={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modifié'};
 function statusBar(date){
   const s=status(date);
-  return `<span class="pill p-${s}">${ST_LABEL[s]}</span>
-    ${s==='draft'||s==='todo'?`<button class="btn go sm" data-pa="pub">🚀 Mettre en ligne</button>`:''}
-    ${s==='mod'?`<button class="btn go sm" data-pa="pub">🔄 Mettre à jour la version en ligne</button>`:''}
-    ${s==='pub'||s==='mod'?`<button class="btn sm warn" data-pa="unpub">Retirer de la page publique</button>`:''}`;
+  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${ST_SHORT[s]}</span>`;
+}
+function footHTML(date){
+  const s=status(date);
+  return `<span class="saving" id="saving">${S.drafts[date]?'✓ Enregistré':'Pré-rempli depuis la semaine type'}</span>
+    <div class="sec">
+      <button class="btn sm" data-pa="tpl">↺ Semaine type</button>
+      ${S.drafts[date]?'<button class="btn sm warn" data-pa="del">🗑️ Effacer le brouillon</button>':''}
+      ${s==='pub'||s==='mod'?'<button class="btn sm warn" data-pa="unpub">⛔ Retirer du public</button>':''}
+    </div>
+    <div class="pri">
+      <button class="btn" data-pa="save">💾 Sauvegarder comme brouillon</button>
+      <button class="btn go" data-pa="pub">${s==='mod'?'🔄 Mettre à jour en ligne':s==='pub'?'✓ Valider (en ligne)':'🚀 Mettre en ligne'}</button>
+    </div>`;
 }
 function bindStatus(){
-  document.querySelectorAll('[data-pa]').forEach(b=>b.onclick=async()=>{
-    const date=UI.drawer.date;
-    if(b.dataset.pa==='pub'){flushSave();await publishDay(date)}
-    else{ if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return; await unpublishDay(date)}
-    refreshDrawerStatus();
+  document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=async()=>{
+    const date=UI.drawer.date, a=b.dataset.pa;
+    if(a==='save'){if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
+    if(a==='pub'){if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);closeDrawer();return}
+    if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
+    if(a==='tpl')return resetTemplate();
+    if(a==='del')return deleteDraft();
   });
 }
 async function publishDay(date,quiet){
@@ -969,6 +1051,20 @@ async function publishDay(date,quiet){
 async function unpublishDay(date){
   try{await docDel('public/'+date);delete S.pub[date];toast('Journée retirée de la page publique')}catch(e){}
 }
+async function resetTemplate(){
+  const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
+  if(!await confirmBox('Réappliquer les horaires de la semaine type ? '+(n?'Les '+n+' activité(s) seront rangées dans la première période.':''),{ok:'Réappliquer'}))return;
+  const t=templateDay(day.date), acts=day.slots.flatMap(s=>s.acts||[]);
+  day.closed=t.closed;day.slots=t.slots;
+  if(acts.length){if(!day.slots.length)day.slots.push({id:uid(),start:'',end:'',label:'',acts:[]});day.slots[0].acts=acts}
+  scheduleSave();renderDrawer();
+}
+async function deleteDraft(){
+  const day=UI.drawer.day;
+  if(!await confirmBox('Effacer le brouillon de cette journée ? '+(S.pub[day.date]?'La version en ligne sera aussi retirée.':''),{ok:'Effacer',danger:true}))return;
+  clearTimeout(saveT);dirty=false;
+  try{if(S.pub[day.date])await unpublishDay(day.date);await docDel('drafts/'+day.date);delete S.drafts[day.date];openDrawer(day.date);render()}catch(e){}
+}
 function renderDrawer(){
   const {date,day}=UI.drawer;
   const t=dayType(date);
@@ -978,19 +1074,16 @@ function renderDrawer(){
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
       <div class="r1"><button class="ico" data-nav="-1" title="Jour précédent">‹</button><h2>${esc(fmtLong(date))} ${parse(date).getFullYear()}</h2><button class="ico" data-nav="1" title="Jour suivant">›</button><button class="ico" data-x="1" title="Fermer">✕</button></div>
-      <div class="r2"><span class="pill">${t.type==='vacances'?'🏖️':t.type==='scolaire'?'🎒':'🚫'} ${esc(t.label)}</span><span id="drstatus" class="row">${statusBar(date)}</span><span class="saving" id="saving">${S.drafts[date]?'✓ Enregistré':'Pré-rempli depuis la semaine type'}</span></div>
+      <div class="r2"><span class="pill">${t.type==='vacances'?'🏖️':t.type==='scolaire'?'🎒':'🚫'} ${esc(t.label)}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Accueil fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="fld"><span>💥 Information importante du jour (affichée en rouge)</span><input class="in red" id="dnote" value="${esc(day.note)}" placeholder="ex. Il n'y a pas de navette ce matin !"></label>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      <div class="row" style="margin-top:6px">
-        <button class="btn sm" id="addslot">＋ Ajouter une période horaire</button>
-        <button class="btn sm ghost" id="resettpl">↺ Réappliquer la semaine type</button>
-        ${S.drafts[date]?`<span style="flex:1"></span><button class="btn sm ghost warn" id="deldraft">Effacer le brouillon</button>`:''}
-      </div>
-    </div>`;
+      <button class="btn sm" id="addslot" style="margin-top:4px">＋ Ajouter une période horaire</button>
+    </div>
+    <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
   bindDrawer(dr);
 }
@@ -1036,20 +1129,6 @@ function bindDrawer(dr){
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
   dr.querySelector('#addslot').onclick=()=>{const last=day.slots[day.slots.length-1];day.slots.push({id:uid(),start:last?last.end:'14:00',end:'',label:'',acts:[]});day.closed=false;scheduleSave();renderDrawer()};
-  dr.querySelector('#resettpl').onclick=async()=>{
-    const n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
-    if(!await confirmBox('Réappliquer les horaires de la semaine type ? '+(n?'Les '+n+' activité(s) seront rangées dans la première période.':''),{ok:'Réappliquer'}))return;
-    const t=templateDay(day.date), acts=day.slots.flatMap(s=>s.acts||[]);
-    day.closed=t.closed;day.slots=t.slots;
-    if(acts.length){if(!day.slots.length)day.slots.push({id:uid(),start:'',end:'',label:'',acts:[]});day.slots[0].acts=acts}
-    scheduleSave();renderDrawer();
-  };
-  const dd=dr.querySelector('#deldraft');
-  if(dd)dd.onclick=async()=>{
-    if(!await confirmBox('Effacer le brouillon de cette journée ? '+(S.pub[day.date]?'La version en ligne sera aussi retirée.':''),{ok:'Effacer',danger:true}))return;
-    clearTimeout(saveT);dirty=false;
-    try{if(S.pub[day.date])await unpublishDay(day.date);await docDel('drafts/'+day.date);delete S.drafts[day.date];openDrawer(day.date);render()}catch(e){}
-  };
   dr.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
     const si=+b.dataset.add;
     openComposer({mode:'day',onSave:a=>{day.slots[si].acts.push(a);scheduleSave();renderDrawer()}});
@@ -1299,6 +1378,7 @@ function renderSettings(main){
   main.innerHTML=`<div class="h-row"><h1>Paramètres</h1><span class="kbd">Ces réglages servent à pré-remplir le calendrier. Les journées déjà construites ne sont pas modifiées.</span></div>
   <div class="two">
    <div>
+    ${window.EJ_CF?'<section class="panel" id="tokenpanel"></section>':''}
     <section class="panel"><h2>📅 Périodes scolaires et vacances</h2><p class="hint">Chaque jour du calendrier prend la semaine type de la période qui le contient.</p>
       <table class="ptable"><thead><tr><th>Type</th><th>Nom</th><th>Du</th><th>Au</th><th></th></tr></thead><tbody>
       ${pers.map(({p,i})=>`<tr data-pi="${i}"><td><select class="in t" data-pf="type"><option value="scolaire" ${p.type==='scolaire'?'selected':''}>🎒 Scolaire</option><option value="vacances" ${p.type==='vacances'?'selected':''}>🏖️ Vacances</option></select></td>
@@ -1367,6 +1447,7 @@ function bindSettings(main,st){
     });
     sec.querySelector('[data-copyfrom]').onclick=()=>{const src=wk[2];if(!src.open){toast('Le mercredi est fermé dans cette semaine type',true);return}wk.forEach((d,i)=>{if(i!==2&&d.open)d.slots=clone(src.slots)});rerender()};
   });
+  const tp=main.querySelector('#tokenpanel');if(tp)window.EJ_CF.mountToken(tp,{toast,confirmBox});
   const ap=main.querySelector('#accespanel');if(ap)window.EJ_CF.mountAccess(ap,{toast,confirmBox});
   const bk=main.querySelector('#bkdl');if(bk)bk.onclick=()=>window.EJ_CF.backup().then(()=>toast('Sauvegarde téléchargée ✓')).catch(()=>toast('Sauvegarde impossible',true));
   const bu=main.querySelector('#bkup');if(bu)bu.onchange=async()=>{const f=bu.files[0];bu.value='';if(!f)return;
