@@ -389,6 +389,18 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v33 --- */
+.card-info .sj-when{margin:0 0 10px -72px!important}
+@media (max-width:430px){.card-info .sj-when{margin-left:-64px!important}}
+@media (min-width:600px){.card-info .sj-when{margin-left:-92px!important}}
+.card.zoomed .card-info .sj-when{margin-left:-110px!important}
+.sj-when .sj1{display:block!important;white-space:nowrap;overflow:hidden}
+.sj-when .sj1 .tbus{width:1.1em;height:.88em;margin-right:.35em;vertical-align:baseline}
+.sj-when .sj1 svg.ar{margin:0 .5em}
+.sj-when.noa .a{display:none}
+.sj-when .a,.sj-when .w{font-style:normal}
+.sj-when.now .w{display:none}
+
 /* --- v32 --- */
 .sj-when{font-size:14.5px}
 .card.zoomed .sj-when{font-size:17px}
@@ -937,7 +949,8 @@ const dShort=k=>{const d=parse(k);return '<i class="wd">'+DAYS_S[dow(k)]+'. </i>
 const dLong=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
 function stayWhen(a,date){
   const t=a.timing||{}, end=a.endDate&&a.endDate>date?a.endDate:date;
-  return [`${esc(LBL.depart)} ${dShort(date)}${t.start?' à '+fmtT(t.start):''}`,`→ retour ${dShort(end)}${t.end?' à '+fmtT(t.end):''}`];
+  const A=x=>x?'<i class="a"> à</i> '+fmtT(x):'';
+  return [`<i class="w">${esc(LBL.depart)} </i>${dShort(date)}${A(t.start)}`,`<i class="w">retour </i>${dShort(end)}${A(t.end)}`];
 }
 const ACTS_REG={};
 function cardHTML(a,opts){
@@ -948,7 +961,8 @@ function cardHTML(a,opts){
   const stay=a.cat==='sejour'&&opts.date;
   const w=stay||a.cat==='projet'?'':whenHTML(a);
   const pj=a.cat==='projet';
-  const info=badgesHTML(a)
+  const stayW=a.cat==='sejour'&&opts.date?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span>${ARR_SVG}<span>${d2}</span></div></div>`})():'';
+  const info=stayW+badgesHTML(a)
     +(pj&&a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -968,7 +982,7 @@ function cardHTML(a,opts){
       ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||'à partir du '+esc(dLong(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
-      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<span class="ic">'+BUS_SVG+'</span>':'<span class="ic sp"></span>'):'<span class="ic">'+ARR_SVG+'</span>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
+      
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
@@ -1138,10 +1152,16 @@ function mountPublic(root,data,opts){
   // horaires de séjour : une seule ligne, police réduite si besoin
   function fitStay(){
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when').forEach(w=>{
-      w.style.fontSize='';const base=parseFloat(getComputedStyle(w).fontSize)||14;
+      w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
-      let f=base;while(over()&&f>9){f-=.25;w.style.fontSize=f+'px'}
+      const steps=w.classList.contains('sj-when')?[[],['noa'],['noa','nowd'],['noa','nowd','now']]:[[]];
+      for(let i=0;i<steps.length;i++){
+        w.classList.remove('noa','nowd','now');steps[i].forEach(c=>w.classList.add(c));
+        let f=base;w.style.fontSize='';const min=i<steps.length-1?12:8;
+        while(over()&&f>min){f-=.25;w.style.fontSize=f+'px'}
+        if(!over())break;
+      }
     }));
   }
   window.addEventListener('resize',()=>fitStay());
@@ -1469,7 +1489,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.32';
+const APP_VERSION='v261120.33';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
