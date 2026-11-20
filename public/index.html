@@ -390,6 +390,10 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v35 --- */
+.dnote{font-size:13px!important}
+.dnote .warn{width:18px!important;height:18px!important;flex-basis:18px!important}
+.card-info .imp{font-size:13px}
+.card.zoomed .card-info .imp{font-size:15px}
 .card.fullsep .card-info::before{left:13px!important}
 
 /* --- v34 --- */
@@ -1510,7 +1514,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.35';
+const APP_VERSION='v261120.36';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
