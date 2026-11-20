@@ -1097,8 +1097,8 @@ function mountPublic(root,data,opts){
   function fitStay(){
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when').forEach(w=>{
       const over=()=>[...w.children].some(d=>d.scrollWidth>d.clientWidth+.5);
-      const fit=()=>{let f=14.5;w.style.fontSize=f+'px';while(over()&&f>10.5){f-=.5;w.style.fontSize=f+'px'}return f};
-      w.classList.remove('nowd');if(fit()<13){w.classList.add('nowd');fit()}
+      const fit=()=>{let f=14.5;w.style.fontSize=f+'px';while(over()&&f>9){f-=.25;w.style.fontSize=f+'px'}return f};
+      fit();
     }));
   }
   window.addEventListener('resize',()=>fitStay());
@@ -1426,7 +1426,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.28';
+const APP_VERSION='v261120.29';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
