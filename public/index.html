@@ -389,8 +389,24 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v30 --- */
+.card-info .badges+.bring,.card-info .badges+.about{margin-top:12px}
+.pj-from{display:block;font-size:13px;font-weight:600;color:var(--ac);filter:brightness(.75);margin-bottom:2px}
+.about{margin:8px 0 0;font-size:14px;line-height:1.5;color:#3E3B44}
+.card-info .about{margin-left:-72px}
+@media (max-width:430px){.card-info .about{margin-left:-64px}}
+@media (min-width:600px){.card-info .about{margin-left:-92px}}
+.card.zoomed .card-info .about{margin-left:-110px;font-size:16px}
+.card-info .about:first-child{margin-top:0}
+.about.j{text-align:left!important}
+.card-info .gal{margin-left:-72px!important}
+@media (max-width:430px){.card-info .gal{margin-left:-64px!important}}
+@media (min-width:600px){.card-info .gal{margin-left:-92px!important}}
+.card.zoomed .card-info .gal{margin-left:-110px!important}
+.act-foot{margin:-6px 0 -14px!important}
+
 /* --- v26 --- */
-.act-foot{margin:0 0 18px!important}
+
 .cal-ico.shut{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%) border-box}
 .cal-ico.shut .m{background:linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%)}
 .cal-ico.shut .h .off{font-weight:700;font-size:14px;color:#141317;letter-spacing:.01em}
@@ -907,7 +923,9 @@ function cardHTML(a,opts){
   a=Object.assign({},a,{bring:(a.bring||[]).filter(x=>!AUTH_RE.test(x))});
   const stay=a.cat==='sejour'&&opts.date;
   const w=stay||a.cat==='projet'?'':whenHTML(a);
+  const pj=a.cat==='projet';
   const info=badgesHTML(a)
+    +(pj&&a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
       const btn=au&&opts.date&&!opts.noAssets, A2=btn?"l'autorisation parentale":A;
@@ -923,12 +941,12 @@ function cardHTML(a,opts){
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
+      ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||'à partir du '+esc(dLong(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
-      ${a.cat==='projet'&&opts.date&&!opts.dateLine?`<div class="when pj">à partir du ${esc(dLong(opts.date))}</div>`:''}
       ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<svg class="ic tbus" viewBox="0 0 20 16" aria-label="transport assuré"><title>transport assuré</title><rect x="1.5" y="0.8" width="17" height="11.6" rx="3" fill="#3E7BE0"/><rect x="3.6" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="11" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="1.5" y="8.6" width="17" height="1.4" fill="#2A5DB3"/><circle cx="5.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="14.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="5.5" cy="13.4" r="1" fill="#C9C4BC"/><circle cx="14.5" cy="13.4" r="1" fill="#C9C4BC"/></svg>':'<span class="ic"></span>'):'<svg class="ic ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
-      ${w||bus||full||(opts&&opts.dateLine)?`<div class="when">${opts&&opts.dateLine?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
+      ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
     </div>
     ${info?`<div class="card-info">${info}</div>`:''}
@@ -1426,7 +1444,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.29';
+const APP_VERSION='v261120.30';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1886,6 +1904,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
       <div>
         <label class="fld"><span>Titre</span><input class="in" id="ftitle" value="${esc(f.title)}" placeholder="ex. Piscine à l'IloBulles de Contres" style="font-weight:800;font-size:17px"></label>
         <label class="fld"><span>Description (facultatif)</span><textarea class="in" id="fdesc" placeholder="Une phrase pour donner envie…">${esc(f.desc)}</textarea></label>
+        ${f.cat==='projet'?`<label class="fld"><span>Texte descriptif du projet</span><textarea class="in" id="fabout" style="min-height:110px" placeholder="Présente le projet : objectifs, déroulement, ce que les jeunes vont faire…">${esc(f.about||'')}</textarea></label>`:''}
         <div class="box"><h4>🕑 ${f.cat==='projet'?'Lieu':'Horaires'}</h4>${f.cat==='projet'?'<p class="kbd" style="margin:0 0 4px">Projet & staff : pas d\'horaire, seulement la description.</p>':seg('tmode',t.mode,[['none','Sans horaire particulier'],['range','Début – fin'],['depart','Départ / retour']])}
           ${t.mode!=='none'&&f.cat!=='projet'?`<div class="row" style="margin-top:8px"><span class="kbd">${t.mode==='depart'?'Départ':'Début'}</span><input class="in t" type="time" id="tstart" value="${esc(t.start)}"><span class="kbd">${t.mode==='depart'?'Retour':'Fin'}</span><input class="in t" type="time" id="tend" value="${esc(t.end)}"></div>`:''}
           <label class="fld"><span>Lieu (facultatif)</span><input class="in" id="fplace" value="${esc(f.place)}" placeholder="ex. Salle des fêtes, gymnase…"></label>
@@ -1924,7 +1943,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
-    inp('#ftitle',v=>f.title=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fend',v=>f.endDate=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
+    inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fend',v=>f.endDate=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
