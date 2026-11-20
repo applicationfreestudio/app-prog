@@ -308,6 +308,13 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .when .wtx{display:inline}
 .wm{z-index:11;width:200px;height:200px;top:-40px;right:-56px}
 .days{position:relative;z-index:9}
+
+/* filigrane : sous les cartes, visible dans le bandeau */
+.pub>.wm{z-index:8}
+.days{position:relative;z-index:9}
+.pub-head{overflow:hidden}
+.pub-head .wm-in{position:absolute;z-index:0;top:-40px;right:-56px}
+.pub-head>.brand,.pub-head>.hb{position:relative;z-index:1}
 </style>
 
 <style>
@@ -863,7 +870,8 @@ function mountPublic(root,data,opts){
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info){
-    return `<header class="pub-head"><div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
+    const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-in wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
+    return `<header class="pub-head">${wm}<div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -1202,7 +1210,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.17';
+const APP_VERSION='v261120.18';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
