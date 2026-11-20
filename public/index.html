@@ -968,10 +968,10 @@ function mountPublic(root,data,opts){
     });
     return h;
   }
-  function pinnedHTML(){
-    const today=iso(new Date()), items=[];
+  function pinnedHTML(shown){
+    const today=iso(new Date()), items=[], vis=new Set(shown||[]);
     Object.keys(st.days).sort().forEach(k=>(st.days[k].slots||[]).forEach(s=>(s.acts||[]).forEach(a=>{
-      if(a.pinned&&((a.endDate||k)>=today||opts.allDays))items.push([k,a]);
+      if(a.pinned&&((a.endDate||k)>=today||opts.allDays||vis.has(k)))items.push([k,a]);
     })));
     if(!items.length)return '';
     return `<section class="pinned"><div class="pin-t"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 2.5l7 7-3 1-4.5 4.5.5 4-2 2-4-4-5 5-1-1 5-5-4-4 2-2 4 .5L14 6z" fill="currentColor"/></svg>À la une</div><div class="cards">${items.map(([k,a])=>{
@@ -991,7 +991,7 @@ function mountPublic(root,data,opts){
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
     root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${wm}${headHTML(info)}
-      <main class="days">${pinnedHTML()}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}</main>
+      <main class="days">${pinnedHTML(ks)}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();
   }
@@ -1313,7 +1313,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.21';
+const APP_VERSION='v261120.22';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
