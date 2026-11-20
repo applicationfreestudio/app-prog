@@ -419,6 +419,12 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .bring .nw{white-space:nowrap}
 .sj-when .bus.sp{text-align:center;color:var(--ac);font-weight:700}
 .card.zoomed .sj-when{font-size:17px!important}
+.sj-when>div{display:block!important;white-space:nowrap;overflow:hidden}
+.sj-when .ic{display:inline-block;width:1.4em;vertical-align:baseline}
+.sj-when svg.tbus{width:1.1em;height:.88em;margin-right:.3em;overflow:visible}
+.sj-when svg.ar{width:.7em;height:.6em;margin:0 .5em 0 .2em;color:var(--ac)}
+.sj-when .ic:not(svg){height:1px}
+
 .card.zoomed .sj-where{font-size:15.5px}
 .cal-ico .h:empty{display:none}
 .gal{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px}
@@ -920,7 +926,7 @@ function cardHTML(a,opts){
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?'📍 '+esc(a.place):''}</span>${a.full?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
       ${a.cat==='projet'&&opts.date&&!opts.dateLine?`<div class="when pj">à partir du ${esc(dLong(opts.date))}</div>`:''}
-      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<span class="bus" title="transport assuré">🚌</span>':'<span class="bus sp"></span>'):'<span class="bus sp">→</span>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
+      ${stay?`<div class="sj-when">${stayWhen(a,opts.date).map((l,i)=>`<div>${i===0?(a.transport?'<svg class="ic tbus" viewBox="0 0 20 16" aria-label="transport assuré"><title>transport assuré</title><rect x="1.5" y="0.8" width="17" height="11.6" rx="3" fill="#3E7BE0"/><rect x="3.6" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="11" y="2.8" width="5.4" height="4" rx="1" fill="#DCEBFF"/><rect x="1.5" y="8.6" width="17" height="1.4" fill="#2A5DB3"/><circle cx="5.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="14.5" cy="13.4" r="2.6" fill="#141317"/><circle cx="5.5" cy="13.4" r="1" fill="#C9C4BC"/><circle cx="14.5" cy="13.4" r="1" fill="#C9C4BC"/></svg>':'<span class="ic"></span>'):'<svg class="ic ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>'}<span>${l.replace(/^→ /,'')}</span></div>`).join('')}</div>`:''}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine)?`<div class="when">${opts&&opts.dateLine?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
@@ -1096,6 +1102,7 @@ function mountPublic(root,data,opts){
     }));
   }
   window.addEventListener('resize',()=>fitStay());
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitStay());
   // le filigrane du bandeau reste net mais s'efface là où une carte passe dessous
   let wmRaf=0;
   function wmClip(){
@@ -1419,7 +1426,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.27';
+const APP_VERSION='v261120.28';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
