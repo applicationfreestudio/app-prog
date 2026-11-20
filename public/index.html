@@ -1148,7 +1148,7 @@ function mountPublic(root,data,opts){
       if(a.pinned&&((a.endDate||k)>=today||opts.allDays||vis.has(k)))items.push([k,a]);
     })));
     if(!items.length)return '';
-    return `<section class="pinned"><div class="pin-t"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 2.5l7 7-3 1-4.5 4.5.5 4-2 2-4-4-5 5-1-1 5-5-4-4 2-2 4 .5L14 6z" fill="currentColor"/></svg>À la une</div><div class="cards">${items.map(([k,a])=>{
+    return `<section class="pinned"><div class="pin-t">À la une</div><div class="cards">${items.map(([k,a])=>{
       const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
       const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
       return cardHTML(a,Object.assign({},opts,{date:k,dateLine:a.cat==='sejour'?'':(a.cat==='projet'&&!e?'à partir du ':'')+esc(dl)}));
@@ -1514,7 +1514,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.36';
+const APP_VERSION='v261120.37';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
