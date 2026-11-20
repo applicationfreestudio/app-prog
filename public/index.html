@@ -575,7 +575,7 @@ const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e e
 function badgesHTML(a){
   const b=[];
   if(a.transport)b.push('<span class="bus" title="transport assuré" aria-label="transport assuré">🚌</span>');
-  if(a.booking&&a.booking.on)b.push(`<span class="badge">sur réservation${a.booking.places?' · '+esc(a.booking.places)+' places':''}</span>`);
+  if(a.booking&&a.booking.on)b.push(`<span class="badge">sur réservation${a.booking.places?' · '+esc(a.booking.places)+' pl.':''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=a.price||{};
   let t=[];
   if(pm==='ccv2cc'){
@@ -961,7 +961,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.10';
+const APP_VERSION='v261120.11';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
