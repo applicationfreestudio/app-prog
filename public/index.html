@@ -389,6 +389,9 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v35 --- */
+.card.fullsep .card-info::before{left:13px!important}
+
 /* --- v34 --- */
 .card-head .sj-when{margin:8px 0 2px!important}
 .tbus{display:inline-block;width:auto!important;height:auto!important;font-size:1.05em;line-height:1;vertical-align:.06em;margin-right:.3em!important}
@@ -953,6 +956,7 @@ function whenHTML(a){
 const INFO_SVG='<svg class="warn info" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E0A100"/><stop offset=".55" stop-color="#C81F66"/><stop offset="1" stop-color="#4C1DB0"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#wi)"/><circle cx="12" cy="7.4" r="1.45" fill="#fff"/><rect x="10.85" y="10.2" width="2.3" height="7.6" rx="1.15" fill="#fff"/></svg>';
 const BUS_SVG='<span class="tbus" role="img" aria-label="transport assuré">🚍</span>';
 const busHTML=()=>BUS_SVG;
+window.BUS_SVG=BUS_SVG;
 const ARR_SVG='<svg class="ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
@@ -1175,6 +1179,11 @@ function mountPublic(root,data,opts){
         if(!over())break;
       }
     }));
+    // trait de séparation prolongé jusqu'au bord gauche quand l'image est entièrement au-dessus
+    requestAnimationFrame(()=>requestAnimationFrame(()=>root.querySelectorAll('.card').forEach(c=>{
+      const im=c.querySelector('.card-img'), inf=c.querySelector('.card-info');if(!im||!inf)return;
+      c.classList.toggle('fullsep',inf.getBoundingClientRect().top>=im.getBoundingClientRect().bottom+2);
+    })));
   }
   window.addEventListener('resize',()=>fitStay());
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitStay());
@@ -1501,7 +1510,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.34';
+const APP_VERSION='v261120.35';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
