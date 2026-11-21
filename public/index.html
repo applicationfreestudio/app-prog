@@ -944,6 +944,12 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v64 */
+.dupcal .cell.t-off{background:#fff!important;border:1px solid var(--cr-line)!important}
+.dupcal .cell .mcal.shut{background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box!important}
+.dupcal .cell .mcal.shut b{background:var(--ig)!important}
+.dupcal .psep{display:flex!important;margin:6px 0 4px}
+.dupcal .wsep{display:none}
 /* v63 */
 .dr-head .r1 .dhb{width:40px!important;height:40px!important;flex:0 0 40px!important}
 .dr-head .r1 .st .pill{height:40px!important;padding:0 8px!important;font-size:12.5px!important}
@@ -1844,7 +1850,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.63';
+const APP_VERSION='v261120.64';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2149,18 +2155,24 @@ async function publishDay(date,quiet){
 async function unpublishDay(date){
   try{await docDel('public/'+date);delete S.pub[date];toast('Journée retirée de la page publique')}catch(e){}
 }
+function copyDayTo(src,target){
+  const d=clone(src), shift=Math.round((parse(target)-parse(src.date))/864e5);d.date=target;d.updatedAt=new Date().toISOString();
+  (d.slots||[]).forEach(sl=>{sl.id=uid();(sl.acts||[]).forEach(a=>{a.id=uid();if(a.endDate)a.endDate=addDays(a.endDate,shift)})});
+  return d;
+}
 async function duplicateDay(){
   const src=UI.drawer.day;flushSave();
   let picked=null;
   const target=await new Promise(res=>{
-    let mo=src.date.slice(0,7);
+    let mo=TODAY.slice(0,7);
     const m=openModal(`<div class="mh"><h3>Dupliquer le ${esc(EJ.fmtShortDate(src.date))} vers…</h3><button class="ico" data-a="x">✕</button></div><div class="mb dupcal"></div>`,{cls:'dupm',onClose:()=>res(picked)});
     const box=m.el.querySelector('.dupcal');
     const draw=()=>{const [y,mm]=mo.split('-').map(Number);const days=[];for(let d=iso(new Date(y,mm-1,1));d.slice(0,7)===mo;d=addDays(d,1))days.push(d);
-      box.innerHTML=`<div class="dup-nav"><button class="btn" data-dm="-1">‹</button><b>${cap(MONTHS[mm-1])} ${y}</b><button class="btn" data-dm="1">›</button></div><div class="cal">${days.map(d=>cellHTML(d,false)).join('')}</div>`;
+      let pv;const st0=settings();
+      box.innerHTML=`<div class="dup-nav"><button class="btn" data-dm="-1">‹</button><b>${cap(MONTHS[mm-1])} ${y}</b><button class="btn" data-dm="1">›</button></div><div class="cal">${days.map(d=>{const p=periodOf(d,st0.periods),k=p?p.name:'';let h='';if(k!==pv){h=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(EJ.sepLabel(p))}</span></div>`;pv=k}return h+cellHTML(d,false)}).join('')}</div>`;
       box.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{mo=iso(new Date(y,mm-1+(+b.dataset.dm),1)).slice(0,7);draw();box.scrollTop=0});
       box.querySelectorAll('.cell').forEach(c=>{if(c.dataset.date===src.date)c.classList.add('src');c.onclick=()=>{if(c.dataset.date===src.date){toast('C\'est la journée d\'origine',true);return}picked=c.dataset.date;m.close()}});
-      const cur=box.querySelector('.cell[data-date="'+src.date+'"]');if(cur)setTimeout(()=>cur.scrollIntoView({block:'center'}),0);
+      const cur=box.querySelector('.cell[data-date="'+TODAY+'"]');if(cur)setTimeout(()=>{const n=box.querySelector('.dup-nav');box.scrollTop=cur.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-(n?n.offsetHeight:0)-14},0);
     };
     draw();
     let x0=null,y0=0;box.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
@@ -2170,7 +2182,7 @@ async function duplicateDay(){
   if(!target)return;
   const cur=clone(getDay(target)), st=status(target);
   const empty=!S.drafts[target]&&!S.pub[target];
-  if(empty){const d=clone(src);d.date=target;d.rev=1;d.pubRev=-1;d.updatedAt=new Date().toISOString();(d.slots||[]).forEach(sl=>{sl.id=uid();(sl.acts||[]).forEach(a=>a.id=uid())});
+  if(empty){const d=copyDayTo(src,target);d.rev=1;d.pubRev=-1;
     try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}return}
   (cur.slots||[]).forEach(x=>(x.acts||[]).forEach(a=>{a.pinned=false}));
   const ok=await new Promise(res=>{let done=false;
@@ -2182,8 +2194,7 @@ async function duplicateDay(){
     m.el.querySelector('[data-a="ok"]').onclick=()=>{done=true;res(true);m.close()};
   });
   if(!ok)return;
-  const d=clone(src);d.date=target;d.rev=((S.drafts[target]||{}).rev||0)+1;d.pubRev=(S.drafts[target]||{}).pubRev??-1;d.updatedAt=new Date().toISOString();
-  (d.slots||[]).forEach(sl=>{sl.id=uid();(sl.acts||[]).forEach(a=>a.id=uid())});
+  const d=copyDayTo(src,target);d.rev=((S.drafts[target]||{}).rev||0)+1;d.pubRev=(S.drafts[target]||{}).pubRev??-1;
   try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}
 }
 async function resetTemplate(){
