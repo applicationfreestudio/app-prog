@@ -952,6 +952,10 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v73 */
+.dst .pill{height:40px!important;display:inline-flex!important;align-items:center;border-radius:11px!important;padding:0 10px!important;font-size:12.5px!important;white-space:nowrap}
+.dbtn.xclose{flex:0 0 52px!important;padding:0;font-size:19px}
+.dr-foot .pri .dbtn.go{font-size:14.5px!important}
 /* v72 */
 .r2s{display:flex;align-items:center;gap:8px;margin-top:8px}
 .r2s .pill{height:auto!important;padding:3px 9px!important;border-radius:999px!important;font-size:12.5px!important}
@@ -1895,7 +1899,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.72';
+const APP_VERSION='v261120.73';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2164,20 +2168,22 @@ const ST_SHORT={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modif
 function statusBar(date){
   const s=status(date);
   const T={todo:'semaine type · rien d\'enregistré',draft:'brouillon enregistré · pas en ligne',pub:'en ligne · à jour',mod:'brouillon enregistré · pas encore en ligne'};
-  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${s==='todo'?'Type':ST_SHORT[s]}</span><span class="stx">${T[s]}</span>`;
+  return `<span class="pill p-${s}" title="${T[s]}">${s==='todo'?'En construction':ST_SHORT[s]}</span>`;
 }
 function footHTML(date){
   const s=status(date);
   return `<div class="pri">
-      <button class="dbtn more" id="drmore" aria-label="Plus d'actions" aria-haspopup="true">⋯</button>
+      
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="dbtn more" id="drmore" aria-label="Plus d'actions" aria-haspopup="true">⋯</button>
       ${s==='pub'?'<button class="dbtn go" disabled>En ligne ✓</button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Publier les modifications':'Publier'}</button>`}
+      <button class="dbtn xclose" data-xc="1" title="Fermer" aria-label="Fermer">✕</button>
     </div>`;
 }
 function moreMenu(btn){
   document.querySelectorAll('.pvpop').forEach(x=>x.remove());
   const date=UI.drawer.date, s=status(date), b=btn.getBoundingClientRect(), pop=document.createElement('div');pop.className='pvpop drpop';
-  const it=[['dup','Dupliquer…'],['tpl','Revenir à la semaine type']];
+  const it=[['dup','Dupliquer'],['tpl','Revenir à la semaine type']];
   if(s==='mod')it.push(['revert','Annuler les modifications (version en ligne)']);
   if(s==='pub'||s==='mod')it.push(['unpub','Retirer du site','r']);
   it.push(['wipe','Vider la journée','r']);
@@ -2292,8 +2298,8 @@ function renderDrawer(){ensureKitDefs();
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date).replace(/\.\d\d$/,''))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><button class="dhb x" data-xc="1" title="Fermer" aria-label="Fermer">✕</button></div>
-      <div class="r2s" id="drstatus">${statusBar(date)}</div><span class="saving" id="saving" hidden></span>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date).replace(/\.\d\d$/,''))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span id="drstatus" class="dst">${statusBar(date)}</span></div>
+      <span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
