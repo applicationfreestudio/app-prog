@@ -762,11 +762,16 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 
 /* --- v105 --- */
 .pub.ishome{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.pub.ishome{position:fixed;inset:0;margin:0 auto;max-width:680px;touch-action:none;overscroll-behavior:none}
-.realview .pub.ishome{position:absolute;height:auto}
+.pub.ishome{position:fixed;top:0;left:0;right:0;bottom:auto;height:var(--apph,100dvh)!important;margin:0 auto;max-width:680px;touch-action:none;overscroll-behavior:none}
+.realview .pub.ishome{position:absolute;inset:0;height:auto!important}
 .pub{--hh:88px!important}
 .pub-head{height:var(--hh)!important;flex:0 0 auto}
-.pub-head .logo{width:54px;height:54px}
+.pub-head .logo{width:74px;height:74px;font-size:24px}
+.pub-head .logo.img{padding:0}
+.pub-head{padding-top:7px!important;padding-bottom:7px!important;box-sizing:border-box}
+.pub-head .hb{margin-left:auto}
+.pub-foot>div{margin-top:16px}
+.ishome .pub-foot>div{margin-top:16px}
 .pub-head .brand b{font-size:19px}
 .ishome .contact{margin-top:16px!important}
 .ishome .pub-foot{padding:16px 16px calc(16px + env(safe-area-inset-bottom))!important}
@@ -1804,7 +1809,7 @@ function mountPublic(root,data,opts){
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info,wm){
-    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(opts.home&&st.view==='home'?(info.homeSub||'par la communauté de communes Val de Cher Controis'):(info.sub||'le Programme des animations'))}</small></div></div>${opts.home&&st.view==='home'?`<div class="hb">${opts.noFs?'':fsBtn()}</div>`:`<div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div>`}</header>`;
+    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(opts.home&&st.view==='home'?(info.homeSub||'par la communauté de communes Val de Cher Controis'):(info.sub||'le Programme des animations'))}</small></div></div>${opts.home&&st.view==='home'?`<div class="hb">${opts.noFs?'':fsBtn()}</div>`:`<div class="hb">${opts.noFs?'':fsBtn()}</div>`}</header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -1995,6 +2000,8 @@ function mountPublic(root,data,opts){
         else{const fades=parts().map(e=>e.animate([{opacity:1},{opacity:0}],{duration:130,easing:'ease-in',fill:'forwards'}));c._anim=true;
           setTimeout(()=>{const an=swap();fades.forEach(x=>x.cancel());an.onfinish=()=>{c._anim=null;wmTick()}},120)}
   }
+  {const sv=()=>document.documentElement.style.setProperty('--apph',Math.round((window.visualViewport?visualViewport.height:innerHeight))+'px');sv();
+    (window.visualViewport||window).addEventListener('resize',sv);window.addEventListener('resize',sv);document.addEventListener('fullscreenchange',()=>setTimeout(sv,60))}
   root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
   root.addEventListener('click',e=>{
     const go=e.target.closest('[data-go],[data-home]');
@@ -2311,7 +2318,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.107';
+const APP_VERSION='v261120.108';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
