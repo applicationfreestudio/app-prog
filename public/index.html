@@ -392,6 +392,10 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v42 --- */
+.sj-when .sjf{display:none}
+.card.zoomed .sj-when .sjf{display:inline;white-space:normal}
+.card.zoomed .sj-when .sjm{display:none}
+.card.zoomed .sj-when .sj1{white-space:normal!important;overflow:visible!important}
 .rib-w.r{left:auto;right:0;width:92px;height:92px}
 .rib-w.r .rib{left:auto;right:-40px;top:15px;width:150px;transform:rotate(45deg);padding:5px 0;font-size:12px;box-shadow:none}
 .rib.blue{background:rgba(58,123,255,.55);color:#fff;font-style:normal}
@@ -1455,7 +1459,10 @@ function cardHTML(a,opts){
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
   const w=stay?'':whenHTML(a);
   const pj=isInfo(a);
-  const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span><span class="sjc">, </span><span>${d2}</span></div></div>`})():'';
+  const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
+    const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
+    const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour ${D(end)}${t.end?' à '+fmtT(t.end):''}</span>`;
+    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span>${d2}</span></span>${full}</div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -2045,7 +2052,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.82';
+const APP_VERSION='v261120.83';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
