@@ -714,7 +714,7 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card:not(.fold) .gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card:not(.fold) .gal img{width:100%!important;aspect-ratio:4/3;border-radius:12px}
 .card:not(.fold) .gal img:last-child:nth-child(odd){grid-column:1/-1;aspect-ratio:16/9}
-.dnote{border:0!important;background:none!important;box-shadow:none!important;padding:2px 4px!important;color:#7A4400!important}
+.dnote{border:0!important;background:none!important;box-shadow:none!important;padding:2px 0!important;color:#7A4400!important;justify-content:flex-start!important;text-align:left!important;align-items:center!important}
 .days .cal-ico{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fbar{display:flex;align-items:center;gap:0;height:36px;margin:2px 0 0;padding:0;background:var(--paper,#fff);border-radius:12px;border:1px solid rgba(20,19,23,.06);box-shadow:var(--lift);overflow:hidden;font-size:13.5px;color:var(--ink2);white-space:nowrap}
 .fbar .fbi{flex:0 0 36px;width:36px;height:100%;overflow:hidden}
@@ -2233,7 +2233,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.102';
+const APP_VERSION='v261120.103';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
