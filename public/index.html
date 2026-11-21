@@ -684,6 +684,21 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card:not(.fold) .fold-ar svg{transform:rotate(180deg)}
 .card.zoomed .fold-ar{display:none}
 .card:not(.fold):not(.zoomed) h3{padding-right:26px}
+
+/* --- v96 : titres sur une ligne, repli animé, indicateurs au-dessus de la carte --- */
+.card,.card *{-webkit-tap-highlight-color:transparent}
+.card{-webkit-user-select:none;user-select:none;outline:none}
+.card h3{display:inline-block!important;box-sizing:border-box;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.card.fold h3{background:linear-gradient(transparent 80%,var(--hlx) 80%,var(--hlx) 93%,transparent 93%)!important}
+.card.fold .card-img{border-radius:0!important;height:auto!important;align-self:stretch!important}
+.card.nofold{cursor:default}
+.card.nofold .fold-ar{display:none!important}
+.card.nofold.fold .card-head{padding-right:11px!important}
+.card:not(.zoomed) .card-head .tag-morning,.card:not(.zoomed) .rib-w:not(.r){display:none!important}
+.card:not(.zoomed).hasrib{}
+.ctop{display:flex;align-items:flex-end;gap:8px;margin:0 2px -4px}
+.ctop .tag-morning{display:inline-block;margin:0;font-size:12.5px;line-height:1.2}
+.ctop .ctfull{margin-left:auto;background:#FFC90E;color:#fff;font:800 11px/1 var(--pf,'Poppins'),sans-serif;letter-spacing:.08em;padding:4px 8px 3px;border-radius:3px;text-shadow:0 1px 1px rgba(120,80,0,.45);box-shadow:1px 1px 0 rgba(20,19,23,.18)}
 </style>
 
 <style>
@@ -1528,7 +1543,8 @@ function cardHTML(a,opts){
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!OPEN_CARDS.has(fk);
-  return `<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  const ctop=a.morning||a.full?`<div class="ctop">${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -1751,9 +1767,15 @@ function mountPublic(root,data,opts){
     ws.forEach(w=>w.textContent=w.dataset.ab);const r0=rows(),h0=bx.offsetHeight;
     ws.forEach(w=>w.textContent=w.dataset.full);if(rows()>r0||bx.offsetHeight>h0+.5||ovf())ws.forEach(w=>w.textContent=w.dataset.ab)})}
   // titres des cartes repliées : une seule ligne, police réduite si besoin
-  function fitFold(){root.querySelectorAll('.card.fold h3').forEach(h=>{h.style.fontSize='';const hd=h.parentElement,cs=getComputedStyle(hd);
-    const av=hd.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),w=()=>Math.max(h.scrollWidth,h.getBoundingClientRect().width);
-    let f=parseFloat(getComputedStyle(h).fontSize)||17;while(w()>av+.5&&f>11){f-=.5;h.style.fontSize=f+'px'}})}
+  // un titre de carte ne passe jamais à la ligne : police réduite si besoin (9 px minimum, puis « … »)
+  function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;h.style.fontSize='';
+    let f=parseFloat(getComputedStyle(h).fontSize)||17;while(h.scrollWidth>h.clientWidth+.5&&f>9){f-=.5;h.style.fontSize=f+'px'}})}
+  // une carte qui n'a rien d'autre qu'un titre et une image ne se déplie pas
+  function markFoldable(){root.querySelectorAll('.card:not(.zoomed)').forEach(c=>{const hd=c.querySelector('.card-head');
+    const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
+    const more=[...c.children].some(e=>!e.matches('.card-img,.card-head,.fold-ar,.rib-w:not(.r)')&&has(e))||(hd&&[...hd.children].some(e=>!e.matches('h3,.tag-morning')&&has(e)));
+    c.classList.toggle('nofold',!more);if(!more)c.classList.add('fold')})}
+  const fitFold=()=>{markFoldable();fitTitles()};
   function fitStay(){fitFold();fitPlaces();fitPrices();
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.fold) .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
@@ -1814,10 +1836,21 @@ function mountPublic(root,data,opts){
     const t=e.target.closest('[data-info],[data-close],[data-past]');
     if(!t){const c=e.target.closest('.card');if(!c||c.closest('.zoom-bg'))return;
       const fa=e.target.closest('.fold-ar');
-      if(c.classList.contains('fold')||fa){const op=c.classList.contains('fold');c.classList.toggle('fold',!op);if(op){const h=c.querySelector('h3');if(h)h.style.fontSize=''}
+      if(c.classList.contains('nofold'))return;
+      if(c.classList.contains('fold')||fa){if(c._anim)return;const op=c.classList.contains('fold');
         const k=c.dataset.fk;if(k){op?OPEN_CARDS.add(k):OPEN_CARDS.delete(k)}
         const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
-        markWraps();fitStay();setTimeout(()=>{fitStay();wmTick()},60);return}
+        const h0=c.offsetHeight;c.classList.toggle('fold',!op);fitTitles(c);const h1=c.offsetHeight;
+        const ez='cubic-bezier(.22,.8,.24,1)',parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
+        if(op){fitStay();
+          c._anim=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:320,easing:ez});
+          parts().forEach((e,i)=>e.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:1,transform:'none'}],{duration:260,delay:90+i*25,easing:'ease-out',fill:'backwards'}));
+          c._anim.onfinish=()=>{c._anim=null;fitStay();wmTick()}}
+        else{c.classList.remove('fold');fitTitles(c);
+          parts().forEach(e=>e.animate([{opacity:1},{opacity:0}],{duration:140,easing:'ease-in',fill:'forwards'}));
+          c._anim=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:280,easing:ez,fill:'forwards'});
+          c._anim.onfinish=()=>{c.classList.add('fold');c._anim.cancel();c.getAnimations({subtree:true}).forEach(x=>x.cancel());c._anim=null;fitTitles(c);wmTick()}}
+        return}
       zoom(c);return}
     if(t.dataset.close){ if(e.target===t||t.classList.contains('close')){st.sheet=false;render()} return; }
     if(t.dataset.info){st.sheet=true;render();return}
@@ -2122,7 +2155,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.95';
+const APP_VERSION='v261120.96';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
