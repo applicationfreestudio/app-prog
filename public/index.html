@@ -952,6 +952,9 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v75 */
+.sw.nostart{font-size:14px;font-weight:600;min-height:36px;margin-bottom:6px}
+.fld.off{opacity:.45}
 /* v74 */
 .dt2{display:grid;grid-template-columns:1.25fr 1fr;gap:8px}
 .dt2 .fld{margin:0 0 8px}
@@ -1496,7 +1499,7 @@ function mountPublic(root,data,opts){
     const m=sameM?MONTHS_S[d1.getMonth()].replace('.',''):MONTHS_S[d1.getMonth()].replace('.','')+' – '+MONTHS_S[d2.getMonth()].replace('.','');
     const f1=sameM?DAYS_S[dow(date)]+'. '+d1.getDate():d1.getDate()+' '+MONTHS_S[d1.getMonth()];
     const f2=sameM?DAYS_S[dow(end)]+'. '+d2.getDate():d2.getDate()+' '+MONTHS_S[d2.getMonth()];
-    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span><small>du</small> ${esc(f1)}</span><span><small>au</small> ${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
+    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span><small>du</small> ${esc(f1)}</span><span><small>au</small> ${esc(f2)}</span></div></div>${(a.stayLabel||'').trim()?`<span class="stay-tag">${esc(cap(a.stayLabel.trim()))}</span>`:''}</aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
   }
   // signature d'une journée : deux jours consécutifs identiques sont regroupés « du … au … »
   function sig(d){
@@ -1643,7 +1646,7 @@ function mountPublic(root,data,opts){
     box.innerHTML=`<div class="pd-head">${info.logo?`<img class="pd-logo" src="${base}${esc(info.logo)}" alt="">`:`<span class="logo">${esc((info.name||'EJ').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase())}</span>`}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'')}</small></div></div>
       <h1 class="pd-t">Autorisation parentale</h1>
       <div class="pd-lines"><p>Je soussigné(e), Madame / Monsieur <i></i></p><p>représentant(e) légal(e) de <i></i></p><p>autorise sa participation à l'activité suivante :</p></div>
-      <div class="pd-card">${spanOf(a)==='multi'?`<span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span>`:`<div class="pd-date">${esc(cap(fmtLong(date)))} ${parse(date).getFullYear()}</div>`}${cardHTML(a,{date,noAuthBtn:true})}</div>
+      <div class="pd-card">${spanOf(a)==='multi'?`${(a.stayLabel||'').trim()?`<span class="stay-tag">${esc(cap(a.stayLabel.trim()))}</span>`:''}`:`<div class="pd-date">${esc(cap(fmtLong(date)))} ${parse(date).getFullYear()}</div>`}${cardHTML(a,{date,noAuthBtn:true})}</div>
       ${info.authCheck===false||!ctext?'':`<div class="pd-check"><span class="box"></span><p>${esc(ctext).replace(/\n/g,'<br>')}</p></div>`}
       <div class="pd-sign"><div>Fait le <i></i> / <i></i> / <i class="y"></i></div><div class="sig"><span>Signature du représentant légal</span></div></div>
       ${pl.length?`<div class="partners-box"><div class="partners">${pl.map(x=>`<img src="${base}${esc(x)}" alt="">`).join('')}</div>${info.partnersText?`<p>${esc(info.partnersText)}</p>`:''}</div>`:''}`;
@@ -1911,7 +1914,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.74';
+const APP_VERSION='v261120.75';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2506,11 +2509,12 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <label class="fld"><span>Description (facultatif)</span><textarea class="in" id="fdesc" placeholder="Une phrase pour donner envie…">${esc(f.desc)}</textarea></label>
         <label class="fld"><span>Texte descriptif (facultatif, affiché en bas de la carte)</span><textarea class="in" id="fabout" style="min-height:90px" placeholder="Présentation détaillée : objectifs, déroulement…">${esc(f.about||'')}</textarea></label>
         <div class="box"><h4>📅 Dates et horaires</h4>
-          ${DD?`<div class="dt2"><label class="fld"><span>Date de début</span><input class="in" type="date" id="fsd" value="${sp==='until'?'':DD}"></label><label class="fld"><span>Heure de début</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"></label></div>
+          ${DD?`<label class="sw nostart"><input type="checkbox" id="fnostart" ${sp==='until'?'checked':''}> Pas de date de début (affiche « jusqu'au … »)</label>
+          <div class="dt2"><label class="fld${sp==='until'?' off':''}"><span>Date de début</span><input class="in" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></label><label class="fld"><span>Heure de début</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"></label></div>
           <div class="dt2"><label class="fld"><span>Date de fin</span><input class="in" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}"></label><label class="fld"><span>Heure de fin</span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></label></div>
-          <p class="kbd" id="sphint" style="margin:2px 0 0">${({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée comme un séjour, « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]} Heure de fin plus tôt que le début = après minuit. Avec transport, l'affichage dit « départ / retour ».</p>`
+          <p class="kbd" id="sphint" style="margin:2px 0 0">${({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]} Heure de fin plus tôt que le début = après minuit. Avec transport, l'affichage dit « départ / retour ».</p>`
           :`<div class="dt2"><label class="fld"><span>Heure de début</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"></label><label class="fld"><span>Heure de fin</span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></label></div>`}
-          ${sp==='multi'?`<label class="fld"><span>Intitulé du calendrier</span><input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="séjour"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist></label>`:''}
+          ${sp==='multi'?`<label class="fld"><span>Intitulé sous le calendrier (facultatif)</span><input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="sans intitulé"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist></label>`:''}
           <label class="fld"><span>Lieu (facultatif)</span><input class="in" id="fplace" value="${esc(f.place)}" placeholder="ex. Salle des fêtes, gymnase…"></label>
         </div>
         <div class="box"><h4>${BUS_SVG} Transport & 📋 réservation</h4>
@@ -2559,9 +2563,12 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       let sp;if(sd&&sd!==D){$('#fsd').value=D;toast('La date de début est celle de la journée (vide = pas de date de début)')}
       const S2=$('#fsd').value;
       if(S2){if(!ed)sp='open';else if(ed>D)sp='multi';else{sp='day';if(ed<D)$('#fed').value=D}}else sp=ed?'until':'day';
-      const old=spanOf(f);f.span=sp;f.endDate=(sp==='multi'||sp==='until')?ed:'';if(sp==='multi'&&!f.stayLabel)f.stayLabel='séjour';
-      if((old==='multi')!==(sp==='multi'))draw();else{const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée comme un séjour, « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
+      const old=spanOf(f);f.span=sp;f.endDate=(sp==='multi'||sp==='until')?ed:'';
+      if((old==='multi')!==(sp==='multi'))draw();else{const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
     ['#fsd','#fed'].forEach(q=>{const e=$(q);if(e)e.onchange=spRecalc});
+    const ns=$('#fnostart');if(ns)ns.onchange=()=>{const D=UI.drawer.date,sd=$('#fsd'),ed=$('#fed');
+      if(ns.checked){sd.value='';if(!ed.value||ed.value<=D){ed.value=addDays(D,7);toast('Indique la date de fin')}}else sd.value=D;
+      spRecalc();draw()};
     const fc=$('#fcat');if(fc)fc.onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
     $$('[data-seg]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
       const k=sg.dataset.seg,v=b.dataset.v;
