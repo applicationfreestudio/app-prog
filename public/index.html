@@ -393,6 +393,12 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v42 --- */
 .badge.pq .pq-d{display:none;line-height:1.4}
+.badge.cond{max-width:100%;overflow:hidden}
+.badge.cond .pq-f{white-space:nowrap}
+.badge.cond .pq-s{display:none}
+.badge.cond.condensed .pq-f{display:none}
+.badge.cond.condensed .pq-s{display:inline}
+.card.zoomed .badge.cond .pq-f,.card.zoomed .badge.cond .pq-s{display:none!important}
 .card.zoomed .badge.pq .pq-s{display:none}
 .card.zoomed .badge.pq .pq-d{display:inline}
 .cal-bar .l2 #jump{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -936,6 +942,11 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v58 */
+.dup-pv{max-height:52vh;overflow:auto;border:1.5px solid #E3DED6;border-radius:12px;background:var(--cream)}
+.dup-pv .pub-head,.dup-pv .act-foot,.dup-pv .psep,.dup-pv .pub-foot,.dup-pv .wm,.dup-pv .partners-box{display:none!important}
+.dr-foot .sec{flex-wrap:wrap}
+.dr-foot .sec .dbtn{flex:1 1 40%}
 /* v57 */
 .atype{display:flex;gap:6px;margin:0 0 14px}
 .atb{flex:1 1 0;min-width:0;min-height:44px;font-size:13px!important;letter-spacing:-.01em;border-radius:12px;border:1.5px solid #E3DED6;background:#fff;font:600 13.5px var(--pf,inherit);color:#5B5466;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px;white-space:nowrap;cursor:pointer}
@@ -1138,7 +1149,8 @@ function whenText(a){
   if(t.mode==='depart'&&(t.start||t.end))return t.start&&t.end?LBL.depart+' '+fmtT(t.start)+' → '+fmtT(t.end):t.start?LBL.depart+' '+fmtT(t.start):'retour '+fmtT(t.end);
   return '';
 }
-const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>'};
+const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>',hq:'hors quotient'};
+const qfLine=r=>r.op==='hq'?'hors quotient':'QF '+(QF_OPS[r.op]||'⩽')+' '+(r.qf||'');
 function gridSummary(p){
   const rows=(p.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
   if(p.type==='unique')return rows[0]?'tarif '+euro(rows[0].amount):'payant';
@@ -1168,9 +1180,8 @@ function badgesHTML(a){
     const rows=(pr.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
     if(pr.type==='unique')t.push(esc(gridSummary(pr)));
     else if(pr.type==='cond'){const parts=rows.map(r=>esc((r.label||'').trim())+' '+esc(euro(r.amount)));
-      if(rows.map(r=>(r.label||'')+euro(r.amount)).join('   ').length<=30)t.push(parts.join('<i class="sep"></i>'));
-      else b.push(`<span class="badge qf">${parts.join('<br>')}</span>`)}
-    else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')+' : '+esc(euro(r.amount))).join('<br>')}</span></span>`);
+      b.push(`<span class="badge pq cond"><span class="pq-f">${parts.join('<i class="sep"></i>')}</span><span class="pq-s">tarif sous condition</span><span class="pq-d">${parts.join('<br>')}</span></span>`)}
+    else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>esc(qfLine(r))+' : '+esc(euro(r.amount))).join('<br>')}</span></span>`);
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
   else if(pm==='qf'){const ls=String(pr.text||'selon quotient familial').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
@@ -1435,7 +1446,11 @@ function mountPublic(root,data,opts){
     markWraps();wmClip();fitStay();
   }
   // horaires de séjour : une seule ligne, police réduite si besoin
-  function fitStay(){
+  function fitPrices(){
+    requestAnimationFrame(()=>root.querySelectorAll('.badge.cond').forEach(b=>{b.classList.remove('condensed');
+      const f=b.querySelector('.pq-f'),box=b.parentNode;if(f&&(f.offsetWidth>box.clientWidth-2||b.scrollWidth>b.clientWidth+1))b.classList.add('condensed')}));
+  }
+  function fitStay(){fitPrices();
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
@@ -1547,7 +1562,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -1786,12 +1801,12 @@ window.EJ={QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS
 <script>
 /* ======================= Espace créateur ======================= */
 (function(){
-const {MONTHS,DAYS,DAYS_S,iso,parse,addDays,dow,cap,fmtLong,fmtT,esc,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,periodOf,mountPublic,QF_OPS,gridSummary}=window.EJ;
+const {MONTHS,DAYS,DAYS_S,iso,parse,addDays,dow,cap,fmtLong,fmtT,esc,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,periodOf,mountPublic,QF_OPS,gridSummary,qfLine}=window.EJ;
 const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.57';
+const APP_VERSION='v261120.58';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2056,6 +2071,7 @@ function footHTML(date){
       ${del?'<button class="dbtn sm warn" data-pa="del">Effacer le brouillon</button>':''}
       ${un?'<button class="dbtn sm warn" data-pa="unpub">Retirer du site</button>':''}
       <button class="dbtn sm" data-pa="tpl">Revenir à la semaine type</button>
+      <button class="dbtn sm" data-pa="dup">Dupliquer</button>
     </div>
     <div class="pri">
       <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
@@ -2073,6 +2089,7 @@ function bindStatus(){
     if(a==='pub'){if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);render();refreshDrawerStatus();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
+    if(a==='dup')return duplicateDay();
     if(a==='del')return deleteDraft();
   });
 }
@@ -2094,6 +2111,32 @@ async function publishDay(date,quiet){
 }
 async function unpublishDay(date){
   try{await docDel('public/'+date);delete S.pub[date];toast('Journée retirée de la page publique')}catch(e){}
+}
+async function duplicateDay(){
+  const src=UI.drawer.day;flushSave();
+  let picked=null;
+  const target=await new Promise(res=>{
+    const m=openModal(`<div class="mh"><h3>Dupliquer vers…</h3><button class="ico" data-a="x">✕</button></div>
+      <div class="mb"><label class="fld"><span>Date de destination</span><input class="in" type="date" id="dupd" value="${addDays(src.date,7)}"></label></div>
+      <div class="mf"><button class="btn" data-a="x">Annuler</button><button class="btn pri" data-a="ok">Continuer</button></div>`,{onClose:()=>res(picked)});
+    m.el.querySelectorAll('[data-a="x"]').forEach(b=>b.onclick=()=>m.close());
+    m.el.querySelector('[data-a="ok"]').onclick=()=>{const v=m.el.querySelector('#dupd').value;if(!v||v===src.date){toast('Choisis une autre date',true);return}picked=v;m.close()};
+  });
+  if(!target)return;
+  const cur=clone(getDay(target)), st=status(target);
+  (cur.slots||[]).forEach(x=>(x.acts||[]).forEach(a=>{a.pinned=false}));
+  const ok=await new Promise(res=>{let done=false;
+    const m=openModal(`<div class="mh"><h3>Écraser le ${esc(EJ.fmtShortDate(target))} ?</h3></div>
+      <div class="mb"><p class="hint" style="margin:0 0 8px">Voici la journée actuelle${st==='pub'||st==='mod'?' (en ligne)':st==='draft'?' (brouillon)':' (semaine type)'} qui sera remplacée par celle du ${esc(EJ.fmtShortDate(src.date))} :</p><div class="dup-pv"></div></div>
+      <div class="mf"><button class="btn" data-a="no">Annuler</button><button class="btn warn" data-a="ok">Écraser</button></div>`,{onClose:()=>{if(!done)res(false)}});
+    mountPublic(m.el.querySelector('.dup-pv'),{days:{[target]:cur},settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
+    m.el.querySelector('[data-a="no"]').onclick=()=>m.close();
+    m.el.querySelector('[data-a="ok"]').onclick=()=>{done=true;res(true);m.close()};
+  });
+  if(!ok)return;
+  const d=clone(src);d.date=target;d.rev=((S.drafts[target]||{}).rev||0)+1;d.pubRev=(S.drafts[target]||{}).pubRev??-1;d.updatedAt=new Date().toISOString();
+  (d.slots||[]).forEach(sl=>{sl.id=uid();(sl.acts||[]).forEach(a=>a.id=uid())});
+  try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}
 }
 async function resetTemplate(){
   const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
@@ -2313,7 +2356,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         </div>
         <div class="box"><h4>🤑 Tarif</h4>
           <select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select>
-          ${p.mode==='grid'?`<div class="prow-ed">${(p.rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants de cette activité. Les modèles de tarif se créent dans Paramètres → Tarifs.</p></div>`:''}
+          ${p.mode==='grid'?`<div class="prow-ed">${(p.rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):esc(qfLine(r))}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants de cette activité. Les modèles de tarif se créent dans Paramètres → Tarifs.</p></div>`:''}
           <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
           ${p.mode==='single'?`<div class="row" style="margin-top:8px"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:110px"> €</div>`:''}
           ${p.mode==='ccv2cc'?`<div class="row" style="margin-top:8px"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:100px"> €<span class="kbd">Hors communauté</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:100px"> €</div>`:''}
@@ -2610,7 +2653,7 @@ function renderSettings(main){
     ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque activité.</p>
       ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
         <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Intitulé du tarif (ex. Sortie piscine)"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
-        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:80px">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select><input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
+        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:${r.op==='hq'?'auto':'80px'}">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select>${r.op==='hq'?'':`<input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`}`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
         ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
       </div>`).join('')}
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
@@ -2685,7 +2728,7 @@ function bindSettings(main,st){
   main.querySelectorAll('[data-tadd]').forEach(b=>b.onclick=()=>{const t=b.dataset.tadd;st.tarifs.push({id:uid(),type:t,name:t==='unique'?'Tarif unique':t==='cond'?'Tarif sous condition':'Tarif au quotient',rows:t==='unique'?[{amount:''}]:t==='cond'?[{label:'',amount:''},{label:'',amount:''}]:[{op:'le',qf:'',amount:''},{op:'gt',qf:'',amount:''}]});UI.open.tarifs=true;rerender()});
   main.querySelectorAll('[data-ti]').forEach(box=>{const g=st.tarifs[+box.dataset.ti];
     box.querySelectorAll('[data-tf]').forEach(e=>e.oninput=()=>{g[e.dataset.tf]=e.value;changedBtn()});
-    box.querySelectorAll('[data-tr]').forEach(r=>{const row=g.rows[+r.dataset.tr];r.querySelectorAll('[data-rf]').forEach(e=>{e.oninput=e.onchange=()=>{row[e.dataset.rf]=e.value;changedBtn()}})});
+    box.querySelectorAll('[data-tr]').forEach(r=>{const row=g.rows[+r.dataset.tr];r.querySelectorAll('[data-rf]').forEach(e=>{e.oninput=()=>{row[e.dataset.rf]=e.value;changedBtn()};e.onchange=()=>{row[e.dataset.rf]=e.value;changedBtn();if(e.dataset.rf==='op')rerender()}})});
     box.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{g.rows.splice(+b.dataset.rdel,1);rerender()});
     const ad=box.querySelector('[data-radd]');if(ad)ad.onclick=()=>{g.rows.push(g.type==='cond'?{label:'',amount:''}:{op:'gt',qf:'',amount:''});rerender()};
     box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les activités qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
