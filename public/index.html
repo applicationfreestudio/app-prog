@@ -880,6 +880,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 /* départ / retour : retour à la ligne après la virgule en carte déployée et agrandie */
 .sjbr{display:none}
 .card:not(.fold) .sjbr,.card.zoomed .sjbr,.card.une .sjbr{display:block;height:0;width:100%}
+.nobr .sjbr{display:none!important}
 .card:not(.fold) .sj-when .sj1,.card.zoomed .sj-when .sj1,.card.une .sj-when .sj1{line-height:1.35}
 .card:not(.fold) .when .wzz,.card.zoomed .when .wzz{white-space:nowrap}
 </style>
@@ -2042,10 +2043,14 @@ function mountPublic(root,data,opts){
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.fold) .card-head .when,.card.fold.demi .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
+      // départ / retour (cartes déployées et agrandies) : on réduit d'abord la date, et seulement si ça ne tient toujours pas, retour à la ligne après la virgule
+      const brk=!!w.querySelector('.sjbr')&&!w.closest('.card.fold');w.classList.toggle('nobr',brk);
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
       // dates : forme la plus longue qui tient sans réduire la police
       const dts=[...w.querySelectorAll('.dt')],setL=L=>dts.forEach(x=>x.innerHTML=dtTxt(x.dataset.k,L,!!x.dataset.o,!!x.dataset.ny));
-      if(dts.length){let L=0;for(;L<3;L++){setL(L);if(!over())break}if(L<3)return;setL(3)}
+      if(dts.length){let L=0;for(;L<4;L++){setL(Math.min(L,3));if(!over())break}if(L<4)return;setL(3)}
+      if(brk){if(w.classList.contains('sj-when')){w.classList.add('nowd');if(!over())return}
+        w.classList.remove('nobr');let f=base;while(over()&&f>8){f-=.25;w.style.fontSize=f+'px'}return}
       const steps=w.classList.contains('sj-when')?[[],['nowd']]:[[]];
       for(let i=0;i<steps.length;i++){
         w.classList.remove('noa','nowd','now');steps[i].forEach(c=>w.classList.add(c));
@@ -2433,7 +2438,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.125';
+const APP_VERSION='v261120.126';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
