@@ -1033,6 +1033,30 @@ textarea.in{min-height:64px;resize:vertical}
 #qres .tpl .bd{padding:0!important}
 #qres .tpl .bd b{font-size:14.5px}
 #qres .tpl.blank{display:flex!important;justify-content:center;min-height:44px;border-width:1.5px!important;font-size:14.5px}
+/* v79 : créneaux */
+.drawer .slot-head{display:flex!important;flex-direction:column;align-items:stretch!important}
+.sh1{display:flex;align-items:center;gap:6px}
+.sh1 .dwrap{flex:1 1 0;min-width:0}
+.sh1 .dwrap .in{min-width:0!important;width:100%!important;font-size:14px!important;padding:0 4px!important}
+.sh1 input[type=time]::-webkit-calendar-picker-indicator{margin-left:0;padding:0}
+.drawer .dr-body{overflow-x:hidden}
+.drawer .slot{overflow:hidden;min-width:0}
+.sh1 .dx{flex:0 0 22px;width:22px;height:22px}
+.slot-img.sq{flex:0 0 38px;width:38px;height:38px;padding:2px!important;justify-content:center}
+.slot-img.sq img,.slot-img.sq .vis,.slot-img.sq svg{width:32px!important;height:32px!important;border-radius:7px}
+.rx{flex:0 0 30px;width:30px;height:30px;border-radius:8px;border:1.5px solid #F3C1BB;background:#FFF5F4;color:#D63031;font-size:13px;font-weight:700;cursor:pointer;display:grid;place-items:center;padding:0}
+.sh-hint{text-align:right;font-size:12.5px;color:#5d5864;margin:-2px 2px 0}
+.drawer .combo .in{padding-right:34px!important}
+.drawer .clist{margin-top:0}
+.clist[hidden]{display:none!important}
+.drawer .act{position:relative;padding-left:4px!important;gap:8px;transition:transform .12s}
+.drawer .act.dragging{z-index:5;box-shadow:0 8px 20px -8px rgba(20,19,23,.35)!important;transition:none;background:#fff}
+.grip{flex:0 0 14px;align-self:stretch;cursor:grab;touch-action:none;display:flex;align-items:center;justify-content:center}
+.grip::before{content:"";width:3px;height:26px;border-radius:2px;background:#D6D1C9}
+.drawer .act.m::before{display:none}
+.drawer .act.m .grip::before{background:var(--orange)}
+.drawer .act .tx small .aw{color:#141317;font-weight:600}
+.drawer .act .tools{gap:2px}
 /* v75 */
 .sw.nostart{font-size:14px;font-weight:600;min-height:36px;margin-bottom:6px}
 .fld.off{opacity:.45}
@@ -1995,7 +2019,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.78';
+const APP_VERSION='v261120.79';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2410,13 +2434,25 @@ function renderDrawer(){ensureKitDefs();
   dr.querySelector('.dr-body').scrollTop=keepScroll;
   bindDrawer(dr);
 }
+function slotHint(s){
+  if(s.start&&s.end)return 'de '+EJ.fmtT(s.start)+' à '+EJ.fmtT(s.end);
+  if(s.start)return 'à partir de '+EJ.fmtT(s.start);
+  if(s.end)return 'jusqu\'à '+EJ.fmtT(s.end);
+  return 'sans horaire';
+}
 function slotHTML(s,i){
+  const nos=s._nos||(!s.start&&s.end), noe=s._noe||(s.start&&!s.end);
   return `<section class="slot" data-si="${i}">
     <div class="slot-head">
-      <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
-      <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Temps libre, Soirée)">
-      ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas de rendez-vous)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
-      <button class="ico" data-sdel="${i}" title="Supprimer ce créneau">🗑️</button>
+      <div class="sh1">
+        <span class="dwrap"><button type="button" class="dx${nos?' on':''}" data-sx="start" title="Pas d'heure de début">✕</button><input class="in t${nos?' off':''}" type="time" data-sf="start" value="${esc(s.start)}" ${nos?'disabled':''} aria-label="Début"></span>
+        <span class="dwrap"><button type="button" class="dx${noe?' on':''}" data-sx="end" title="Pas d'heure de fin">✕</button><input class="in t${noe?' off':''}" type="time" data-sf="end" value="${esc(s.end)}" ${noe?'disabled':''} aria-label="Fin"></span>
+        ${s.free?'':`<button class="slot-img sq${s.visual||s.asset?' on':''}" data-simg="${i}" title="Image affichée quand il n'y a pas de rendez-vous">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button>`}
+        <button class="rx" data-sdel="${i}" title="Supprimer ce créneau" aria-label="Supprimer ce créneau">✕</button>
+      </div>
+      <div class="sh-hint">${esc(slotHint(s))}</div>
+      <div class="combo"><input class="in" data-sf="label" value="${esc(s.label)}" placeholder="Intitulé (ex. Temps libre, Soirée)" autocomplete="off"><button type="button" class="cdd" data-ldd="${i}" aria-label="Intitulés déjà utilisés">▾</button></div>
+      <div class="clist" data-llist="${i}" hidden></div>
     </div>
     <div class="slot-acts">
       ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
@@ -2424,15 +2460,16 @@ function slotHTML(s,i){
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
-  const meta=[whenText(a),a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
+  const sp=spanOf(a), L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'';
+  const when=sp==='multi'?'du '+L(UI.drawer&&UI.drawer.date)+' au '+L(a.endDate):sp==='open'?'à partir du '+L(UI.drawer&&UI.drawer.date):sp==='until'?'jusqu\'au '+L(a.endDate):whenText(a);
+  const meta=[a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):''].filter(Boolean).join(' · ');
   return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
+    <span class="grip" data-grip="${i}:${j}" title="Glisser pour déplacer" aria-label="Déplacer"></span>
     <div class="th">${actImage(a)}</div>
-    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${meta?esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
+    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${when?`<span class="aw">${esc(when)}</span>`:''}${when&&meta?' · ':''}${meta?esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
-      <button class="ico" data-mvup="${i}:${j}" ${j===0?'disabled':''} title="Monter">↑</button>
-      <button class="ico" data-mvdn="${i}:${j}" ${j===n-1?'disabled':''} title="Descendre">↓</button>
       <button class="ico" data-dup="${i}:${j}" title="Dupliquer">⧉</button>
-      <button class="ico" data-del="${i}:${j}" title="Supprimer">🗑️</button>
+      <button class="rx" data-del="${i}:${j}" title="Supprimer" aria-label="Supprimer">✕</button>
     </div></div>`;
 }
 function editActIn(i,j,onClose){
@@ -2481,7 +2518,18 @@ function bindDrawer(dr){
     ov.querySelector('.rv-exit').onclick=()=>ov.remove()};
   dr.querySelectorAll('.slot').forEach(sec=>{
     const s=day.slots[+sec.dataset.si];
-    sec.querySelectorAll('[data-sf]').forEach(inp=>inp.oninput=()=>{s[inp.dataset.sf]=inp.value;scheduleSave()});
+    sec.querySelectorAll('[data-sf]').forEach(inp=>inp.oninput=()=>{s[inp.dataset.sf]=inp.value;scheduleSave();const h=sec.querySelector('.sh-hint');if(h)h.textContent=slotHint(s)});
+    sec.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{const k=b.dataset.sx,o=k==='start'?'end':'start';
+      if(b.classList.contains('on')){delete s[k==='start'?'_nos':'_noe'];if(!s[k])s[k]=k==='start'?'14:00':'18:00'}
+      else{s[k]='';s[k==='start'?'_nos':'_noe']=true;delete s[k==='start'?'_noe':'_nos'];if(!s[o])s[o]=o==='start'?'14:00':'18:00'}
+      scheduleSave();renderDrawer()});
+    const ld=sec.querySelector('[data-ldd]'),ll=sec.querySelector('[data-llist]'),li=sec.querySelector('[data-sf="label"]');
+    if(ld)ld.onclick=()=>{if(!ll.hidden){ll.hidden=true;return}
+      const used=new Set();const add=x=>{x=(x||'').trim();if(x)used.add(x)};
+      Object.values(S.drafts).forEach(d=>(d.slots||[]).forEach(z=>add(z.label)));Object.values((settings().weeks)||{}).forEach(w=>(w||[]).forEach(d=>(d.slots||[]).forEach(z=>add(z.label))));
+      const L=[...used].sort((a,b)=>a.localeCompare(b,'fr'));
+      ll.innerHTML=L.length?L.map(x=>`<button type="button" data-lv="${esc(x)}" class="${x===s.label?'on':''}"><span class="ck">${x===s.label?'✓':''}</span>${esc(x)}</button>`).join(''):'<p class="kbd" style="margin:6px">Aucun intitulé encore utilisé.</p>';
+      ll.hidden=false;ll.querySelectorAll('[data-lv]').forEach(x=>x.onclick=()=>{s.label=x.dataset.lv;li.value=s.label;ll.hidden=true;scheduleSave()})};
   });
   dr.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{
     const s=day.slots[+b.dataset.sdel];
@@ -2497,10 +2545,24 @@ function bindDrawer(dr){
   });
   const ij=v=>v.split(':').map(Number);
   dr.querySelectorAll('[data-edit]').forEach(row=>row.onclick=e=>{
-    if(e.target.closest('.tools'))return;
+    if(e.target.closest('.tools,.grip'))return;
     const [i,j]=ij(row.dataset.edit);
     openComposer({mode:'day',initial:day.slots[i].acts[j],onSave:a=>{day.slots[i].acts[j]=a;scheduleSave();renderDrawer()},onDelete:()=>{day.slots[i].acts.splice(j,1);scheduleSave();renderDrawer()}});
   });
+  // glisser-déposer des rendez-vous (poignée)
+  dr.querySelectorAll('[data-grip]').forEach(g=>g.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();const row=g.closest('.act'),box=row.parentNode,[i0,j0]=ij(g.dataset.grip);
+    const rows=[...box.querySelectorAll('.act')],r0=row.getBoundingClientRect(),y0=e.clientY;let to=j0;
+    row.classList.add('dragging');g.setPointerCapture(e.pointerId);
+    const mv=ev=>{const dy=ev.clientY-y0;row.style.transform=`translateY(${dy}px)`;const mid=r0.top+r0.height/2+dy;
+      to=rows.filter(r=>r!==row&&r.getBoundingClientRect().top+r.offsetHeight/2<mid).length;
+      rows.forEach((r,k)=>{if(r===row)return;const kk=k>j0?k-1:k;r.style.transform=kk>=to&&k<j0?`translateY(${r0.height+6}px)`:kk<to&&k>j0?`translateY(${-r0.height-6}px)`:''})};
+    const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);
+      rows.forEach(r=>r.style.transform='');row.classList.remove('dragging');
+      if(to!==j0){const a=day.slots[i0].acts;const [it]=a.splice(j0,1);a.splice(to,0,it);scheduleSave()}renderDrawer()};
+    g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up);
+  }));
+  dr.querySelectorAll('[data-grip]').forEach(g=>g.onclick=e=>e.stopPropagation());
   dr.querySelectorAll('[data-mvup],[data-mvdn]').forEach(b=>b.onclick=()=>{
     const up='mvup' in b.dataset,[i,j]=ij(up?b.dataset.mvup:b.dataset.mvdn),a=day.slots[i].acts,k=up?j-1:j+1;
     [a[j],a[k]]=[a[k],a[j]];scheduleSave();renderDrawer();
