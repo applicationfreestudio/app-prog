@@ -1730,8 +1730,10 @@ function cardHTML(a,opts){
   const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
     if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?',<i class="sjbr"></i> retour ':ARR_SVG)+fmtTH(t.end):'');
     if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return opts.une?dz:'';})();
-  const w=stay?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:(wz?`<span class="wzz">${wz}</span>`:''));
+  const w=stay||(opts.une&&spanOf(a)==='until'&&a.endDate&&(a.timing||{}).end&&!(a.timing||{}).start)?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:(wz?`<span class="wzz">${wz}</span>`:''));
   const pj=isInfo(a);
+  // carte sans date de début : à la une « jusqu'au <date>, <heure> » ; dans le calendrier, seulement « jusqu'à <heure> »
+  const untilEnd=spanOf(a)==='until'&&a.endDate&&(a.timing||{}).end&&!(a.timing||{}).start, untilUne=untilEnd&&opts.une, untilHr=untilEnd&&!opts.une;
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
     const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)};
     const full=`<span class="sjf">${esc(LBL.depart)} ${DT(opts.date)}${t.start?' à '+fmtT(t.start):''},<i class="sjbr"></i> retour le ${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span>`;
@@ -1758,7 +1760,7 @@ function cardHTML(a,opts){
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
-      ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||(spanOf(a)==='until'&&a.endDate?'jusqu\'au '+DT(a.endDate):'à partir du '+DT(opts.date))}</span>`:''}
+      ${pj&&(opts.dateLine||opts.date)&&!untilHr?`<span class="pj-from">${opts.dateLine||(untilUne?'jusqu\'au '+DT(a.endDate)+', '+fmtT((a.timing||{}).end):spanOf(a)==='until'&&a.endDate?'jusqu\'au '+DT(a.endDate):'à partir du '+DT(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?esc(a.place):''}</span>${false?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
       ${stayW}
@@ -2441,7 +2443,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.128';
+const APP_VERSION='v261120.129';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
