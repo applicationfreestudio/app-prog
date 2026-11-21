@@ -392,6 +392,13 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v42 --- */
+.rib-w.r{left:auto;right:0}
+.rib-w.r .rib{left:auto;right:-38px;transform:rotate(45deg)}
+.rib.blue{background:linear-gradient(90deg,#3A7BFF,#5B5FEF);color:#fff}
+.rib.long{font-size:10.5px;letter-spacing:.03em}
+.card.zoomed .rib-w.r .rib{right:-44px}
+.lblcard{background:var(--paper,#fff);border-radius:var(--r,16px);padding:14px 16px;box-shadow:var(--lift);border:1px solid rgba(20,19,23,.06)}
+.lblcard h3{display:inline;margin:0;font-family:var(--pf,'Poppins'),sans-serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);background:linear-gradient(transparent 60%,#F8C6DD 60%,#F8C6DD 92%,transparent 92%);box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .card{position:relative}
 .card.isfull{box-shadow:var(--lift)!important}
 .rib-w{position:absolute;top:0;left:0;width:118px;height:118px;overflow:hidden;z-index:5;pointer-events:none}
@@ -1390,6 +1397,8 @@ function priceText(p){
   return 'Gratuit';
 }
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
+let AGES=[{id:'preados',label:'pré-ados'},{id:'ados',label:'ados'}];
+const agesOf=a=>{const L=Array.isArray(a.ages)?a.ages:a.publics&&a.publics!=='tous'?[a.publics]:[];return L.map(id=>(AGES.find(x=>x.id===id)||{}).label).filter(Boolean)};
 function badgesHTML(a){
   const b=[];
   if(a.booking&&a.booking.on)b.push(`<span class="badge"><span class="bi">📋</span>${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
@@ -1408,7 +1417,6 @@ function badgesHTML(a){
   else if(pm==='qf'){const ls=String(pr.text||'selon Qt').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
   if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
-  if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics].toLowerCase())}</span>`);
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
 }
 const jc=t=>String(t||'').length>=90?' j':'';
@@ -1447,20 +1455,20 @@ function cardHTML(a,opts){
   const pj=isInfo(a);
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span><span class="sjc">, </span><span>${d2}</span></div></div>`})():'';
   const info=badgesHTML(a)
-    +(pj&&a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
       const btn=au&&opts.date&&!opts.noAssets, A2=btn?"l'autorisation parentale":A;
       const t=it.length?it.join(', ')+(au?' et '+A2:''):A2;
       return `<p class="bring${jc(t)}"><span class="em">${it.length?'📣':'✍️'}</span><span><b>${esc(LBL.bring)} :</b> ${btn?esc(t.replace(/\s+\S+$/,''))+` <span class="nw">${esc(t.match(/\S+$/)[0])}<button type="button" class="pdf-chip" data-auth="${esc(a.id||'')}" title="Télécharger l'autorisation parentale">PDF</button></span>`:esc(t)}</span></p>`})()
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
+    +(a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +((a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'');
   const noBadges=!badgesHTML(a), busMode=a.transport&&!stay?(noBadges?(a.place&&!pj?'place':'cal'):'when'):'';
   const bus=busMode==='when'?'<span class="bus">'+BUS_SVG+'</span>':'';
   const full='';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}
+  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1547,7 +1555,7 @@ function dayHTML(day,settings,opts){
   const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}${U?' multi':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}>${head}
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
       const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);
-      const lab=(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
+      const lab=hasActs&&(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
       const rgH=(a,b)=>a&&b?`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`:a?`<span class="rg"><span><small>à partir de</small> ${fmtTH(a)}</span></span>`:b?`<span class="rg"><span><small>jusqu'à</small> ${fmtTH(b)}</span></span>`:'';
       if(lab)return slotRanges(day).map(([a,b,s])=>rgH(a,b)+(s.label&&String(s.label).trim()?`<span class="slbl">${esc(lc1(s.label))}</span>`:'')).join('<i></i>');
       return dayRanges(day).map(([a,b])=>rgH(a,b)).join('<i></i>')||'';
@@ -1565,7 +1573,7 @@ function dayHTML(day,settings,opts){
   if(!total&&!day.closed&&!slots.some(x=>imgSlot(x)||lblSlot(x)))r+=`<div class="empty-day">Pas d'activité programmée. L'établissement est ouvert : passe nous voir.</div>`;
   const multi=slots.filter(x=>(x.acts||[]).length||imgSlot(x)||lblSlot(x)).length>1;
   slots.forEach(s=>{
-    if(lblSlot(s)){r+=`<div class="lblcard">${esc(cap(lc1(s.label)))}</div>`;return}
+    if(lblSlot(s)){r+=`<div class="lblcard"><h3>${esc(cap(lc1(s.label)))}</h3></div>`;return}
     if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Établissement ouvert',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
     if(!(s.acts||[]).length)return;
     if(multi)r+=`<div class="slot-title">${esc(s.label||'Ouverture')} <span>${rng(s.start,s.end)}</span></div>`;
@@ -1577,7 +1585,7 @@ function dayHTML(day,settings,opts){
 /* Monte la page publique dans un conteneur. data = {days:{date:day}, settings}
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
 function mountPublic(root,data,opts){
-  opts=opts||{};if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
+  opts=opts||{};{const ag=data&&data.settings&&data.settings.info&&data.settings.info.ages;if(Array.isArray(ag)&&ag.length)AGES=ag}if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
   const st={days:{},settings:{},sheet:false,past:false};
   function logoHTML(info){
     if(info.logo&&!opts.noAssets)return `<span class="logo img"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.logo)}" alt=""></span>`;
@@ -1788,7 +1796,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -2029,12 +2037,13 @@ window.EJ={spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,g
 (function(){
 const {MONTHS,DAYS,DAYS_S,iso,parse,addDays,dow,cap,fmtLong,fmtT,esc,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,periodOf,mountPublic,QF_OPS,gridSummary,qfLine,spanOf,isInfo}=window.EJ;
 window.EJ_TARIFS_FN=()=>(settings().tarifs)||[];
+const syncAges=()=>EJ.setAges((settings().info||{}).ages);
 const resolveGridC=p=>window.EJ.resolveGrid(p);
 const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.80';
+const APP_VERSION='v261120.81';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2130,7 +2139,7 @@ function render(){
   const v=UI.view;
   app.innerHTML=`<div class="cr">
     <header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${APP_VERSION}</span></span>${S.stale?'<span class="who">⚠️ pas à jour</span>':''}<span class="role">Administrateur</span>${EJ.fsBtn('dark')}</div>
-      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','Rendez-vous')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
+      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','Les Cartes')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
     <div class="cr-main" id="crmain"></div></div>`;
   const main=document.getElementById('crmain');
   if(v==='activites')renderLibrary(main);
@@ -2233,9 +2242,9 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
       <div class="leg-row">${kitIcon('sejour',16)}&nbsp;sur plusieurs jours (séjour/nuitée)</div>
       <div class="leg-row">${kitIcon('projet',16)}&nbsp;information « à partir du » / « jusqu'au »</div>
-      <div class="leg-row"><i class="tg m">M</i>rendez-vous du matin</div>
-      <div class="leg-row"><i class="tg c">C</i>rendez-vous complet</div>
-      <div class="leg-row">${kitIcon('epingle',14)}&nbsp;rendez-vous à la une</div>
+      <div class="leg-row"><i class="tg m">M</i>carte du matin</div>
+      <div class="leg-row"><i class="tg c">C</i>carte complète</div>
+      <div class="leg-row">${kitIcon('epingle',14)}&nbsp;carte à la une</div>
       <div class="leg-row">${kitIcon('nocturne',14)}&nbsp;journée avec nocturne</div>
       <div class="leg-row">${kitIcon('vacances',16)} ${kitIcon('scolaire',16)}&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
     m.el.querySelector('[data-x]').onclick=()=>m.close();
@@ -2260,7 +2269,7 @@ function cellHTML(d,out){
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Rendez-vous du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${actType(a)==='activite'?'':kitIcon(actType(a),15)+' '}${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Carte du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${actType(a)==='activite'?'':kitIcon(actType(a),15)+' '}${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -2344,7 +2353,7 @@ async function doPA(a){
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='dup')return duplicateDay();
-    if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, rendez-vous, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
+    if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, cartes, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
       const d=UI.drawer.day;d.closed=false;d.closedReason='';d.note='';d.slots=[];scheduleSave();flushSave();renderDrawer();toast('Journée vidée');return}
     if(a==='del')return deleteDraft();
     if(a==='revert'){if(!await confirmBox('Annuler les modifications et revenir à la version en ligne ?',{ok:'Revenir à la version en ligne',danger:true}))return;
@@ -2414,7 +2423,7 @@ async function duplicateDay(){
 }
 async function resetTemplate(){
   const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
-  if(!await confirmBox('Réinitialiser cette journée sur la semaine type ? Les horaires et images des périodes seront remplacés. '+(n?'Les '+n+' rendez-vous seront rangées dans la première période.':''),{ok:'Réinitialiser'}))return;
+  if(!await confirmBox('Réinitialiser cette journée sur la semaine type ? Les horaires et images des périodes seront remplacés. '+(n?'Les '+n+' cartes seront rangées dans la première période.':''),{ok:'Réinitialiser'}))return;
   const t=templateDay(day.date), acts=day.slots.flatMap(s=>s.acts||[]);
   day.closed=t.closed;day.slots=t.slots;
   if(acts.length){if(!day.slots.length)day.slots.push({id:uid(),start:'',end:'',label:'',acts:[]});day.slots[0].acts=acts}
@@ -2443,7 +2452,7 @@ function renderDrawer(){ensureKitDefs();
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
       <button class="add-act add-slot top" id="addslot">＋ Ajouter un créneau horaire</button>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Rendez-vous hors créneau (séjour, info…)</button>':''}
+      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Carte hors créneau (séjour, info…)</button>':''}
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
@@ -2462,7 +2471,7 @@ function slotHTML(s,i){
       <div class="sh1">
         <span class="dwrap"><button type="button" class="dx${nos?' on':''}" data-sx="start" title="Pas d'heure de début">✕</button><input class="in t${nos?' off':''}" type="time" data-sf="start" value="${esc(s.start)}" ${nos?'disabled':''} aria-label="Début"></span>
         <span class="dwrap"><button type="button" class="dx${noe?' on':''}" data-sx="end" title="Pas d'heure de fin">✕</button><input class="in t${noe?' off':''}" type="time" data-sf="end" value="${esc(s.end)}" ${noe?'disabled':''} aria-label="Fin"></span>
-        ${s.free?'':`<button class="slot-img sq${s.visual||s.asset?' on':''}" data-simg="${i}" title="Image affichée quand il n'y a pas de rendez-vous">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button>`}
+        ${s.free?'':`<button class="slot-img sq${s.visual||s.asset?' on':''}" data-simg="${i}" title="Image affichée quand il n'y a pas de carte">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button>`}
         <button class="rx" data-sdel="${i}" title="Supprimer ce créneau" aria-label="Supprimer ce créneau">✕</button>
       </div>
       <div class="sh-hint">${esc(slotHint(s))}</div>
@@ -2471,7 +2480,7 @@ function slotHTML(s,i){
     </div>
     <div class="slot-acts">
       ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
-      <button class="add-act" data-add="${i}">＋ Ajouter un rendez-vous dans ce créneau</button>
+      <button class="add-act" data-add="${i}">＋ Ajouter une carte dans ce créneau</button>
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
@@ -2481,7 +2490,7 @@ function actRowHTML(a,i,j,n){
   return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
     <span class="grip" data-grip="${i}:${j}" title="Glisser pour déplacer" aria-label="Déplacer"></span>
     <div class="th">${actImage(a)}</div>
-    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${when?`<span class="aw">${esc(when)}</span>`:''}${when&&meta?' · ':''}${meta?esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
+    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Carte')}</b><small>${when?`<span class="aw">${esc(when)}</span>`:''}${when&&meta?' · ':''}${meta?esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
       <button class="ico" data-dup="${i}:${j}" title="Dupliquer">⧉</button>
       <button class="rx" data-del="${i}:${j}" title="Supprimer" aria-label="Supprimer">✕</button>
@@ -2548,7 +2557,7 @@ function bindDrawer(dr){
   });
   dr.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{
     const s=day.slots[+b.dataset.sdel];
-    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' rendez-vous ?',{ok:'Supprimer',danger:true}))return;
+    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' cartes ?',{ok:'Supprimer',danger:true}))return;
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
   const af=dr.querySelector('#addfree');
@@ -2608,27 +2617,28 @@ function tplMeta(a){
   return x;
 }
 function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
+  syncAges();
   // mode : 'day' (dans une journée) ou 'template' (bibliothèque)
   let step=initial?3:2, cat=initial?initial.cat:'jeux', f=initial?normalize(initial):null, q='';
   let saveAsTpl=false, keepB=null;
   const m=openModal('',{onClose:()=>{onClose&&setTimeout(onClose,0)}});
-  function title(){return step===2?'Partir d\'un rendez-vous type':(initial?'Modifier le rendez-vous':mode==='template'?'Nouvelle rendez-vous type':'Nouveau rendez-vous')}
+  function title(){return step===2?'Partir d\'une carte type':(initial?'Modifier la carte':mode==='template'?'Nouvelle carte type':'Nouvelle carte')}
   let prevStep=null;
   function draw(){
     let body='',foot='';
     if(step===1){
       body=`<div class="cat-grid">${Object.entries(CATS).filter(([k])=>!cats||cats.includes(k)).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div>
-        <div class="sec-t">ou cherche directement dans les rendez-vous types</div>
+        <div class="sec-t">ou cherche directement dans les cartes types</div>
         <input class="in" id="q" placeholder="ex. piscine, patinoire, couture…" value="${esc(q)}">
         <div class="tpl-grid" style="margin-top:10px" id="qres">${q?searchRes():''}</div>`;
       foot=`<button class="btn" data-a="cancel">Annuler</button>`;
     } else if(step===2){
-      body=`<input class="in" id="q" placeholder="Rechercher un rendez-vous type…" value="${esc(q)}" autocomplete="off">
-        <div class="tpl-grid" style="margin-top:10px" id="qres"><button class="tpl blank" data-blank="1">＋ Rendez-vous vierge</button>${searchRes()}</div>`;
+      body=`<input class="in" id="q" placeholder="Rechercher une carte type…" value="${esc(q)}" autocomplete="off">
+        <div class="tpl-grid" style="margin-top:10px" id="qres"><button class="tpl blank" data-blank="1">＋ Carte vierge</button>${searchRes()}</div>`;
       foot=`<span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
-      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme rendez-vous type</label>`:''}
+      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme carte type</label>`:''}
         <div class="fbar">${onDelete?'<button class="btn warn" data-a="delete">Supprimer</button>':!initial&&mode==='day'?'<button class="btn" data-a="back">‹ Retour</button>':''}
         <span style="flex:1"></span>
         <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button></div>`;
@@ -2644,7 +2654,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   function searchRes(){
     const qq=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
     const r=library().filter(t=>!qq||(t.title+' '+(t.desc||'')+' '+(t.place||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(qq));
-    return r.length?r.map(tplCard).join(''):'<p class="kbd">Aucune rendez-vous type trouvée.</p>';
+    return r.length?r.map(tplCard).join(''):'<p class="kbd">Aucune carte type trouvée.</p>';
   }
   function formHTML(){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
@@ -2660,7 +2670,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <div class="c-tt">
           <input class="in" id="ftitle" value="${esc(f.title)}" placeholder="Titre" style="font-weight:800;font-size:16.5px">
           <input class="in" id="fdesc" value="${esc(f.desc)}" placeholder="Sous-titre (facultatif)">
-          ${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}
+          <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
         </div>
       </div>
       <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}</div>
@@ -2699,7 +2709,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const $=s=>m.el.querySelector(s), $$=s=>m.el.querySelectorAll(s);
     $$('[data-a]').forEach(b=>b.onclick=()=>action(b.dataset.a));
     $$('[data-cat]').forEach(b=>b.onclick=()=>{cat=b.dataset.cat;step=2;draw()});
-    const qi=$('#q');if(qi){qi.oninput=()=>{q=qi.value;$('#qres').innerHTML='<button class="tpl blank" data-blank="1">＋ Rendez-vous vierge</button>'+searchRes();bindTpl();const bl2=$('[data-blank]');if(bl2)bl2.onclick=()=>{f=blankActivity(cat);step=3;draw()}};}
+    const qi=$('#q');if(qi){qi.oninput=()=>{q=qi.value;$('#qres').innerHTML='<button class="tpl blank" data-blank="1">＋ Carte vierge</button>'+searchRes();bindTpl();const bl2=$('[data-blank]');if(bl2)bl2.onclick=()=>{f=blankActivity(cat);step=3;draw()}};}
     bindTpl();
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
@@ -2720,6 +2730,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
     chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    $$('[data-age]').forEach(e=>e.onchange=()=>{f.ages=[...m.el.querySelectorAll('[data-age]:checked')].map(x=>x.dataset.age);f.publics='tous'});
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     const spRecalc=()=>{const sd=($('#fsd')||{}).value, ed=($('#fed')||{}).value, D=mode==='day'&&UI.drawer?UI.drawer.date:null;if(!D)return;
       let sp;if(sd&&sd!==D){$('#fsd').value=D;toast('La date de début est celle de la journée (vide = pas de date de début)')}
@@ -2759,16 +2770,16 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   async function action(a){
     if(a==='cancel')return m.close();
     if(a==='back'){step=2;draw();return}
-    if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'ce rendez-vous')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
+    if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'cette carte')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
     if(a==='save'){
-      if(!f.title.trim()){toast('Donne un titre au rendez-vous',true);m.el.querySelector('#ftitle').focus();return}
+      if(!f.title.trim()){toast('Donne un titre à la carte',true);m.el.querySelector('#ftitle').focus();return}
       f.title=f.title.trim();
       if(!f.span)f.span=spanOf(f);
       f.timing.mode=(f.timing.start||f.timing.end)?(f.transport?'depart':'range'):'none';
 
       const out=clone(f);delete out._prevCat;
       m.close();onSave(out);
-      if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajouté aux rendez-vous types ✓')}
+      if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajoutée aux cartes types ✓')}
     }
   }
   draw();
@@ -2827,7 +2838,7 @@ function cropImage(file,opt){
     const revoke=()=>{if(!isUrl)URL.revokeObjectURL(url)};
     img.onload=()=>{
       const m=openModal(`<div class="mh"><h3>Recadrer l'image</h3><button class="ico" data-a="x">✕</button></div>
-        <div class="mb"><p class="hint" style="margin:0 0 10px">Fais glisser l'image et ajuste le zoom : le carré montre ce qui apparaîtra sur la carte du rendez-vous.</p>
+        <div class="mb"><p class="hint" style="margin:0 0 10px">Fais glisser l'image et ajuste le zoom : le carré montre ce qui apparaîtra sur la carte.</p>
           <div class="crop"><div class="crop-v"><img alt="" draggable="false"></div></div>
           <label class="crop-z"><span>－</span><input type="range" min="1" max="4" step="0.01" value="1"><span>＋</span></label></div>
         <div class="mf"><button class="btn" data-a="x">Annuler</button>${opt.reuse?'<button class="btn" data-a="same">Telle quelle</button>':''}<button class="btn pri" data-a="ok">${opt.reuse?'Recadrer':'Utiliser cette image'}</button></div>`,{onClose:()=>{revoke();if(!done)resolve(null)}});
@@ -2921,7 +2932,7 @@ function openImagePicker(f,done){
   };
 }
 
-/* ---------- Bibliothèque d'rendez-vous types ---------- */
+/* ---------- Bibliothèque d'cartes types ---------- */
 async function saveLibrary(items){
   S.library={items};
   await docSet('config/library',{items,updatedAt:new Date().toISOString()});
@@ -2943,32 +2954,32 @@ const FILTERS=[
   ['precaution','📣 Précautions',a=>a.important]
 ];
 function renderLibrary(main){
-  if(!S.ready.library){main.innerHTML='<div class="loading">Chargement des rendez-vous types…</div>';return}
+  if(!S.ready.library){main.innerHTML='<div class="loading">Chargement des cartes types…</div>';return}
   const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   let list=library().slice().sort((a,b)=>a.title.localeCompare(b.title,'fr'));
   if(UI.libCat!=='all')list=list.filter(a=>a.cat===UI.libCat);
   if(UI.libFlt){const f=FILTERS.find(x=>x[0]===UI.libFlt);if(f)list=list.filter(f[2])}
   if(UI.libQ)list=list.filter(a=>norm(a.title+' '+a.desc+' '+a.place).includes(norm(UI.libQ)));
   const count=k=>library().filter(a=>a.cat===k).length;
-  main.innerHTML=`<div class="h-row"><h1>Rendez-vous types</h1><span class="kbd">${library().length} modèles réutilisables</span><span style="flex:1"></span><input class="in" id="lq" placeholder="Rechercher…" value="${esc(UI.libQ)}" style="max-width:240px"><button class="btn pri" id="newtpl">＋ Nouvelle rendez-vous type</button></div>
+  main.innerHTML=`<div class="h-row"><h1>Cartes types</h1><span class="kbd">${library().length} modèles réutilisables</span><span style="flex:1"></span><input class="in" id="lq" placeholder="Rechercher…" value="${esc(UI.libQ)}" style="max-width:240px"><button class="btn pri" id="newtpl">＋ Nouvelle carte type</button></div>
     <div class="filters"><button class="fchip${UI.libCat==='all'?' on':''}" data-lc="all">Toutes</button>${Object.entries(CATS).map(([k,c])=>`<button class="fchip${UI.libCat===k?' on':''}" data-lc="${k}">${c.emoji} ${esc(c.label)} <span style="opacity:.6">${count(k)}</span></button>`).join('')}</div>
     <div class="filters">${FILTERS.map(([k,l])=>`<button class="fchip${UI.libFlt===k?' on':''}" data-lf="${k}">${l.replace('[[bus]]',BUS_SVG)}</button>`).join('')}</div>
-    ${!library().length?'<div class="note">La bibliothèque est vide. Crée un premier rendez-vous type, ou coche « Enregistrer aussi comme rendez-vous type » quand tu ajoutes une activité dans une journée.</div>':''}
+    ${!library().length?'<div class="note">La bibliothèque est vide. Crée une première carte type, ou coche « Enregistrer aussi comme carte type » quand tu ajoutes une carte dans une journée.</div>':''}
     <div class="tpl-grid">${list.map(t=>`<button class="tpl" data-id="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><small>${(CATS[t.cat]||{}).emoji||''} ${esc((CATS[t.cat]||{}).label||'')}</small><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x).replace('[[bus]]',BUS_SVG)}</span>`).join('')}</div></div></button>`).join('')}</div>
-    ${library().length&&!list.length?'<p class="kbd">Aucun rendez-vous ne correspond à ces filtres.</p>':''}`;
+    ${library().length&&!list.length?'<p class="kbd">Aucune carte ne correspond à ces filtres.</p>':''}`;
   main.querySelectorAll('[data-lc]').forEach(b=>b.onclick=()=>{UI.libCat=b.dataset.lc;render()});
   main.querySelectorAll('[data-lf]').forEach(b=>b.onclick=()=>{UI.libFlt=UI.libFlt===b.dataset.lf?null:b.dataset.lf;render()});
   const lq=main.querySelector('#lq');lq.oninput=()=>{UI.libQ=lq.value;clearTimeout(lq._t);lq._t=setTimeout(()=>{render();const n=document.getElementById('lq');n.focus();n.setSelectionRange(n.value.length,n.value.length)},250)};
   main.querySelector('#newtpl').onclick=()=>{
     const m=openModal(`<div class="mh"><h3>Quelle catégorie ?</h3><button class="ico" data-x>✕</button></div><div class="mb"><div class="cat-grid">${Object.entries(CATS).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div></div>`);
     m.el.querySelector('[data-x]').onclick=()=>m.close();
-    m.el.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{m.close();openComposer({mode:'template',initial:Object.assign(blankActivity(b.dataset.cat),{title:''}),onSave:t=>{saveTemplate(t).then(()=>{toast('Rendez-vous type enregistrée ✓');render()})}})});
+    m.el.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{m.close();openComposer({mode:'template',initial:Object.assign(blankActivity(b.dataset.cat),{title:''}),onSave:t=>{saveTemplate(t).then(()=>{toast('Carte type enregistrée ✓');render()})}})});
   };
   main.querySelectorAll('.tpl[data-id]').forEach(b=>b.onclick=()=>{
     const t=library().find(x=>x.id===b.dataset.id);
     openComposer({mode:'template',initial:t,
-      onSave:n=>{n.id=t.id;saveTemplate(n).then(()=>{toast('Rendez-vous type mis à jour ✓');render()})},
-      onDelete:()=>{saveLibrary(library().filter(x=>x.id!==t.id)).then(()=>{toast('Rendez-vous type supprimé');render()}).catch(()=>{})}});
+      onSave:n=>{n.id=t.id;saveTemplate(n).then(()=>{toast('Carte type mise à jour ✓');render()})},
+      onDelete:()=>{saveLibrary(library().filter(x=>x.id!==t.id)).then(()=>{toast('Carte type supprimée');render()}).catch(()=>{})}});
   });
 }
 
@@ -2978,7 +2989,7 @@ function renderSettings(main){
   if(!S.ready.settings){main.innerHTML='<div class="loading">Chargement des paramètres…</div>';return}
   if(!UI.setDraft)UI.setDraft=clone(settings());
   const st=UI.setDraft;
-  st.tarifs=st.tarifs||[];st.info=st.info||{};st.periods=st.periods||[];st.holidays=st.holidays||[];st.weeks=st.weeks||emptySettings().weeks;
+  st.tarifs=st.tarifs||[];st.info=st.info||{};if(!Array.isArray(st.info.ages))st.info.ages=[{id:'preados',label:'pré-ados'},{id:'ados',label:'ados'}];st.periods=st.periods||[];st.holidays=st.holidays||[];st.weeks=st.weeks||emptySettings().weeks;
   const changed=JSON.stringify(st)!==JSON.stringify(settings());
   const pers=st.periods.map((p,i)=>({p,i})).sort((a,b)=>(a.p.start||'9')<(b.p.start||'9')?-1:1);
   const logoSrc=st.info.logo?(window.EJ_ASSET_BASE||'/_blob/')+st.info.logo:'';
@@ -3012,24 +3023,27 @@ function renderSettings(main){
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
-      <label class="fld"><span>Pied de page des rendez-vous (sous le dernier)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
+      <label class="fld"><span>Pied de page des cartes (sous la dernière)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
-    ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque rendez-vous.</p>
+    ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
+      ${(st.info.ages||[]).map((g,i)=>`<div class="row" data-agi="${i}"><input class="in" data-agf="${i}" value="${esc(g.label)}" placeholder="ex. 11-14 ans"><button class="ico" data-agdel="${i}" aria-label="Supprimer">✕</button></div>`).join('')}
+      <button class="btn sm" id="agadd">＋ Tranche d'âge</button>`,(st.info.ages||[]).length+' tranche(s)')}
+    ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque carte.</p>
       ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
         <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Intitulé du tarif (ex. Sortie piscine)"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
         ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">Quotient</span><select class="in t" data-rf="op" style="width:${r.op==='hq'?'auto':'80px'}">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select>${r.op==='hq'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Intitulé (ex. Hors Qt)">`:`<input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`}`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
         ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
       </div>`).join('')}
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
-    ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes des rendez-vous. Laisser vide pour revenir au texte par défaut.</p>
+    ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (rendez-vous, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (carte, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
       <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
-    ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les rendez-vous qui demandent une autorisation parentale.</p>
+    ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les cartes qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
     ${window.EJ_CF?fold('acces','Accès des utilisateurs','<div id="accespanel"><p class="hint">Chargement…</p></div>'):''}
-    ${window.EJ_CF?fold('sauvegarde','Sauvegarde',`<p class="hint">Copie complète (paramètres, rendez-vous types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
+    ${window.EJ_CF?fold('sauvegarde','Sauvegarde',`<p class="hint">Copie complète (paramètres, cartes types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
       <div class="row"><button class="btn" id="bkdl">Télécharger une sauvegarde</button><label class="btn warn"><input type="file" accept="application/json,.json" id="bkup" hidden>Restaurer…</label></div>`):''}
    </div>
    <div>
@@ -3076,7 +3090,7 @@ function weekPanel(st,type,title){
   return `<div data-wt="${type}">${fold('wk-'+type,title,`<p class="hint">Horaires d'ouverture, jour par jour. Plusieurs périodes possibles (ex. journée + soirée).</p>
     ${wk.map((d,i)=>`<div class="wk" data-wd="${i}"><span class="dn">${cap(DAYS[i])}</span>
       <label class="sw" style="font-size:13px"><input type="checkbox" data-wopen ${d.open?'checked':''}></label>
-      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas de rendez-vous">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
+      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas de carte">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
 `,open+' jours ouverts')}</div>`;
 }
 function bindSettings(main,st){
@@ -3089,13 +3103,16 @@ function bindSettings(main,st){
   main.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=()=>{st.holidays.splice(+b.dataset.hdel,1);rerender()});
   main.querySelector('#hadd').onclick=()=>{st.holidays.push({date:'',label:'Jour férié'});rerender()};
   main.querySelectorAll('[data-if]').forEach(e=>e.oninput=()=>{st.info[e.dataset.if]=e.value;changedBtn()});
+  main.querySelectorAll('[data-agf]').forEach(e=>e.oninput=()=>{st.info.ages[+e.dataset.agf].label=e.value;changedBtn()});
+  main.querySelectorAll('[data-agdel]').forEach(b=>b.onclick=()=>{st.info.ages.splice(+b.dataset.agdel,1);rerender()});
+  {const ag=main.querySelector('#agadd');if(ag)ag.onclick=()=>{st.info.ages.push({id:uid(),label:''});UI.open.ages=true;rerender()}}
   main.querySelectorAll('[data-tadd]').forEach(b=>b.onclick=()=>{const t=b.dataset.tadd;st.tarifs.push({id:uid(),type:t,name:t==='unique'?'Tarif unique':t==='cond'?'Tarif sous condition':'Tarif au quotient',rows:t==='unique'?[{amount:''}]:t==='cond'?[{label:'',amount:''},{label:'',amount:''}]:[{op:'le',qf:'',amount:''},{op:'gt',qf:'',amount:''}]});UI.open.tarifs=true;rerender()});
   main.querySelectorAll('[data-ti]').forEach(box=>{const g=st.tarifs[+box.dataset.ti];
     box.querySelectorAll('[data-tf]').forEach(e=>e.oninput=()=>{g[e.dataset.tf]=e.value;changedBtn()});
     box.querySelectorAll('[data-tr]').forEach(r=>{const row=g.rows[+r.dataset.tr];r.querySelectorAll('[data-rf]').forEach(e=>{e.oninput=()=>{row[e.dataset.rf]=e.value;changedBtn()};e.onchange=()=>{row[e.dataset.rf]=e.value;changedBtn();if(e.dataset.rf==='op')rerender()}})});
     box.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{g.rows.splice(+b.dataset.rdel,1);rerender()});
     const ad=box.querySelector('[data-radd]');if(ad)ad.onclick=()=>{g.rows.push(g.type==='cond'?{label:'',amount:''}:{op:'gt',qf:'',amount:''});rerender()};
-    box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les rendez-vous qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
+    box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les cartes qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
   });
   main.querySelectorAll('[data-wt]').forEach(sec=>{
     const wk=st.weeks[sec.dataset.wt];
