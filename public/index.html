@@ -725,6 +725,20 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .lblcard.fbar{padding:0}
 .cal-ico{background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;box-shadow:var(--cals,var(--lift))}
 .cal-ico .m{background:var(--calm,var(--ig))}
+
+/* --- v102 --- */
+.ctop{justify-content:flex-start}
+.ctop .ctfull{margin-left:0!important;background:#E0262F!important;color:#fff;text-shadow:none!important;font-size:1em!important;padding:.36em .73em .27em!important;border-radius:.27em!important}
+.ctop{font-size:11px}
+.card.zoomed .rib-w:not(.r){display:none!important}
+.zwrap{display:flex;flex-direction:column;align-items:stretch;gap:.45em;width:min(560px,100%);max-width:640px}
+.zwrap .card.zoomed{width:100%!important}
+.zwrap .ztop{margin:0;opacity:0;transform:scale(.92);transition:transform .22s cubic-bezier(.2,.9,.3,1.15),opacity .18s}
+.zoom-bg.on .zwrap .ztop{opacity:1;transform:none}
+.cal-ico.shut{background:linear-gradient(#fff,#fff) padding-box,var(--shg,linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%)) border-box!important;box-shadow:var(--shs,var(--lift))!important}
+.cal-ico.shut .m{background:var(--shm,linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%))!important}
+.night{background:var(--caln,#6228D7)!important;box-shadow:none!important;color:#fff!important}
+.nonight .night{display:none!important}
 </style>
 
 <style>
@@ -1041,6 +1055,7 @@ textarea.in{min-height:64px;resize:vertical}
 .cell .al .tg{vertical-align:-3px;margin-right:3px}
 .thopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:10px}
 .thopt{flex-direction:column;gap:6px;padding:10px 6px;height:auto;font-size:12px}
+.thh{font-size:14px;margin:16px 0 6px}
 .thopt.on{outline:2.5px solid #141317;outline-offset:1px}
 .thprev{width:54px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;box-shadow:var(--cals,var(--lift))}
 .thprev .m{align-self:stretch;background:var(--calm,var(--ig));color:#fff;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:3px 0;text-align:center}
@@ -1699,11 +1714,11 @@ function hexHsl(h){h=String(h||'').replace('#','');if(h.length===3)h=h.split('')
   let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let H=0,S=0,L=(mx+mn)/2;
   if(mx!==mn){const d=mx-mn;S=L>.5?d/(2-mx-mn):d/(mx+mn);H=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;H*=60}return [H,S*100,L*100]}
 const hsl=(h,s,l)=>`hsl(${((h%360)+360)%360} ${Math.max(0,Math.min(100,s)).toFixed(0)}% ${Math.max(8,Math.min(92,l)).toFixed(0)}%)`;
-function themeVars(t){if(!t||!t.color)return '';const c=hexHsl(t.color);if(!c)return '';const [H,S,L]=c,st=t.style||'gr';
+function themeVars(t,p){p=p||'cal';if(!t||!t.color)return '';const c=hexHsl(t.color);if(!c)return '';const [H,S,L]=c,st=t.style||'gr';
   const g=`linear-gradient(45deg,${hsl(H-28,S,L+10)} 0%,${hsl(H,S,L)} 50%,${hsl(H+32,S,L-8)} 100%)`,f=hsl(H,S,L);
   const bg=st[0]==='g'?g:f, gm=st[0]==='g'?`linear-gradient(90deg,${hsl(H-28,S,L+10)},${hsl(H,S,L)},${hsl(H+32,S,L-8)})`:f;
   const sh=st.endsWith('r')?'2px 2px 0 rgba(20,19,23,.16)':'none';
-  return `--calg:${bg};--calm:${gm};--cals:${sh}`}
+  return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh}`+(p==='cal'?`;--caln:${f}`:'')}
 /* Monte la page publique dans un conteneur. data = {days:{date:day}, settings}
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
 function mountPublic(root,data,opts){
@@ -1794,10 +1809,10 @@ function mountPublic(root,data,opts){
     const hidden=all.length-ks.length;
     const pastBtn=!opts.allDays&&!st.past&&hidden>0?`<button class="past-btn" data-past="1">Voir les jours passés (${hidden})</button>`:'';
     setLabels(info.labels);
-    const thv=themeVars(info.theme);
+    const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
-    root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
+    root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();
@@ -1883,7 +1898,10 @@ function mountPublic(root,data,opts){
   function zoom(card){
     const ov=document.createElement('div');ov.className='zoom-bg';
     const cl=card.cloneNode(true);cl.classList.add('zoomed');
-    ov.appendChild(cl);root.querySelector('.pub').appendChild(ov);
+    const top=card.previousElementSibling&&card.previousElementSibling.classList.contains('ctop')?card.previousElementSibling.cloneNode(true):null;
+    if(top){const wr=document.createElement('div');wr.className='zwrap';top.classList.add('ztop');wr.appendChild(top);wr.appendChild(cl);ov.appendChild(wr)}else ov.appendChild(cl);
+    root.querySelector('.pub').appendChild(ov);
+    if(top)requestAnimationFrame(()=>{const k=cl.offsetWidth/(card.offsetWidth||cl.offsetWidth);top.style.fontSize=(11*k)+'px'});
     requestAnimationFrame(()=>ov.classList.add('on'));fitStay();setTimeout(fitStay,260);
     ov.addEventListener('click',()=>{ov.classList.remove('on');setTimeout(()=>ov.remove(),200)});
   }
@@ -2215,7 +2233,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.101';
+const APP_VERSION='v261120.102';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3227,7 +3245,13 @@ function renderSettings(main){
     ${fold('theme','Couleur du thème',`<p class="hint">Couleur des calendriers de la page publique (dates des journées). Choisis une couleur de base, puis un style.</p>
       <div class="row" style="align-items:center;gap:10px"><input type="color" id="thcol" value="${esc((st.info.theme||{}).color||'#E1306C')}" style="width:52px;height:44px;padding:0;border:0;background:none"><button class="btn sm" id="threset">Dégradé d'origine</button></div>
       <div class="thopts">${[['gr','Dégradé + relief'],['g','Dégradé'],['fr','Uni + relief'],['f','Uni']].map(([k,l])=>`<button class="btn thopt${st.info.theme&&(st.info.theme.style||'gr')===k?' on':''}" data-th="${k}"><span class="thprev" data-thp="${k}" style="${EJ.themeVars({color:(st.info.theme||{}).color||'#E1306C',style:k})}"><span class="m">déc</span><b>21</b><i>lun.</i></span><b>${l}</b></button>`).join('')}
-        <button class="btn thopt${st.info.theme?'':' on'}" data-th=""><span class="thprev"><span class="m">déc</span><b>21</b><i>lun.</i></span><b>Origine</b></button></div>`,st.info.theme?({gr:'Dégradé + relief',g:'Dégradé',fr:'Uni + relief',f:'Uni'})[st.info.theme.style||'gr']:'Dégradé d\'origine')}
+        <button class="btn thopt${st.info.theme?'':' on'}" data-th=""><span class="thprev"><span class="m">déc</span><b>21</b><i>lun.</i></span><b>Origine</b></button></div>
+      <h3 class="thh">Jours fermés</h3>
+      <div class="row" style="align-items:center;gap:10px"><input type="color" id="thcol2" value="${esc((st.info.themeClosed||{}).color||'#141317')}" style="width:52px;height:44px;padding:0;border:0;background:none"></div>
+      <div class="thopts">${[['gr','Dégradé + relief'],['g','Dégradé'],['fr','Uni + relief'],['f','Uni']].map(([k,l])=>`<button class="btn thopt${st.info.themeClosed&&(st.info.themeClosed.style||'gr')===k?' on':''}" data-th2="${k}"><span class="thprev" data-thp2="${k}" style="${EJ.themeVars({color:(st.info.themeClosed||{}).color||'#141317',style:k})}"><span class="m">déc</span><b>25</b><i>ven.</i></span><b>${l}</b></button>`).join('')}
+        <button class="btn thopt${st.info.themeClosed?'':' on'}" data-th2=""><span class="thprev" style="--calg:linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%);--calm:linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%)"><span class="m">déc</span><b>25</b><i>ven.</i></span><b>Origine</b></button></div>
+      <h3 class="thh">Cartouches « nocturne »</h3>
+      <label class="sw"><input type="checkbox" id="thnight" ${st.info.showNight===false?'':'checked'}> Afficher les cartouches nocturnes (couleur du thème, en uni)</label>`,st.info.theme?({gr:'Dégradé + relief',g:'Dégradé',fr:'Uni + relief',f:'Uni'})[st.info.theme.style||'gr']:'Dégradé d\'origine')}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les cartes qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
@@ -3254,7 +3278,12 @@ function renderSettings(main){
   if(thc){thc.oninput=()=>main.querySelectorAll('[data-thp]').forEach(x=>x.setAttribute('style',EJ.themeVars({color:thc.value,style:x.dataset.thp})));
     thc.onchange=()=>saveInfo(i=>{i.theme={color:thc.value,style:(i.theme&&i.theme.style)||'gr'}},'Couleur du thème enregistrée ✓');
     main.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>saveInfo(i=>{i.theme=b.dataset.th?{color:thc.value,style:b.dataset.th}:null},'Thème enregistré ✓'));
-    main.querySelector('#threset').onclick=()=>saveInfo(i=>{i.theme=null},'Dégradé d\'origine rétabli ✓')}
+    main.querySelector('#threset').onclick=()=>saveInfo(i=>{i.theme=null},'Dégradé d\'origine rétabli ✓')
+    const tc2=main.querySelector('#thcol2');
+    tc2.oninput=()=>main.querySelectorAll('[data-thp2]').forEach(x=>x.setAttribute('style',EJ.themeVars({color:tc2.value,style:x.dataset.thp2})));
+    tc2.onchange=()=>saveInfo(i=>{i.themeClosed={color:tc2.value,style:(i.themeClosed&&i.themeClosed.style)||'gr'}},'Couleur des jours fermés enregistrée ✓');
+    main.querySelectorAll('[data-th2]').forEach(b=>b.onclick=()=>saveInfo(i=>{i.themeClosed=b.dataset.th2?{color:tc2.value,style:b.dataset.th2}:null},'Jours fermés enregistrés ✓'));
+    main.querySelector('#thnight').onchange=e=>saveInfo(i=>{i.showNight=e.target.checked},e.target.checked?'Cartouches nocturnes affichés ✓':'Cartouches nocturnes masqués ✓')}
   if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;toast('Envoi du logo…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.logo=r.id},'Logo enregistré ✓')}catch(e){toast('Envoi du logo impossible',true)}};
   const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>saveInfo(i=>{delete i.logo},'Logo retiré');
