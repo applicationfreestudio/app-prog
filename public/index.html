@@ -849,7 +849,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 /* accueil : verre moins flou, bord à la couleur du thème ; contact transparent sans flou ; plein écran avec cadre */
 .ishome .ht,.ishome .ht.on{-webkit-backdrop-filter:blur(var(--tbl,1.5px)) saturate(1.3)!important;backdrop-filter:blur(var(--tbl,1.5px)) saturate(1.3)!important;border:2px solid color-mix(in srgb,var(--caln,#C13584) 60%,rgba(255,255,255,.7))!important}
 .ishome .ht.off{border-color:color-mix(in srgb,var(--caln,#C13584) 42%,rgba(255,255,255,.7))!important}
-.ishome .contact{background:rgba(255,255,255,.6)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.ishome .contact{border:2px solid color-mix(in srgb,var(--caln,#C13584) 42%,rgba(255,255,255,.7))!important;box-shadow:inset 2px 2px 0 rgba(255,255,255,.45),inset -3px -3px 0 color-mix(in srgb,var(--caln,#C13584) 22%,rgba(255,255,255,.25)),0 6px 18px rgba(20,19,23,.10)!important;background:rgba(255,255,255,.6)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .fs-btn,.fs-btn:not(.dark){border:1.5px solid color-mix(in srgb,var(--caln,#C13584) 70%,#141317)!important;background:transparent!important}
 .ishome .partners{flex-wrap:nowrap!important;justify-content:center}
 .ishome .partners img{min-width:0;flex:0 1 auto;object-fit:contain}
@@ -872,7 +872,10 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .pub:not(.ishome) .partners{flex-wrap:nowrap!important;justify-content:center;gap:10px 26px;opacity:.75;-webkit-mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%));mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%))}
 .pub:not(.ishome) .partners img{height:var(--plh,84px)!important;max-width:48%!important;min-width:0;object-fit:contain}
 
-.pub-head{padding-top:calc(7px + env(safe-area-inset-top,0px))!important;height:calc(var(--hh) + env(safe-area-inset-top,0px))!important}
+.pub-head{margin-top:env(safe-area-inset-top,0px);top:calc(var(--top,0px) + env(safe-area-inset-top,0px))!important}
+
+.back-btn.out{animation:backout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
+@keyframes backout{from{width:26px;margin-left:-8px;margin-right:-6px;opacity:1}to{width:0;margin-left:0;margin-right:-12px;opacity:0}}
 </style>
 
 <style>
@@ -2110,6 +2113,7 @@ function mountPublic(root,data,opts){
   root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
   root.addEventListener('click',e=>{
     const go=e.target.closest('[data-go],[data-home]');
+    if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
     if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;return}
     const ci=e.target.closest('.days .cal-ico');
     if(ci){const sec=ci.closest('section.day');if(sec){const cs=[...sec.querySelectorAll('.card:not(.nofold)')];const anyF=cs.some(c=>c.classList.contains('fold'));cs.filter(c=>c.classList.contains('fold')===anyF).forEach(toggleFold)}return}
@@ -2423,7 +2427,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.120';
+const APP_VERSION='v261120.121';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
