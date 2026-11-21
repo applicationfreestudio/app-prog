@@ -972,7 +972,7 @@ textarea.in{min-height:64px;resize:vertical}
 .dup-nav b{flex:1;text-align:center;font-size:17px}
 /* v60 */
 .dbtn.two{flex-direction:column;gap:1px;line-height:1.1}
-.dbtn.two small{font-size:11.5px;font-weight:500;opacity:.9;text-decoration:underline;text-underline-offset:2px}
+.dbtn.two small{font-size:11.5px;font-weight:500;opacity:.9}
 /* v58 */
 .dup-pv{max-height:52vh;overflow:auto;border:1.5px solid #E3DED6;border-radius:12px;background:var(--cream)}
 .dup-pv .pub-head,.dup-pv .act-foot,.dup-pv .psep,.dup-pv .pub-foot,.dup-pv .wm,.dup-pv .partners-box{display:none!important}
@@ -1838,7 +1838,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.61';
+const APP_VERSION='v261120.62';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2106,7 +2106,7 @@ function footHTML(date){
     </div>
     <div class="pri">
       <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
-      ${s==='pub'?'<button class="dbtn go two" data-pa="unpub"><span>En ligne ✓</span><small>retirer</small></button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':'Publier'}</button>`}
+      ${s==='pub'?'<button class="dbtn go two" data-pa="unpub"><span>Retirer</span><small>déjà en ligne ✓</small></button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':'Publier'}</button>`}
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="dbtn ok" data-x="1">OK</button>
     </div>`;
