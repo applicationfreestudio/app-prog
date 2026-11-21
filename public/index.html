@@ -908,6 +908,8 @@ textarea.in{min-height:64px;resize:vertical}
 .seg button.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),1px 1px 3px -1px rgba(20,19,23,.16)}
 .hint,.note{text-align:justify;hyphens:manual}
 
+.lgi{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #D9D3CA;border-radius:6px;background:#fff;margin-right:8px;vertical-align:middle}
+.leg-row .tg{margin-right:8px}
 /* ===== v43 : système visuel unifié de l'éditeur =====
    niveau 1 (base)      : fond blanc, contour dégradé, relief découpé
    niveau 2 (sensible)  : teinte rouge légère (suppression, réinitialisation, retrait)
@@ -1686,7 +1688,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.43';
+const APP_VERSION='v261120.44';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1869,7 +1871,11 @@ function renderCalendar(main){
       <div class="leg-row"><i class="dot st-draft"></i>Brouillon, non visible</div>
       <div class="leg-row"><i class="dot st-pub"></i>En ligne</div>
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
-      <div class="leg-row"><span style="border-left:3px solid var(--orange);padding-left:6px">Barre orange</span> activité du matin</div></div>`,{cls:'leg'});
+      <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
+      <div class="leg-row"><i class="tg c">C</i>activité complète</div>
+      <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z" fill="#E1306C"/></svg></span>activité épinglée à la une</div>
+      <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#6228D7"/></svg></span>journée avec nocturne</div>
+      <div class="leg-row"><span style="font-size:17px">🏖️ 🎒</span>&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
     m.el.querySelector('[data-x]').onclick=()=>m.close();
   };
   main.querySelectorAll('.cell').forEach(c=>c.onclick=()=>openDrawer(c.dataset.date));
