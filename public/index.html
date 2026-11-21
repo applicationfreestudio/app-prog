@@ -74,7 +74,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .bring b{font-weight:600;color:var(--ink)}
 .em{flex:0 0 auto;font-size:15px;line-height:1.3}
 .empty-day{background:var(--paper);border-radius:var(--r);padding:20px 16px;text-align:center;color:var(--ink2);font-size:15px;box-shadow:var(--lift)}
-.past-btn{align-self:center;margin:-4px auto 6px;display:block;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;font-size:14px;color:var(--ink2);box-shadow:var(--hi)}
+.past-btn{align-self:center;margin:-6px auto -18px;display:block;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;font-size:14px;color:var(--ink2);box-shadow:var(--hi)}
 .stl .pill{font-family:var(--body)}
 .pub-foot{padding:18px 16px 30px;color:var(--ink2);font-size:13px;text-align:center;line-height:1.5}
 .pub-empty{margin:40px 16px;text-align:center;color:var(--ink2)}
@@ -392,6 +392,9 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v42 --- */
+.badge.pq .pq-d{display:none;line-height:1.4}
+.card.zoomed .badge.pq .pq-s{display:none}
+.card.zoomed .badge.pq .pq-d{display:inline}
 .cal-bar .l2 #jump{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .cal-bar .l2 #legend{flex:0 0 auto;padding-left:12px;padding-right:12px}
 .cal-bar .l2 #pubmonth{flex:0 1 auto;min-width:0;white-space:normal;line-height:1.1;text-align:center;font-size:14px}
@@ -933,6 +936,11 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v54 */
+.tgrid{border:1.5px solid #E3DED6;border-radius:12px;padding:10px;margin:8px 0;display:flex;flex-direction:column;gap:8px;background:#fff}
+.tgrid .row{flex-wrap:nowrap}
+.tgrid [data-tf="name"]{flex:1 1 auto;min-width:0}
+.prow-ed{margin-top:8px;display:flex;flex-direction:column;gap:6px}
 /* v49 */
 .pv-bar{flex-wrap:nowrap!important;gap:8px}
 .pv-bar .pvsel{flex:1 1 auto;width:auto;min-width:0;font-weight:600}
@@ -1121,8 +1129,18 @@ function whenText(a){
   if(t.mode==='depart'&&(t.start||t.end))return t.start&&t.end?LBL.depart+' '+fmtT(t.start)+' → '+fmtT(t.end):t.start?LBL.depart+' '+fmtT(t.start):'retour '+fmtT(t.end);
   return '';
 }
+const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>'};
+function gridSummary(p){
+  const rows=(p.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
+  if(p.type==='unique')return rows[0]?'tarif '+euro(rows[0].amount):'payant';
+  if(p.type==='cond')return rows.map(r=>(r.label||'').trim()+' '+euro(r.amount)).join(' · ');
+  const v=rows.map(r=>+r.amount).filter(x=>!isNaN(x));if(!v.length)return 'selon quotient';
+  const lo=Math.min(...v),hi=Math.max(...v);
+  return (lo===hi?euro(lo):'de '+euro(lo)+' à '+euro(hi))+' selon quotient';
+}
 function priceText(p){
   p=p||{};
+  if(p.mode==='grid')return gridSummary(p);
   if(p.mode==='single')return euro(p.amount)||'Payant';
   if(p.mode==='ccv2cc')return [p.cc!==''&&p.cc!=null?'CCV2CC '+euro(p.cc):'',p.hc!==''&&p.hc!=null?'Hors comm. '+euro(p.hc):''].filter(Boolean).join(' · ')||'Payant';
   if(p.mode==='qf')return p.text||'Selon quotient familial';
@@ -1137,6 +1155,13 @@ function badgesHTML(a){
   if(pm==='ccv2cc'){
     if(pr.cc!==''&&pr.cc!=null)t.push(esc(euro(pr.cc)));
     if(pr.hc!==''&&pr.hc!=null)t.push(esc(euro(pr.hc))+' '+esc(LBL.hc));
+  }else if(pm==='grid'){
+    const rows=(pr.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
+    if(pr.type==='unique')t.push(esc(gridSummary(pr)));
+    else if(pr.type==='cond'){const parts=rows.map(r=>esc((r.label||'').trim())+' '+esc(euro(r.amount)));
+      if(rows.map(r=>(r.label||'')+euro(r.amount)).join('   ').length<=30)t.push(parts.join('<i class="sep"></i>'));
+      else b.push(`<span class="badge qf">${parts.join('<br>')}</span>`)}
+    else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')+' : '+esc(euro(r.amount))).join('<br>')}</span></span>`);
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
   else if(pm==='qf'){const ls=String(pr.text||'selon quotient familial').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
@@ -1338,7 +1363,8 @@ function mountPublic(root,data,opts){
   function split(day){
     // retire les séjours et les activités épinglées de la journée
     const stays=[], d=JSON.parse(JSON.stringify(day));
-    d.slots=(d.slots||[]).map(s=>Object.assign(s,{acts:(s.acts||[]).filter(a=>{if(a.pinned)return false;if(a.cat==='sejour'){stays.push(a);return false}return true})}));
+    const today=iso(new Date());
+    d.slots=(d.slots||[]).map(s=>Object.assign(s,{acts:(s.acts||[]).filter(a=>{if(a.pinned&&(a.endDate||day.date)>=today)return false;if(a.cat==='sejour'){stays.push(a);return false}return true})}));
     const left=d.slots.reduce((n,s)=>n+s.acts.length,0), had=(day.slots||[]).reduce((n,s)=>n+(s.acts||[]).length,0);
     return {d,stays,skip:had>0&&left===0&&!d.note&&!d.closed};
   }
@@ -1374,7 +1400,7 @@ function mountPublic(root,data,opts){
   function pinnedHTML(shown){
     const today=iso(new Date()), items=[], vis=new Set(shown||[]);
     Object.keys(st.days).sort().forEach(k=>(st.days[k].slots||[]).forEach(s=>(s.acts||[]).forEach(a=>{
-      if(a.pinned&&((a.endDate||k)>=today||opts.allDays||vis.has(k)))items.push([k,a]);
+      if(a.pinned&&(a.endDate||k)>=today)items.push([k,a]);
     })));
     if(!items.length)return '';
     return `<section class="pinned"><div class="cards">${items.map(([k,a])=>{
@@ -1512,7 +1538,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -1751,12 +1777,12 @@ window.EJ={isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng
 <script>
 /* ======================= Espace créateur ======================= */
 (function(){
-const {MONTHS,DAYS,DAYS_S,iso,parse,addDays,dow,cap,fmtLong,fmtT,esc,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,periodOf,mountPublic}=window.EJ;
+const {MONTHS,DAYS,DAYS_S,iso,parse,addDays,dow,cap,fmtLong,fmtT,esc,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,periodOf,mountPublic,QF_OPS,gridSummary}=window.EJ;
 const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.53';
+const APP_VERSION='v261120.54';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2275,7 +2301,10 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
           <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'établissement est fermé pendant cette sortie</label>
           <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
         </div>
-        <div class="box"><h4>🤑 Tarif</h4>${seg('pmode',p.mode,[['free','Gratuit'],['single','Prix unique'],['ccv2cc','CCV2CC / hors comm.'],['qf','Selon QF / autre']])}
+        <div class="box"><h4>🤑 Tarif</h4>
+          <select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')} — ${esc(gridSummary(g))}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')} — ${esc(gridSummary(p))}</option>`:''}</select>
+          ${p.mode==='grid'?`<div class="prow-ed">${(p.rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants modifiables pour cette activité. Les tarifs se créent dans Paramètres → Tarifs.</p></div>`:''}
+          <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
           ${p.mode==='single'?`<div class="row" style="margin-top:8px"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:110px"> €</div>`:''}
           ${p.mode==='ccv2cc'?`<div class="row" style="margin-top:8px"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:100px"> €<span class="kbd">Hors communauté</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:100px"> €</div>`:''}
           ${p.mode==='qf'?`<textarea class="in" id="ptext" style="margin-top:8px;min-height:84px" placeholder="Une ligne par tarif, ex.&#10;QF ⩽ 900 : 200 €&#10;QF ⩽ 1400 : 250 €&#10;QF > 1400 : 300 €">${esc(p.text)}</textarea>`:''}
@@ -2303,6 +2332,8 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
     inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fend',v=>f.endDate=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
+    const pg=$('#pgrid');if(pg)pg.onchange=()=>{const v=pg.value;if(v==='free'){f.price={mode:'free'}}else if(v!=='legacy'&&v!=='keep'){const g=(settings().tarifs||[]).find(x=>x.id===v);if(g)f.price={mode:'grid',gid:g.id,name:g.name,type:g.type,rows:clone(g.rows||[])}}draw()};
+    $$('[data-pam]').forEach(e=>e.oninput=()=>{f.price.rows[+e.dataset.pam].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
     chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
@@ -2527,7 +2558,7 @@ function renderSettings(main){
   if(!S.ready.settings){main.innerHTML='<div class="loading">Chargement des paramètres…</div>';return}
   if(!UI.setDraft)UI.setDraft=clone(settings());
   const st=UI.setDraft;
-  st.info=st.info||{};st.periods=st.periods||[];st.holidays=st.holidays||[];st.weeks=st.weeks||emptySettings().weeks;
+  st.tarifs=st.tarifs||[];st.info=st.info||{};st.periods=st.periods||[];st.holidays=st.holidays||[];st.weeks=st.weeks||emptySettings().weeks;
   const changed=JSON.stringify(st)!==JSON.stringify(settings());
   const pers=st.periods.map((p,i)=>({p,i})).sort((a,b)=>(a.p.start||'9')<(b.p.start||'9')?-1:1);
   const logoSrc=st.info.logo?(window.EJ_ASSET_BASE||'/_blob/')+st.info.logo:'';
@@ -2563,6 +2594,14 @@ function renderSettings(main){
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page des activités (sous la dernière activité)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
+    ${fold('tarifs','Tarifs',`<p class="hint">Crée tes tarifs une fois, puis choisis-les dans chaque activité.</p>
+      ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
+        <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Nom du tarif"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
+        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:80px">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select><input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`:''}<input class="in t" type="number" step="0.5" min="0" data-rf="amount" value="${esc(r.amount??'')}" placeholder="€" style="width:90px"><span class="kbd">€</span>${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
+        ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
+        <p class="kbd" style="margin:6px 0 0">Affichage : ${esc(gridSummary(g))}</p>
+      </div>`).join('')}
+      <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
     ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet & staff), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
@@ -2631,6 +2670,14 @@ function bindSettings(main,st){
   main.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=()=>{st.holidays.splice(+b.dataset.hdel,1);rerender()});
   main.querySelector('#hadd').onclick=()=>{st.holidays.push({date:'',label:'Jour férié'});rerender()};
   main.querySelectorAll('[data-if]').forEach(e=>e.oninput=()=>{st.info[e.dataset.if]=e.value;changedBtn()});
+  main.querySelectorAll('[data-tadd]').forEach(b=>b.onclick=()=>{const t=b.dataset.tadd;st.tarifs.push({id:uid(),type:t,name:t==='unique'?'Tarif unique':t==='cond'?'Tarif sous condition':'Tarif au quotient',rows:t==='unique'?[{amount:''}]:t==='cond'?[{label:'',amount:''},{label:'',amount:''}]:[{op:'le',qf:'',amount:''},{op:'gt',qf:'',amount:''}]});UI.open.tarifs=true;rerender()});
+  main.querySelectorAll('[data-ti]').forEach(box=>{const g=st.tarifs[+box.dataset.ti];
+    box.querySelectorAll('[data-tf]').forEach(e=>e.oninput=()=>{g[e.dataset.tf]=e.value;changedBtn()});
+    box.querySelectorAll('[data-tr]').forEach(r=>{const row=g.rows[+r.dataset.tr];r.querySelectorAll('[data-rf]').forEach(e=>{e.oninput=e.onchange=()=>{row[e.dataset.rf]=e.value;changedBtn()}})});
+    box.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{g.rows.splice(+b.dataset.rdel,1);rerender()});
+    const ad=box.querySelector('[data-radd]');if(ad)ad.onclick=()=>{g.rows.push(g.type==='cond'?{label:'',amount:''}:{op:'gt',qf:'',amount:''});rerender()};
+    box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les activités qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
+  });
   main.querySelectorAll('[data-wt]').forEach(sec=>{
     const wk=st.weeks[sec.dataset.wt];
     sec.querySelectorAll('[data-wd]').forEach(row=>{
