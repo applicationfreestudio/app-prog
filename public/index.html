@@ -1748,7 +1748,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.50';
+const APP_VERSION='v261120.51';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2115,9 +2115,9 @@ function actRowHTML(a,i,j,n){
       <button class="ico" data-del="${i}:${j}" title="Supprimer">🗑️</button>
     </div></div>`;
 }
-function editActIn(i,j){
+function editActIn(i,j,onClose){
   const day=UI.drawer&&UI.drawer.day;if(!day)return;
-  openComposer({mode:'day',initial:day.slots[i].acts[j],onSave:a=>{day.slots[i].acts[j]=a;scheduleSave();renderDrawer()},onDelete:()=>{day.slots[i].acts.splice(j,1);scheduleSave();renderDrawer()}});
+  openComposer({mode:'day',onClose,initial:day.slots[i].acts[j],onSave:a=>{day.slots[i].acts[j]=a;scheduleSave();renderDrawer()},onDelete:()=>{day.slots[i].acts.splice(j,1);scheduleSave();renderDrawer()}});
 }
 async function navDay(n){
   if(!UI.drawer)return;
@@ -2196,11 +2196,11 @@ function tplMeta(a){
   if((a.bring||[]).length)x.push('🎒 '+a.bring.length+' à prévoir');
   return x;
 }
-function openComposer({mode,initial,onSave,onDelete,cats}){
+function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   // mode : 'day' (dans une journée) ou 'template' (bibliothèque)
   let step=initial?3:1, cat=initial?initial.cat:null, f=initial?normalize(initial):null, q='';
   let saveAsTpl=false;
-  const m=openModal('',{});
+  const m=openModal('',{onClose:()=>{onClose&&setTimeout(onClose,0)}});
   function title(){return step===1?'Quel type d\'activité ?':step===2?(CATS[cat].emoji+' '+CATS[cat].label+' — partir d\'une activité type'):(initial?'Modifier l\'activité':mode==='template'?'Nouvelle activité type':'Nouvelle activité')}
   let prevStep=null;
   function draw(){
@@ -2675,12 +2675,13 @@ function renderPreview(main){
     const card=e.target.closest('.card[data-aid]'), ico=e.target.closest('.cal-ico'), sec=e.target.closest('section.day[id^="j-"]');
     if(!card&&!(ico&&sec))return;
     e.preventDefault();e.stopPropagation();
+    if(card&&/^sl-/.test(card.dataset.aid||'')&&sec){openDrawer(sec.id.slice(2));return}
     if(card){const id=card.dataset.aid;
       const keys=[...new Set(Object.keys(S.drafts).concat(Object.keys(S.pub)))].sort();
       const pref=sec?sec.id.slice(2):null;
       const order=pref?[pref].concat(keys.filter(k=>k!==pref)):keys;
       for(const k of order){const d=getDay(k);for(let i=0;i<(d.slots||[]).length;i++){const j=(d.slots[i].acts||[]).findIndex(a=>a.id===id);
-        if(j>=0){openDrawer(k);editActIn(i,j);return}}}
+        if(j>=0){openDrawer(k);editActIn(i,j,()=>{if(UI.drawer)closeDrawer()});return}}}
       return;}
     openDrawer(sec.id.slice(2));
   },true);
