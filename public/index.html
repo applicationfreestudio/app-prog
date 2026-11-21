@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Espace jeunes de Selles-sur-Cher — le Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -847,7 +847,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .card:not(.fold) .fold-ar,.card.fold.demi .fold-ar{top:var(--art,8px)!important;transform:none!important}
 .card.fold.demi .card-img{min-height:52px}
 /* accueil : verre moins flou, bord à la couleur du thème ; contact transparent sans flou ; plein écran avec cadre */
-.ishome .ht,.ishome .ht.on{-webkit-backdrop-filter:blur(3px) saturate(1.3)!important;backdrop-filter:blur(3px) saturate(1.3)!important;border:2px solid color-mix(in srgb,var(--caln,#C13584) 60%,rgba(255,255,255,.7))!important}
+.ishome .ht,.ishome .ht.on{-webkit-backdrop-filter:blur(var(--tbl,1.5px)) saturate(1.3)!important;backdrop-filter:blur(var(--tbl,1.5px)) saturate(1.3)!important;border:2px solid color-mix(in srgb,var(--caln,#C13584) 60%,rgba(255,255,255,.7))!important}
 .ishome .ht.off{border-color:color-mix(in srgb,var(--caln,#C13584) 42%,rgba(255,255,255,.7))!important}
 .ishome .contact{background:rgba(255,255,255,.6)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .fs-btn,.fs-btn:not(.dark){border:1.5px solid color-mix(in srgb,var(--caln,#C13584) 70%,#141317)!important;background:transparent!important}
@@ -858,7 +858,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .ishome .ktx{color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;background-image:var(--kbg)!important;background-repeat:no-repeat!important;text-shadow:none!important;
   filter:drop-shadow(1px 1px 0 rgba(255,255,255,.6)) drop-shadow(-1px -1px 0 color-mix(in srgb,var(--caln,#C13584) 55%,rgba(0,0,0,.35)))!important}
 .ishome .kic{display:block;width:clamp(24px,5.5vh,44px);height:clamp(24px,5.5vh,44px);-webkit-background-clip:border-box!important;background-clip:border-box!important;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-.ishome .kic{filter:none!important}
+.ishome .kic{filter:none!important;background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.55)),var(--kbg)!important}
 .ishome .kicw{display:block;filter:drop-shadow(1px 1px 0 rgba(255,255,255,.6)) drop-shadow(-1px -1px 0 color-mix(in srgb,var(--caln,#C13584) 55%,rgba(0,0,0,.35)))}
 .ishome .ht span.ktx{font-weight:700}
 .ishome.tbold .ht span.ktx{font-weight:800;letter-spacing:.01em}
@@ -870,6 +870,8 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .pub:not(.ishome) .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
 .pub:not(.ishome) .partners{flex-wrap:nowrap!important;justify-content:center;gap:10px 26px;opacity:.75;-webkit-mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%));mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%))}
 .pub:not(.ishome) .partners img{height:var(--plh,84px)!important;max-width:48%!important;min-width:0;object-fit:contain}
+
+.pub-head{padding-top:calc(7px + env(safe-area-inset-top,0px))!important;height:calc(var(--hh) + env(safe-area-inset-top,0px))!important}
 </style>
 
 <style>
@@ -1874,11 +1876,11 @@ function mountPublic(root,data,opts){
   const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
   if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;render();window.scrollTo(0,0)}});
   const HICO={horaires:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
-  const kico=(k,info)=>{const sv=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="${info.tileBold?2.7:2.1}" stroke-linecap="round" stroke-linejoin="round">${HICO[k]}</svg>`,u=`url('data:image/svg+xml,${encodeURIComponent(sv)}')`;return `<span class="kicw" aria-hidden="true"><i class="kic ktx" style="-webkit-mask-image:${u};mask-image:${u}"></i></span>`};
+  const kico=(k,info)=>{const sv=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="${info.tileBold?3.1:2.6}" stroke-linecap="round" stroke-linejoin="round">${HICO[k]}</svg>`,u=`url('data:image/svg+xml,${encodeURIComponent(sv)}')`;return `<span class="kicw" aria-hidden="true"><i class="kic ktx" style="-webkit-mask-image:${u};mask-image:${u}"></i></span>`};
   // lettrage « découpé » : on y voit le fond (photo ou couleur) exactement aligné
   function knock(){const pub=root.querySelector('.pub.ishome');if(!pub)return;const pr=pub.getBoundingClientRect(),img=pub.querySelector('.hbg');
     const go=()=>{let dw=pr.width,dh=pr.height,ox=0,oy=0;if(img&&img.naturalWidth){const k=Math.max(pr.width/img.naturalWidth,pr.height/img.naturalHeight);dw=img.naturalWidth*k;dh=img.naturalHeight*k;ox=(pr.width-dw)/2;oy=(pr.height-dh)/2}
-      pub.querySelectorAll('.ktx').forEach(e=>{const r=e.getBoundingClientRect();e.style.backgroundSize=`${pr.width}px ${pr.height}px${img?`, ${dw}px ${dh}px`:''}`;e.style.backgroundPosition=`${pr.left-r.left}px ${pr.top-r.top}px${img?`, ${pr.left+ox-r.left}px ${pr.top+oy-r.top}px`:''}`})};
+      pub.querySelectorAll('.ktx').forEach(e=>{const r=e.getBoundingClientRect(),w=e.classList.contains('kic')?'100% 100%, ':'',wp=w?'0 0, ':'';e.style.backgroundSize=`${w}${pr.width}px ${pr.height}px${img?`, ${dw}px ${dh}px`:''}`;e.style.backgroundPosition=`${wp}${pr.left-r.left}px ${pr.top-r.top}px${img?`, ${pr.left+ox-r.left}px ${pr.top+oy-r.top}px`:''}`})};
     if(img&&!img.complete)img.addEventListener('load',go,{once:true});go()}
   window.addEventListener('resize',()=>requestAnimationFrame(knock));
   const hico=(k,z)=>`<svg viewBox="0 0 24 24" width="${z}" height="${z}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${HICO[k]}</svg>`;
@@ -1984,7 +1986,7 @@ function mountPublic(root,data,opts){
     const tcol=a=>`color-mix(in srgb,color-mix(in srgb,var(--caln,#C13584) ${TI}%,#fff) ${Math.round(a)}%,transparent)`;
     const kbg=`linear-gradient(color-mix(in srgb,var(--cream) ${info.homeBg&&!opts.noAssets?Math.round((1-hop)*100):100}%,transparent),color-mix(in srgb,var(--cream) ${info.homeBg&&!opts.noAssets?Math.round((1-hop)*100):100}%,transparent))${info.homeBg&&!opts.noAssets?`,url('${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}')`:''}`;
     requestAnimationFrame(knock);
-    root.innerHTML=`<div class="pub ishome${info.tileBold?' tbold':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--t1:${tcol(TA)};--t2:${tcol(TA*.62)};--t3:${tcol(TA*.5)};--t4:${tcol(TA*.25)};--kbg:${kbg.replace(/"/g,"'")};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
+    root.innerHTML=`<div class="pub ishome${info.tileBold?' tbold':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--tbl:${Math.max(0,Math.min(12,info.tileBlur==null?1.5:+info.tileBlur))}px;--t1:${tcol(TA)};--t2:${tcol(TA*.62)};--t3:${tcol(TA*.5)};--t4:${tcol(TA*.25)};--kbg:${kbg.replace(/"/g,"'")};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -2420,7 +2422,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.118';
+const APP_VERSION='v261120.119';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3443,6 +3445,7 @@ function renderSettings(main){
       <h4 class="tsh">Intitulés des 4 boutons</h4>${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>`<label class="fld"><span>Bouton « ${l} »</span><input class="in" data-tile="${k}" value="${esc((st.info.homeTiles||{})[k]||'')}" placeholder="${esc(l)}"></label>`).join('')}<h4 class="tsh">Boutons de menu</h4>
       <label class="fld"><span>Intensité de la couleur : <b id="tiv">${st.info.tileInt==null?100:st.info.tileInt} %</b></span><input type="range" id="tint" min="0" max="100" step="5" value="${st.info.tileInt==null?100:st.info.tileInt}"></label>
       <label class="fld"><span>Opacité des carrés : <b id="tov">${st.info.tileOp==null?48:st.info.tileOp} %</b> (plus bas = plus transparent)</span><input type="range" id="top" min="5" max="100" step="5" value="${st.info.tileOp==null?48:st.info.tileOp}"></label>
+ <label class="fld"><span>Flou derrière les carrés : <b id="tblv">${st.info.tileBlur==null?1.5:st.info.tileBlur} px</b></span><input type="range" id="tblur" min="0" max="12" step="0.5" value="${st.info.tileBlur==null?1.5:st.info.tileBlur}"></label>
       <label class="sw"><input type="checkbox" id="tbold" ${st.info.tileBold?'checked':''}> Texte des boutons plus épais</label>
       <h4 class="tsh">Logos partenaires (bas de page)</h4>
       <label class="fld"><span>Taille des logos : <b id="plhv">${st.info.partH||84} px</b></span><input type="range" id="plh" min="30" max="140" step="2" value="${st.info.partH||84}"></label>
@@ -3505,6 +3508,7 @@ function renderSettings(main){
   {const ti=main.querySelector('#tint'),to=main.querySelector('#top'),tb=main.querySelector('#tbold');
     if(ti){ti.oninput=()=>{main.querySelector('#tiv').textContent=ti.value+' %'};ti.onchange=()=>saveInfo(i=>{i.tileInt=+ti.value},'Intensité enregistrée ✓')}
     if(to){to.oninput=()=>{main.querySelector('#tov').textContent=to.value+' %'};to.onchange=()=>saveInfo(i=>{i.tileOp=+to.value},'Opacité enregistrée ✓')}
+    {const bl=main.querySelector('#tblur');if(bl){bl.oninput=()=>{main.querySelector('#tblv').textContent=bl.value+' px'};bl.onchange=()=>saveInfo(i=>{i.tileBlur=+bl.value},'Flou enregistré ✓')}}
     if(tb)tb.onchange=()=>saveInfo(i=>{i.tileBold=tb.checked},tb.checked?'Texte épaissi ✓':'Texte normal ✓')}
   const hu=main.querySelector('#hbgup');
   if(hu)hu.onchange=async()=>{const f=hu.files[0];hu.value='';if(!f)return;toast('Envoi…');
