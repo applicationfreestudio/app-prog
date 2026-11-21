@@ -1782,7 +1782,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.54';
+const APP_VERSION='v261120.55';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1966,7 +1966,6 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-draft"></i>Brouillon, non visible</div>
       <div class="leg-row"><i class="dot st-pub"></i>En ligne</div>
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
-      <div class="leg-row">${kitIcon('activite',16)}&nbsp;activité</div>
       <div class="leg-row">${kitIcon('sejour',16)}&nbsp;nuitée &amp; séjour</div>
       <div class="leg-row">${kitIcon('projet',16)}&nbsp;projet &amp; staff</div>
       <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
@@ -1996,7 +1995,7 @@ function cellHTML(d,out){
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${kitIcon(actType(a),15)} ${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${actType(a)==='activite'?'':kitIcon(actType(a),15)+' '}${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -2062,7 +2061,7 @@ function bindStatus(){
   document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=async()=>{
     const date=UI.drawer.date, a=b.dataset.pa;
     if(a==='save'){if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
-    if(a==='pub'){if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);closeDrawer();return}
+    if(a==='pub'){if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);render();refreshDrawerStatus();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='del')return deleteDraft();
@@ -2605,7 +2604,7 @@ function renderSettings(main){
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
     ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet & staff), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
-      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','activite','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
+      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
