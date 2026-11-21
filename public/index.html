@@ -389,6 +389,40 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v39 : éditeur de journée --- */
+:root{--cut:2px 2px 0 rgba(20,19,23,.16)}
+.btn,.btn.pri,.btn.go,.seg button.on,.fp,.cell{box-shadow:var(--cut)!important;background-image:none}
+.btn.pri{background:#141317}
+.btn.go{background:#1F8A4C}
+.btn:active,.dbtn:active,.dhb:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(20,19,23,.16)!important}
+.dbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid transparent;border-radius:12px;padding:12px 14px;font:600 15.5px var(--pf,inherit);color:#141317;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:2px 2px 0 rgba(20,19,23,.16);cursor:pointer;white-space:nowrap}
+.dbtn.sm{padding:7px 12px;font-size:14px;border-radius:10px}
+.dbtn.warn{color:#B42318;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(#E9B4AE,#E9B4AE) border-box}
+.dbtn.go{color:#fff;border:0;background:var(--ig);padding:13.5px 14px}
+.dbtn.reset{flex:0 0 52px!important;padding:0;color:#141317}
+.dhb{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:12px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:2px 2px 0 rgba(20,19,23,.16);font-size:26px;line-height:1;color:#141317;cursor:pointer;padding:0}
+.dhb.x{font-size:19px;margin-left:4px}
+.dr-head .r1{gap:10px}
+.dr-head h2{text-align:center}
+.dr-head .r2{gap:8px;margin-top:10px}
+.dr-head .r2 .saving{font-size:13px;font-weight:600;color:#1F8A4C;margin:0}
+.dr-head .r2 .st{margin-left:auto}
+.dr-foot .sec{display:flex;justify-content:space-between;gap:8px;padding-bottom:10px}
+.dr-foot .pri{display:flex;gap:8px;align-items:stretch}
+.dr-foot .pri .dbtn{flex:1 1 0;min-width:0;white-space:normal;line-height:1.15;text-align:center;font-size:16px}
+.dr-foot .saving{display:none}
+.dnote-in{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 12px;box-shadow:var(--lift,0 4px 14px -8px rgba(0,0,0,.25));margin:4px 0 12px}
+.dnote-in .warn{flex:0 0 20px}
+.dnote-in input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:600 15px var(--pf,inherit);color:#9A5B00;padding:2px 0}
+.dnote-in input::placeholder{color:#C9A15A;font-weight:500}
+.add-act{background:#fff!important;border:1.5px solid transparent!important;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box!important;box-shadow:2px 2px 0 rgba(20,19,23,.16);color:#141317!important;padding:13px!important;font-size:15.5px!important}
+.add-slot{display:block;margin:12px 0 0}
+.slot-img{display:inline-flex;align-items:center;gap:6px;border:1px dashed #CFC8BE;background:#fff;border-radius:9px;padding:4px 9px 4px 5px;font:600 12.5px var(--pf,inherit);color:#5d5864;cursor:pointer;height:34px}
+.slot-img.on{border-style:solid}
+.slot-img img,.slot-img .vis,.slot-img svg{width:34px;height:24px;border-radius:5px;object-fit:cover;position:static}
+.slot-img.sm{padding:3px;height:32px}
+.slot-img.sm span{display:none}
+
 /* --- v35 --- */
 .dnote{font-size:13px!important}
 .dnote .warn{width:18px!important;height:18px!important;flex-basis:18px!important}
@@ -1075,9 +1109,11 @@ function dayHTML(day,settings,opts){
   if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(lc1(day.note))}</span></div>`;
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
-  if(!total&&!day.closed)r+=`<div class="empty-day">Pas d'activité programmée. L'accueil est ouvert : passe nous voir.</div>`;
-  const multi=slots.filter(x=>(x.acts||[]).length).length>1;
+  const imgSlot=x=>!(x.acts||[]).length&&(x.visual||x.asset)&&(x.start||x.end)&&!day.closed;
+  if(!total&&!day.closed&&!slots.some(imgSlot))r+=`<div class="empty-day">Pas d'activité programmée. L'accueil est ouvert : passe nous voir.</div>`;
+  const multi=slots.filter(x=>(x.acts||[]).length||imgSlot(x)).length>1;
   slots.forEach(s=>{
+    if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Accueil',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
     if(!(s.acts||[]).length)return;
     if(multi)r+=`<div class="slot-title">${esc(s.label||'Accueil')} <span>${rng(s.start,s.end)}</span></div>`;
     r+=`<div class="cards">${s.acts.map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
@@ -1514,7 +1550,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.38';
+const APP_VERSION='v261120.39';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1562,7 +1598,7 @@ function templateDay(date){
   if(t.type==='hors'){base.closed=true;return base}
   const w=((st.weeks||{})[t.type]||[])[dow(date)];
   if(!w||!w.open){base.closed=true;return base}
-  base.slots=(w.slots||[]).map(s=>({id:uid(),start:s.start||'',end:s.end||'',label:s.label||'',acts:[]}));
+  base.slots=(w.slots||[]).map(s=>({id:uid(),start:s.start||'',end:s.end||'',label:s.label||'',visual:s.visual||'',asset:s.asset||'',acts:[]}));
   return base;
 }
 function getDay(date){return S.drafts[date]?clone(S.drafts[date]):templateDay(date)}
@@ -1757,15 +1793,15 @@ function statusBar(date){
 }
 function footHTML(date){
   const s=status(date);
-  return `<span class="saving" id="saving">${S.drafts[date]?'✓ Enregistré':'Pré-rempli depuis la semaine type'}</span>
-    <div class="sec">
-      <button class="btn sm" data-pa="tpl">Semaine type</button>
-      ${S.drafts[date]?'<button class="btn sm warn" data-pa="del">Effacer le brouillon</button>':''}
-      ${s==='pub'||s==='mod'?'<button class="btn sm warn" data-pa="unpub">Retirer du public</button>':''}
-    </div>
+  const del=S.drafts[date], un=s==='pub'||s==='mod';
+  return `${del||un?`<div class="sec">
+      ${del?'<button class="dbtn sm warn" data-pa="del">Effacer le brouillon</button>':'<span></span>'}
+      ${un?'<button class="dbtn sm warn" data-pa="unpub">Retirer du site</button>':''}
+    </div>`:''}
     <div class="pri">
-      <button class="btn" data-pa="save">Sauvegarder comme brouillon</button>
-      <button class="btn go" data-pa="pub">${s==='mod'?'Mettre à jour en ligne':s==='pub'?'Valider (en ligne)':'Mettre en ligne'}</button>
+      <button class="dbtn reset" data-pa="tpl" title="Revenir à la semaine type" aria-label="Revenir à la semaine type"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3.5V8h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20.5V16h-4.5"/></svg></button>
+      <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
+      <button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':s==='pub'?'En ligne ✓':'Publier'}</button>
     </div>`;
 }
 function bindStatus(){
@@ -1799,7 +1835,7 @@ async function unpublishDay(date){
 }
 async function resetTemplate(){
   const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
-  if(!await confirmBox('Réappliquer les horaires de la semaine type ? '+(n?'Les '+n+' activité(s) seront rangées dans la première période.':''),{ok:'Réappliquer'}))return;
+  if(!await confirmBox('Réinitialiser cette journée sur la semaine type ? Les horaires et images des périodes seront remplacés. '+(n?'Les '+n+' activité(s) seront rangées dans la première période.':''),{ok:'Réinitialiser'}))return;
   const t=templateDay(day.date), acts=day.slots.flatMap(s=>s.acts||[]);
   day.closed=t.closed;day.slots=t.slots;
   if(acts.length){if(!day.slots.length)day.slots.push({id:uid(),start:'',end:'',label:'',acts:[]});day.slots[0].acts=acts}
@@ -1819,15 +1855,16 @@ function renderDrawer(){
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="ico" data-nav="-1" title="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="ico" data-nav="1" title="Jour suivant">›</button><button class="ico" data-x="1" title="Fermer">✕</button></div>
-      <div class="r2"><span class="pill">${esc(t.label)}${(()=>{const h=EJ.hoursText(day);return h?' · '+esc(h):''})()}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><button class="dhb x" data-x="1" title="Fermer" aria-label="Fermer">✕</button></div>
+      <div class="r2"><span class="pill">${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}</span><span class="saving" id="saving">${S.drafts[date]?'✓ Enregistré':''}</span><span id="drstatus" class="st">${statusBar(date)}</span><button class="dbtn sm" id="drprev">👁 Voir le rendu</button></div>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Accueil fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
-      <label class="fld"><span>💥 Information importante du jour (affichée en rouge)</span><input class="in red" id="dnote" value="${esc(day.note)}" placeholder="ex. Il n'y a pas de navette ce matin !"></label>
+      <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      <div class="row" style="margin-top:4px"><button class="btn sm" id="addslot">＋ Ajouter une période horaire</button>${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="btn sm" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}</div>
+      <button class="add-act add-slot" id="addslot">＋ Ajouter une période horaire</button>
+      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
@@ -1838,10 +1875,11 @@ function slotHTML(s,i){
     <div class="slot-head">
       <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
       <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Accueil, Soirée)">
+      ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas d'activité)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
       <button class="ico" data-sdel="${i}" title="Supprimer cette période">🗑️</button>
     </div>
     <div class="slot-acts">
-      ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')||'<div class="empty-slot">Aucune activité pour l\'instant</div>'}
+      ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
       <button class="add-act" data-add="${i}">＋ Ajouter une activité</button>
     </div></section>`;
 }
@@ -1865,6 +1903,12 @@ function bindDrawer(dr){
   dr.querySelector('#dclosed').onchange=e=>{day.closed=e.target.checked;scheduleSave();renderDrawer()};
   const r=dr.querySelector('#dreason');if(r)r.oninput=e=>{day.closedReason=e.target.value;scheduleSave()};
   dr.querySelector('#dnote').oninput=e=>{day.note=e.target.value;scheduleSave()};
+  dr.querySelectorAll('[data-simg]').forEach(b=>b.onclick=()=>{const s=day.slots[+b.dataset.simg];const o={cat:'jeux',visual:s.visual||'',asset:s.asset||''};
+    openImagePicker(o,()=>{s.visual=o.visual||'';s.asset=o.asset||'';scheduleSave();renderDrawer()})});
+  dr.querySelector('#drprev').onclick=()=>{flushSave();const d=clone(day);const ov=document.createElement('div');ov.className='realview';
+    ov.innerHTML='<div class="rv-root"></div><button class="rv-exit">Fermer le rendu</button>';document.body.appendChild(ov);
+    mountPublic(ov.querySelector('.rv-root'),{days:{[d.date]:d},settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
+    ov.querySelector('.rv-exit').onclick=()=>ov.remove()};
   dr.querySelectorAll('.slot').forEach(sec=>{
     const s=day.slots[+sec.dataset.si];
     sec.querySelectorAll('[data-sf]').forEach(inp=>inp.oninput=()=>{s[inp.dataset.sf]=inp.value;scheduleSave()});
@@ -2228,7 +2272,7 @@ function weekPanel(st,type,title){
   return `<div data-wt="${type}">${fold('wk-'+type,title,`<p class="hint">Horaires d'ouverture, jour par jour. Plusieurs périodes possibles (ex. accueil + soirée).</p>
     ${wk.map((d,i)=>`<div class="wk" data-wd="${i}"><span class="dn">${cap(DAYS[i])}</span>
       <label class="sw" style="font-size:13px"><input type="checkbox" data-wopen ${d.open?'checked':''}></label>
-      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
+      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas d'activité">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
     <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-copyfrom="${type}">Copier le mercredi sur tous les jours ouverts</button></div>`,open+' jours ouverts')}</div>`;
 }
 function bindSettings(main,st){
@@ -2247,6 +2291,7 @@ function bindSettings(main,st){
       const d=wk[+row.dataset.wd];
       row.querySelector('[data-wopen]').onchange=e=>{d.open=e.target.checked;if(d.open&&!d.slots.length)d.slots.push({start:'14:00',end:'18:00',label:''});rerender()};
       row.querySelectorAll('[data-ws]').forEach(r=>{const s=d.slots[+r.dataset.ws];r.querySelectorAll('[data-wf]').forEach(e=>e.oninput=()=>{s[e.dataset.wf]=e.value;changedBtn()})});
+      row.querySelectorAll('[data-wsimg]').forEach(b=>b.onclick=()=>{const s=d.slots[+b.dataset.wsimg];const o={cat:'jeux',visual:s.visual||'',asset:s.asset||''};openImagePicker(o,()=>{s.visual=o.visual||'';s.asset=o.asset||'';changedBtn();rerender()})});
       row.querySelectorAll('[data-wsdel]').forEach(b=>b.onclick=()=>{d.slots.splice(+b.dataset.wsdel,1);if(!d.slots.length)d.open=false;rerender()});
       const a=row.querySelector('[data-wsadd]');if(a)a.onclick=()=>{const l=d.slots[d.slots.length-1];d.slots.push({start:l?l.end:'14:00',end:'',label:''});rerender()};
     });
