@@ -527,6 +527,15 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .dr-foot .sec{display:flex;justify-content:space-between;gap:8px;padding-bottom:10px}
 .dr-foot .pri{display:flex;gap:8px;align-items:stretch}
 .dr-foot .pri .dbtn{flex:1 1 0;min-width:0;white-space:normal;line-height:1.15;text-align:center;font-size:16px}
+.dr-foot .pri{gap:6px}
+.dr-foot .pri .dbtn.sv{font-size:13px;padding-left:4px;padding-right:4px}
+.dr-foot .pri .dbtn.go{font-size:14.5px;padding-left:4px;padding-right:4px}
+.dr-foot .pri .dbtn.eye,.dr-foot .pri .dbtn.more,.dr-foot .pri .dbtn.xclose{flex:0 0 44px!important}
+#pubmonth small{display:block;font-size:11.5px;font-weight:500;opacity:.9}
+#pubmonth{flex-direction:column;gap:0;line-height:1.15}
+@media (max-width:390px){.dr-foot .pri .dbtn.eye,.dr-foot .pri .dbtn.more,.dr-foot .pri .dbtn.xclose{flex:0 0 40px!important}.dr-foot .pri .dbtn.sv{font-size:12px!important}.dr-foot .pri .dbtn.go{font-size:13px!important}}
+.dr-foot .pri .dbtn.sv{flex:1 1 0!important;min-width:0}
+.dr-foot .pri .dbtn.go{flex:1.25 1 0!important;min-width:0}
 .dr-foot .saving{display:none}
 .dnote-in{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 12px;box-shadow:var(--lift,0 4px 14px -8px rgba(0,0,0,.25));margin:4px 0 12px}
 .dnote-in .warn{flex:0 0 20px}
@@ -1108,7 +1117,7 @@ textarea.in{min-height:64px;resize:vertical}
 .r2s .pill{height:auto!important;padding:3px 9px!important;border-radius:999px!important;font-size:12.5px!important}
 .r2s .stx{font-size:13px;color:var(--ink2)}
 .dbtn.more{flex:0 0 52px!important;padding:0;font-size:22px;line-height:1}
-.dr-foot .pri .dbtn.go{flex:1 1 auto!important}
+.dr-foot .pri .dbtn.go{flex:1.25 1 0!important;min-width:0}
 .dr-foot .pri .dbtn.go:disabled{background:#E8F5EC!important;color:#1F8A4C!important;opacity:1}
 .drpop{min-width:260px}
 .drpop button{color:#141317!important}
@@ -2080,7 +2089,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.91';
+const APP_VERSION='v261120.92';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2249,7 +2258,7 @@ function renderCalendar(main){ensureKitDefs();
     <div class="cal-bar">
       <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
       <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">Lg</button><button class="btn" id="raz" title="Réinitialiser le mois sur les semaines types" aria-label="Réinitialiser le mois">Raz</button><button class="btn${fOn?' fon':''}" id="filt">Filtre${fOn?' ('+flt.length+')':''} ▾</button>
-      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' jour'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
+      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+MONTHS[m-1]+'<small>'+draftsInMonth.length+' jour'+(draftsInMonth.length>1?'s':'')+'</small>':'Rien à publier'}</button></div>
     </div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
@@ -2369,6 +2378,7 @@ function footHTML(date){
       
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="dbtn more" id="drmore" aria-label="Plus d'actions" aria-haspopup="true">⋯</button>
+      <button class="dbtn sv" data-pa="save">Sauvegarder le brouillon</button>
       ${s==='pub'?'<button class="dbtn go" disabled>En ligne ✓</button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Publier les modifications':'Publier'}</button>`}
       <button class="dbtn xclose" data-xc="1" title="Fermer" aria-label="Fermer">✕</button>
     </div>`;
@@ -2396,7 +2406,7 @@ function bindStatus(){
 }
 async function doPA(a){
     if(!UI.drawer)return;const date=UI.drawer.date;
-    if(a==='save'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
+    if(a==='save'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');render();refreshDrawerStatus();return}
     if(a==='pub'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);UI.drawer&&(UI.drawer.orig=S.drafts[date]?clone(S.drafts[date]):null);render();refreshDrawerStatus();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
