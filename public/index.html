@@ -820,16 +820,19 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .card.fold.demi .card-head{padding-right:30px}
 /* flèche de retour : apparaît en glissant */
 .back-btn.anim{animation:backin .7s .25s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
-@keyframes backin{from{width:0;margin-left:0;margin-right:0;opacity:0}to{width:26px;opacity:1}}
+@keyframes backin{from{width:0;margin-left:0;margin-right:-12px;opacity:0}to{width:26px;margin-left:-8px;margin-right:-6px;opacity:1}}
+.pub-head .brand>div{align-self:flex-start;padding-top:14px}
+.pub:not(.ishome) .pub-head .brand>div{padding-top:10px}
 /* accueil : boutons pleins, découpés, translucides, texte gravé */
-.ishome .ht,.ishome .ht.on{background:color-mix(in srgb,var(--caln,#C13584) 80%,transparent)!important;border:0!important;color:#fff!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.14),3px 3px 0 color-mix(in srgb,var(--caln,#C13584) 55%,#141317)!important;
-  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
-.ishome .ht.off{background:color-mix(in srgb,var(--caln,#C13584) 58%,transparent)!important}
-.ishome .ht svg,.ishome .ht.on svg{color:#fff!important;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.35)) drop-shadow(0 1px 0 rgba(255,255,255,.25))}
-.ishome .ht span,.ishome .ht small{color:#fff!important;text-shadow:0 -1px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.22)}
-.ishome .ht small{opacity:.85}
-.ishome .ht.on:active{transform:translate(2px,2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),1px 1px 0 color-mix(in srgb,var(--caln,#C13584) 55%,#141317)!important}
+.ishome .ht,.ishome .ht.on{background:linear-gradient(145deg,color-mix(in srgb,var(--caln,#C13584) 48%,transparent),color-mix(in srgb,var(--caln,#C13584) 30%,transparent))!important;
+  border:1.5px solid rgba(255,255,255,.55)!important;color:#fff!important;
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.45),inset -3px -3px 0 color-mix(in srgb,var(--caln,#C13584) 22%,rgba(255,255,255,.25)),0 6px 18px rgba(20,19,23,.10)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4)}
+.ishome .ht.off{background:linear-gradient(145deg,color-mix(in srgb,var(--caln,#C13584) 24%,transparent),color-mix(in srgb,var(--caln,#C13584) 12%,transparent))!important;border-color:rgba(255,255,255,.5)!important}
+.ishome .ht svg,.ishome .ht.on svg{color:#fff!important;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35)) drop-shadow(0 -1px 0 rgba(255,255,255,.3))}
+.ishome .ht span,.ishome .ht small{color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.38),0 -1px 0 rgba(255,255,255,.25)}
+.ishome .ht small{opacity:.9}
+.ishome .ht.on:active{transform:scale(.98);box-shadow:inset 2px 2px 0 rgba(255,255,255,.35),inset -2px -2px 0 rgba(255,255,255,.2),0 3px 10px rgba(20,19,23,.10)!important}
 .ishome .contact{background:rgba(255,255,255,.82)!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .contact .cn{color:var(--caln,#C13584)!important}
 /* bouton plein écran : simple trait */
@@ -2364,7 +2367,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.115';
+const APP_VERSION='v261120.116';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
