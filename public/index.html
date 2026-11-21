@@ -952,6 +952,16 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v72 */
+.r2s{display:flex;align-items:center;gap:8px;margin-top:8px}
+.r2s .pill{height:auto!important;padding:3px 9px!important;border-radius:999px!important;font-size:12.5px!important}
+.r2s .stx{font-size:13px;color:var(--ink2)}
+.dbtn.more{flex:0 0 52px!important;padding:0;font-size:22px;line-height:1}
+.dr-foot .pri .dbtn.go{flex:1 1 auto!important}
+.dr-foot .pri .dbtn.go:disabled{background:#E8F5EC!important;color:#1F8A4C!important;opacity:1}
+.drpop{min-width:260px}
+.drpop button{color:#141317!important}
+.drpop button.r{color:#B42318!important}
 /* v71 */
 #filt.fon{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important}
 .fpop button{display:flex;align-items:center;gap:8px}
@@ -1885,7 +1895,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.71';
+const APP_VERSION='v261120.72';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2153,28 +2163,40 @@ function refreshDrawerStatus(){
 const ST_SHORT={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modifié'};
 function statusBar(date){
   const s=status(date);
-  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${s==='todo'?'Type':ST_SHORT[s]}</span>`;
+  const T={todo:'semaine type · rien d\'enregistré',draft:'brouillon enregistré · pas en ligne',pub:'en ligne · à jour',mod:'brouillon enregistré · pas encore en ligne'};
+  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${s==='todo'?'Type':ST_SHORT[s]}</span><span class="stx">${T[s]}</span>`;
 }
 function footHTML(date){
   const s=status(date);
-  const del=S.drafts[date], un=s==='pub'||s==='mod';
-  return `<div class="sec">
-      <button class="dbtn sm" data-pa="tpl">Revenir à la semaine type</button>
-      <button class="dbtn sm warn" data-pa="wipe">Supprimer</button>
-      <button class="dbtn sm" data-pa="dup">Dupliquer</button>
-    </div>
-    <div class="pri">
-      <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
-      ${s==='pub'?'<button class="dbtn go two" data-pa="unpub"><span>Retirer</span><small>déjà en ligne ✓</small></button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':'Publier'}</button>`}
+  return `<div class="pri">
+      <button class="dbtn more" id="drmore" aria-label="Plus d'actions" aria-haspopup="true">⋯</button>
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      ${s==='pub'?'<button class="dbtn go" disabled>En ligne ✓</button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Publier les modifications':'Publier'}</button>`}
     </div>`;
+}
+function moreMenu(btn){
+  document.querySelectorAll('.pvpop').forEach(x=>x.remove());
+  const date=UI.drawer.date, s=status(date), b=btn.getBoundingClientRect(), pop=document.createElement('div');pop.className='pvpop drpop';
+  const it=[['dup','Dupliquer…'],['tpl','Revenir à la semaine type']];
+  if(s==='mod')it.push(['revert','Annuler les modifications (version en ligne)']);
+  if(s==='pub'||s==='mod')it.push(['unpub','Retirer du site','r']);
+  it.push(['wipe','Vider la journée','r']);
+  pop.innerHTML=it.map(([k,l,c])=>`<button data-pa="${k}" class="${c?'r':''}">${l}</button>`).join('');
+  document.body.appendChild(pop);
+  pop.style.left=Math.max(8,b.left)+'px';pop.style.top=Math.max(8,b.top-pop.offsetHeight-8)+'px';
+  const off=ev=>{if(!pop.contains(ev.target)&&ev.target!==btn){pop.remove();document.removeEventListener('mousedown',off,true);document.removeEventListener('touchstart',off,true)}};
+  setTimeout(()=>{document.addEventListener('mousedown',off,true);document.addEventListener('touchstart',off,true)},0);
+  pop.querySelectorAll('[data-pa]').forEach(x=>x.onclick=()=>{pop.remove();doPA(x.dataset.pa)});
 }
 function bindStatus(){
   document.querySelectorAll('.drawer [data-x]').forEach(b=>b.onclick=()=>closeDrawer());
-  document.querySelectorAll('.drawer [data-xc]').forEach(b=>b.onclick=()=>askCloseDrawer());
+  document.querySelectorAll('.drawer [data-xc]').forEach(b=>b.onclick=()=>closeDrawer());
+  document.querySelectorAll('.drawer #drmore').forEach(b=>b.onclick=()=>moreMenu(b));
   document.querySelectorAll('.drawer #drprev').forEach(b=>b.onclick=()=>window.__drPrev&&window.__drPrev());
-  document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=async()=>{
-    const date=UI.drawer.date, a=b.dataset.pa;
+  document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=()=>doPA(b.dataset.pa));
+}
+async function doPA(a){
+    if(!UI.drawer)return;const date=UI.drawer.date;
     if(a==='save'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
     if(a==='pub'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);UI.drawer&&(UI.drawer.orig=S.drafts[date]?clone(S.drafts[date]):null);render();refreshDrawerStatus();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
@@ -2183,7 +2205,9 @@ function bindStatus(){
     if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, activités, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
       const d=UI.drawer.day;d.closed=false;d.closedReason='';d.note='';d.slots=[];scheduleSave();flushSave();renderDrawer();toast('Journée vidée');return}
     if(a==='del')return deleteDraft();
-  });
+    if(a==='revert'){if(!await confirmBox('Annuler les modifications et revenir à la version en ligne ?',{ok:'Revenir à la version en ligne',danger:true}))return;
+      clearTimeout(saveT);dirty=false;const d=clone(S.pub[date]);d.date=date;const old=S.drafts[date]||{};d.rev=(old.rev||0)+1;d.pubRev=d.rev;
+      try{await docSet('drafts/'+date,d);S.drafts[date]=d;UI.drawer.day=clone(d);renderDrawer();render();toast('Version en ligne rétablie')}catch(e){}return}
 }
 async function publishDay(date,quiet){
   let d=S.drafts[date]?clone(S.drafts[date]):(UI.drawer&&UI.drawer.date===date?clone(UI.drawer.day):templateDay(date));
@@ -2264,12 +2288,12 @@ function renderDrawer(){ensureKitDefs();
   const {date,day}=UI.drawer;
   const t=dayType(date);
   let scrim=document.querySelector('.scrim'),dr=document.querySelector('.drawer');
-  if(!scrim){scrim=document.createElement('div');scrim.className='scrim';scrim.onclick=()=>askCloseDrawer();document.body.appendChild(scrim)}
+  if(!scrim){scrim=document.createElement('div');scrim.className='scrim';scrim.onclick=()=>closeDrawer();document.body.appendChild(scrim)}
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date).replace(/\.\d\d$/,''))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span><button class="dhb x" data-xc="1" title="Fermer" aria-label="Fermer">✕</button></div>
-      <span class="saving" id="saving" hidden></span>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date).replace(/\.\d\d$/,''))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><button class="dhb x" data-xc="1" title="Fermer" aria-label="Fermer">✕</button></div>
+      <div class="r2s" id="drstatus">${statusBar(date)}</div><span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
@@ -2331,10 +2355,7 @@ async function askCloseDrawer(){
 }
 async function navDay(n){
   if(!UI.drawer)return;
-  if(dirty){
-    const ok=await confirmBox('Des modifications de cette journée ne sont pas encore enregistrées. Les enregistrer avant de changer de jour ?',{ok:'Enregistrer',no:'Ne pas enregistrer'});
-    if(ok)flushSave();else{clearTimeout(saveT);dirty=false}
-  }
+  flushSave();
   openDrawer(addDays(UI.drawer.date,n));render();
 }
 function bindDrawer(dr){
