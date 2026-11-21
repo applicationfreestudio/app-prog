@@ -762,7 +762,14 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 
 /* --- v105 --- */
 .pub.ishome{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.realview .pub.ishome{height:100%}
+.pub.ishome{position:fixed;inset:0;margin:0 auto;max-width:680px;touch-action:none;overscroll-behavior:none}
+.realview .pub.ishome{position:absolute;height:auto}
+.ishome{--hh:88px}
+.ishome .pub-head{height:var(--hh);flex:0 0 auto}
+.ishome .pub-head .logo{width:54px;height:54px}
+.ishome .pub-head .brand b{font-size:19px}
+.ishome .pub-foot{padding-bottom:calc(22px + env(safe-area-inset-bottom))!important}
+.ishome a,.ishome button{touch-action:manipulation}
 html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:none}
 .ishome .home{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:14px 16px 0}
 .ishome .hgrid{flex:1 1 auto;min-height:0;grid-template-rows:1fr 1fr}
@@ -784,6 +791,9 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .logo{border-radius:9px!important;box-shadow:none!important;border:2.5px solid transparent;background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--calg,var(--ig)) border-box!important}
 .logo.img{background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box!important}
 .info-btn,.fs-btn:not(.dark){background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box!important}
+
+.fs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#141317;color:#fff;padding:9px 14px;border-radius:10px;font:500 13px var(--pf,'Poppins'),sans-serif;z-index:200}
+.isfs .fs-btn{background:linear-gradient(var(--ink,#141317),var(--ink,#141317)) padding-box,var(--calg,var(--ig)) border-box!important;color:#fff!important}
 </style>
 
 <style>
@@ -1670,13 +1680,18 @@ function loadFont(name){
   l.href='https://fonts.googleapis.com/css2?family='+name.replace(/ /g,'+')+':wght@'+FONTS[name].w+'&display=swap';
   document.head.appendChild(l);
 }
+document.addEventListener('fullscreenchange',()=>document.documentElement.classList.toggle('isfs',!!document.fullscreenElement));
+document.addEventListener('webkitfullscreenchange',()=>document.documentElement.classList.toggle('isfs',!!document.webkitFullscreenElement));
 function fsOK(){return !!(document.fullscreenEnabled||document.webkitFullscreenEnabled)}
 function fsBtn(cls){return fsOK()?`<button class="fs-btn ${cls||''}" data-fs="1" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>`:''}
 document.addEventListener('click',e=>{
   if(!e.target.closest('[data-fs]'))return;
   const d=document, el=d.documentElement;
   if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);
-  else{const r=el.requestFullscreen||el.webkitRequestFullscreen;if(r)try{const p=r.call(el);if(p&&p.catch)p.catch(()=>{})}catch(_){}}
+  else{const r=el.requestFullscreen||el.webkitRequestFullscreen||el.webkitRequestFullScreen||el.msRequestFullscreen;
+    const ko=()=>{const t=document.createElement('div');t.className='fs-toast';t.textContent='Plein écran refusé par le navigateur';document.body.appendChild(t);setTimeout(()=>t.remove(),2600)};
+    if(!r){ko();return}
+    try{const p=r.call(el,{navigationUI:'hide'});if(p&&p.catch)p.catch(ko)}catch(_){try{r.call(el)}catch(__){ko()}}}
 });
 function sepLabel(p){
   if(!p)return 'Hors période';
@@ -1979,6 +1994,7 @@ function mountPublic(root,data,opts){
         else{const fades=parts().map(e=>e.animate([{opacity:1},{opacity:0}],{duration:130,easing:'ease-in',fill:'forwards'}));c._anim=true;
           setTimeout(()=>{const an=swap();fades.forEach(x=>x.cancel());an.onfinish=()=>{c._anim=null;wmTick()}},120)}
   }
+  root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
   root.addEventListener('click',e=>{
     const go=e.target.closest('[data-go],[data-home]');
     if(go){st.view=go.dataset.home?'home':'prog';if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;return}
@@ -2294,7 +2310,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.105';
+const APP_VERSION='v261120.106';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3283,7 +3299,8 @@ function renderSettings(main){
       <label class="fld"><span>Texte sous les logos</span><textarea class="in" data-if="partnersText" style="min-height:60px" placeholder="ex. Avec le soutien de…">${esc(st.info.partnersText)}</textarea></label>
       <div class="fld"><span>Police de la page publique</span><div class="fontpick">${Object.keys(EJ.FONTS).map(f=>{EJ.loadFont(f);const on=(st.info.font||'Poppins')===f;return `<button type="button" class="fp${on?' on':''}" data-font="${esc(f)}" style="font-family:'${f}',system-ui"><b>${esc(f)}</b><span>Piscine de 14h à 17h · Soirée ciné</span><small>${esc(EJ.FONTS[f].hint)}</small></button>`}).join('')}</div></div>
       <label class="fld"><span>Nom</span><input class="in" data-if="name" value="${esc(st.info.name)}"></label>
-      <label class="fld"><span>Sous-titre</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
+      <label class="fld"><span>Sous-titre de l'établissement (page d'accueil)</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
+      <label class="fld"><span>Sous-titre (page du programme)</span><input class="in" data-if="sub" value="${esc(st.info.sub)}"></label>
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
@@ -3313,8 +3330,7 @@ function renderSettings(main){
         <button class="btn thopt${st.info.themeClosed?'':' on'}" data-th2=""><span class="thprev" style="--calg:linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%);--calm:linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%)"><span class="m">déc</span><b>25</b><i>ven.</i></span><b>Origine</b></button></div>
       <h3 class="thh">Cartouches « nocturne »</h3>
       <label class="sw"><input type="checkbox" id="thnight" ${st.info.showNight===false?'':'checked'}> Afficher les cartouches nocturnes (couleur du thème, en uni)</label>`,st.info.theme?({gr:'Dégradé + relief',g:'Dégradé',fr:'Uni + relief',f:'Uni'})[st.info.theme.style||'gr']:'Dégradé d\'origine')}
-    ${fold('accueil','Page d\'accueil et programme',`<label class="fld"><span>Sous-titre du bandeau sur la page d'accueil</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
-      <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Afficher le programme déployé (cartes dépliées à l'arrivée)</label>`,st.info.unfoldAll?'programme déployé':'programme replié')}
+    ${fold('accueil','Page d\'accueil et programme',`<label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Afficher le programme déployé (cartes dépliées à l'arrivée)</label>`,st.info.unfoldAll?'programme déployé':'programme replié')}
     ${fold('contact','Contact (page d\'accueil)',`<p class="hint">Cartouche « contact » affiché sur la page d'accueil, sous les quatre boutons. Laisser un champ vide pour ne pas l'afficher.</p>
       ${[['name','Nom de la structure',st.info.name||'Espace jeunes'],['address','Adresse','12 rue …\n41130 Selles-sur-Cher',1],['phone','Téléphone','02 54 …'],['email','E-mail','espace.jeunes@…'],['web','Site web','www.…'],['text','Texte libre (horaires d\'accueil, réseaux…)','',1]].map(([k,l,ph,ta])=>`<label class="fld"><span>${l}</span>${ta?`<textarea class="in" data-ic="${k}" style="min-height:64px" placeholder="${esc(ph)}">${esc((st.info.contact||{})[k]||'')}</textarea>`:`<input class="in" data-ic="${k}" value="${esc((st.info.contact||{})[k]||'')}" placeholder="${esc(ph)}">`}</label>`).join('')}`,(st.info.contact&&(st.info.contact.phone||st.info.contact.email))?'renseigné':'à compléter')}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les cartes qui demandent une autorisation parentale.</p>
