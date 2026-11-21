@@ -944,6 +944,9 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v66 */
+.mf.c3{flex-wrap:nowrap;gap:6px}
+.mf.c3 .btn{flex:1 1 0;min-width:0;white-space:normal;line-height:1.15;text-align:center;justify-content:center;font-size:13.5px;padding:6px 6px}
 /* v64 */
 .dupcal .cell.t-off{background:#fff!important;border:1px solid var(--cr-line)!important}
 .dupcal .cell .mcal.shut{background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box!important}
@@ -1850,7 +1853,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.65';
+const APP_VERSION='v261120.66';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2265,7 +2268,7 @@ function editActIn(i,j,onClose){
 }
 function choice3(msg,a,b){
   return new Promise(res=>{let v='cancel';
-    const m=openModal(`<div class="mh"><h3>Modifications non enregistrées</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf"><button class="btn" data-c="cancel">Annuler</button><button class="btn warn" data-c="b">${esc(b)}</button><button class="btn pri" data-c="a">${esc(a)}</button></div>`,{onClose:()=>res(v)});
+    const m=openModal(`<div class="mh"><h3>Modifications non enregistrées</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf c3"><button class="btn" data-c="cancel">Annuler</button><button class="btn warn" data-c="b">${esc(b)}</button><button class="btn pri" data-c="a">${esc(a)}</button></div>`,{onClose:()=>res(v)});
     m.el.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{v=x.dataset.c;m.close()});
   });
 }
