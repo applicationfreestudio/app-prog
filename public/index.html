@@ -952,6 +952,11 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v71 */
+#filt.fon{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important}
+.fpop button{display:flex;align-items:center;gap:8px}
+.fpop .ck{margin-left:auto;color:#D62976;font-weight:700}
+.fpop .all{border-top:1px solid #EEEAE4!important;border-radius:0 0 9px 9px!important;color:#141317!important}
 /* v69 */
 .pvpop{position:fixed;z-index:90;background:#fff;border-radius:12px;padding:4px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:2px 2px 0 rgba(20,19,23,.16),0 10px 24px -12px rgba(20,19,23,.35);display:flex;flex-direction:column;gap:2px}
 .pvpop button{border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:9px;font:600 14px var(--pf,inherit);color:#5d5864;cursor:pointer}
@@ -1880,7 +1885,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.70';
+const APP_VERSION='v261120.71';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2030,14 +2035,17 @@ function renderCalendar(main){ensureKitDefs();
   const end=addDays(last,6-dow(last));
   const pers=(st.periods||[]).slice().sort((a,b)=>a.start<b.start?-1:1);
   const monthDays=[];for(let d=first;d<=last;d=addDays(d,1))monthDays.push(d);
-  const draftsInMonth=monthDays.filter(d=>['draft','mod'].includes(status(d))&&S.drafts[d]);
+  const FK=['todo','draft','pub','mod'], flt=UI.filter||FK, fOn=flt.length<FK.length;
+  const okF=d=>flt.includes(status(d));
+  const draftsInMonth=monthDays.filter(d=>okF(d)&&status(d)!=='pub'&&(status(d)!=='todo'||flt.includes('todo')));
   let cells='';
   {const pk=d=>{const p=periodOf(d,st.periods);return p?p.name:''},sep=(d,cls,extra)=>{const p=periodOf(d,st.periods);return `<div class="${cls}${p&&p.type==='vacances'?' vac':''}"><span>${esc(EJ.sepLabel(p))}${extra||''}</span></div>`};
    let prev=null;
    for(let w=start;w<=end;w=addDays(w,7)){
      // séparateur « semaine » (grille ordinateur) quand une période commence dans la semaine
-     for(let i=0;i<7;i++){const d=addDays(w,i);if(d.slice(0,7)!==UI.month)continue;if(pk(d)!==prev){if(prev!==null||i===0||true)cells+=sep(d,'wsep',i?' · dès le '+EJ.fmtShortDate(d):'');break}}
+     if(!fOn)for(let i=0;i<7;i++){const d=addDays(w,i);if(d.slice(0,7)!==UI.month)continue;if(pk(d)!==prev){cells+=sep(d,'wsep',i?' · dès le '+EJ.fmtShortDate(d):'');break}}
      for(let i=0;i<7;i++){const d=addDays(w,i);const inM=d.slice(0,7)===UI.month;
+       if(fOn&&(!inM||!okF(d)))continue;
        if(inM&&pk(d)!==prev){cells+=sep(d,'psep');prev=pk(d)}
        cells+=cellHTML(d,!inM);}
    }}
@@ -2045,14 +2053,23 @@ function renderCalendar(main){ensureKitDefs();
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
     <div class="cal-bar">
       <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
-      <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">LG</button><button class="btn" id="jump">Aller à une période… ▾</button>
-      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' brouillon'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
+      <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">LG</button><button class="btn${fOn?' fon':''}" id="filt">Filtre${fOn?' ('+flt.length+')':''} ▾</button>
+      <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' jour'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
     </div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
-  main.querySelector('#jump').onclick=()=>{
-    const m=openModal(`<div class="mb"><div class="plist">${pers.map(p=>`<button class="prow${p.type==='vacances'?' vac':''}" data-go="${p.start}"><span class="pe">${kitIcon(p.type==='vacances'?'vacances':'scolaire',18)}</span><span>${fmtShort(p.start)} → ${fmtShort(p.end)}</span></button>`).join('')||'<p class="hint">Aucune période dans les paramètres.</p>'}</div></div>`,{cls:'leg'});
-    m.el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{UI.month=b.dataset.go.slice(0,7);m.close();render()});
+  main.querySelector('#filt').onclick=e=>{
+    document.querySelectorAll('.pvpop').forEach(x=>x.remove());
+    const b=e.currentTarget.getBoundingClientRect(), pop=document.createElement('div');pop.className='pvpop fpop';
+    const L={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modifié'};
+    const drawP=()=>{const cur=UI.filter||FK;pop.innerHTML=FK.map(k=>`<button data-f="${k}" class="${cur.includes(k)?'on':''}"><i class="dot st-${k}"></i>${L[k]}<span class="ck">${cur.includes(k)?'✓':''}</span></button>`).join('')+`<button data-f="all" class="all">Tout afficher</button>`;
+      pop.querySelectorAll('[data-f]').forEach(x=>x.onclick=()=>{const k=x.dataset.f;let cur=(UI.filter||FK).slice();
+        if(k==='all')cur=FK.slice();else if(cur.includes(k)){if(cur.length>1)cur=cur.filter(z=>z!==k)}else cur.push(k);
+        UI.filter=cur.length===FK.length?null:FK.filter(z=>cur.includes(z));drawP();render();
+        const nb=document.querySelector('#filt');if(nb){const r=nb.getBoundingClientRect();pop.style.top=(r.bottom+6)+'px';pop.style.left=r.left+'px'}})};
+    drawP();pop.style.top=(b.bottom+6)+'px';pop.style.left=b.left+'px';pop.style.minWidth='200px';document.body.appendChild(pop);
+    const off=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('#filt')){pop.remove();document.removeEventListener('mousedown',off,true);document.removeEventListener('touchstart',off,true)}};
+    setTimeout(()=>{document.addEventListener('mousedown',off,true);document.addEventListener('touchstart',off,true)},0);
   };
   {const cal=main.querySelector('.cal');let x0=null,y0=0;
    cal.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
@@ -2075,7 +2092,7 @@ function renderCalendar(main){ensureKitDefs();
   };
   main.querySelectorAll('.cell').forEach(c=>c.onclick=()=>openDrawer(c.dataset.date));
   main.querySelector('#pubmonth').onclick=async()=>{
-    if(!await confirmBox(`Mettre en ligne ${draftsInMonth.length} journée(s) de ${MONTHS[m-1]} ? Elles seront visibles sur la page publique.`,{ok:'Mettre en ligne'}))return;
+    if(!await confirmBox(`Mettre en ligne ${draftsInMonth.length} journée(s) de ${MONTHS[m-1]}${fOn?' (selon le filtre)':''} ? Elles seront visibles sur la page publique.`,{ok:'Mettre en ligne'}))return;
     for(const d of draftsInMonth)await publishDay(d,true);
     toast(draftsInMonth.length+' journée(s) en ligne');
   };
