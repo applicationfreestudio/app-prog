@@ -665,6 +665,20 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .galed .gi button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#141317;color:#fff;font-size:11px;cursor:pointer}
 .galed .gadd{display:inline-flex;align-items:center;justify-content:center;width:76px;height:57px;border-radius:8px;border:1.5px dashed #C9C4BC;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
 
+
+/* --- v94 : cartes repliées (titre + image), dépliables --- */
+.fold-ar{display:none}
+.card.fold{align-items:center;cursor:pointer}
+.card.fold>:not(.card-img):not(.card-head):not(.fold-ar),.card.fold .rib-w{display:none!important}
+.card.fold .card-head>:not(h3){display:none!important}
+.card.fold .card-head{align-self:center;padding-right:38px!important}
+.card.fold h3{margin:0!important}
+.card .fold-ar{display:flex;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;align-items:center;justify-content:center;border:0;background:transparent;color:#8a8580;padding:0;cursor:pointer;z-index:3}
+.card .fold-ar svg{width:18px;height:18px;transition:transform .2s}
+.card:not(.fold) .fold-ar{top:8px;transform:none}
+.card:not(.fold) .fold-ar svg{transform:rotate(180deg)}
+.card.zoomed .fold-ar{display:none}
+.card:not(.fold):not(.zoomed) h3{padding-right:26px}
 </style>
 
 <style>
@@ -1476,6 +1490,7 @@ function stayWhen(a,date){
   return [`<i class="w">${esc(LBL.depart)} </i>${dShort(date)}${A(t.start)}`,`<i class="w">retour </i>${dShort(end)}${A(t.end)}`];
 }
 const ACTS_REG={};
+const OPEN_CARDS=new Set(); // cartes dépliées par le visiteur (clé : id|date)
 function cardHTML(a,opts){
   opts=opts||{};
   if(opts.date&&a.id)ACTS_REG[a.id]={a,date:opts.date};
@@ -1507,7 +1522,9 @@ function cardHTML(a,opts){
   const full='';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!OPEN_CARDS.has(fk);
+  return `<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+    <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1786,7 +1803,13 @@ function mountPublic(root,data,opts){
   root.addEventListener('click',e=>{
     const ab=e.target.closest('[data-auth]');if(ab){e.stopPropagation();authPDF(ab.dataset.auth,ab);return}
     const t=e.target.closest('[data-info],[data-close],[data-past]');
-    if(!t){const c=e.target.closest('.card');if(c&&!c.closest('.zoom-bg'))zoom(c);return}
+    if(!t){const c=e.target.closest('.card');if(!c||c.closest('.zoom-bg'))return;
+      const fa=e.target.closest('.fold-ar');
+      if(c.classList.contains('fold')||fa){const op=c.classList.contains('fold');c.classList.toggle('fold',!op);
+        const k=c.dataset.fk;if(k){op?OPEN_CARDS.add(k):OPEN_CARDS.delete(k)}
+        const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
+        markWraps();fitStay();setTimeout(()=>{fitStay();wmTick()},60);return}
+      zoom(c);return}
     if(t.dataset.close){ if(e.target===t||t.classList.contains('close')){st.sheet=false;render()} return; }
     if(t.dataset.info){st.sheet=true;render();return}
     if(t.dataset.past){
@@ -2090,7 +2113,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.93';
+const APP_VERSION='v261120.94';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
