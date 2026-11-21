@@ -805,10 +805,11 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .ishome .home{z-index:2!important}
 .ishome .pub-foot{z-index:0!important}
 .ishome .pub-foot{position:relative;z-index:1;padding-top:0!important}
-.ishome .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:4px 0 0!important}
+.ishome .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:18px 0 0!important}
 .ishome .partners{gap:10px 26px;margin:0}
-.ishome .partners img{height:clamp(48px,11vh,110px)!important;max-width:46%!important}
-.ishome .partners{opacity:.7!important;-webkit-mask-image:linear-gradient(#000 35%,transparent 100%);mask-image:linear-gradient(#000 35%,transparent 100%)}
+.ishome .partners img{height:clamp(34px,7vh,72px)!important;max-width:46%!important}
+.ishome .partners{opacity:.7!important;-webkit-mask-image:linear-gradient(transparent 0%,#000 70%);mask-image:linear-gradient(transparent 0%,#000 70%)}
+.hbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
 </style>
 
 <style>
@@ -1900,7 +1901,7 @@ function mountPublic(root,data,opts){
     const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
-    if(opts.home&&st.view==='home'){requestAnimationFrame(()=>{const c=root.querySelector('.ishome .contact'),pb=root.querySelector('.ishome .partners-box');if(c&&pb)pb.style.setProperty('--ov',Math.round(c.offsetHeight/2)+'px')});root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
+    if(opts.home&&st.view==='home'){requestAnimationFrame(()=>{const c=root.querySelector('.ishome .contact'),pb=root.querySelector('.ishome .partners-box');if(c&&pb)pb.style.setProperty('--ov',Math.round(c.offsetHeight/2)+'px')});root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -2327,7 +2328,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.113';
+const APP_VERSION='v261120.114';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3337,7 +3338,11 @@ function renderSettings(main){
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
     ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (carte, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
       <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
-    ${fold('theme','Couleur du thème',`<p class="hint">Couleur des calendriers de la page publique (dates des journées). Choisis une couleur de base, puis un style.</p>
+    ${fold('theme','Paramétrage du thème',`<h3 class="thh" style="margin-top:0">Photo de fond de la page d'accueil</h3>
+      <div class="row" style="align-items:center;gap:10px"><span class="logo-prev">${st.info.homeBg?`<img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+st.info.homeBg)}" alt="" style="object-fit:cover">`:'—'}</span>
+        ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="hbgup" hidden>${st.info.homeBg?'Changer':'Envoyer une photo'}</label>`:''}${st.info.homeBg?'<button class="btn sm ghost warn" id="hbgdel">Retirer</button>':''}</div>
+      ${st.info.homeBg?`<label class="fld"><span>Visibilité de la photo : <b id="hbgv">${st.info.homeBgOp==null?25:st.info.homeBgOp} %</b></span><input type="range" id="hbgop" min="5" max="100" step="5" value="${st.info.homeBgOp==null?25:st.info.homeBgOp}"></label>`:''}
+      <h3 class="thh">Couleur des calendriers</h3><p class="hint">Couleur des calendriers de la page publique (dates des journées). Choisis une couleur de base, puis un style.</p>
       <div class="row" style="align-items:center;gap:10px"><input type="color" id="thcol" value="${esc((st.info.theme||{}).color||'#E1306C')}" style="width:52px;height:44px;padding:0;border:0;background:none"><button class="btn sm" id="threset">Dégradé d'origine</button></div>
       <div class="thopts">${[['gr','Dégradé + relief'],['g','Dégradé'],['fr','Uni + relief'],['f','Uni']].map(([k,l])=>`<button class="btn thopt${st.info.theme&&(st.info.theme.style||'gr')===k?' on':''}" data-th="${k}"><span class="thprev" data-thp="${k}" style="${EJ.themeVars({color:(st.info.theme||{}).color||'#E1306C',style:k})}"><span class="m">déc</span><b>21</b><i>lun.</i></span><b>${l}</b></button>`).join('')}
         <button class="btn thopt${st.info.theme?'':' on'}" data-th=""><span class="thprev"><span class="m">déc</span><b>21</b><i>lun.</i></span><b>Origine</b></button></div>
@@ -3389,6 +3394,11 @@ function renderSettings(main){
   if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
   const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  const hu=main.querySelector('#hbgup');
+  if(hu)hu.onchange=async()=>{const f=hu.files[0];hu.value='';if(!f)return;toast('Envoi…');
+    try{const r=await S.assets.upload(f);await saveInfo(i=>{i.homeBg=r.id},'Photo de fond enregistrée ✓')}catch(e){toast('Envoi impossible',true)}};
+  const hd=main.querySelector('#hbgdel');if(hd)hd.onclick=()=>saveInfo(i=>{delete i.homeBg},'Photo de fond retirée');
+  const ho=main.querySelector('#hbgop');if(ho){ho.oninput=()=>{main.querySelector('#hbgv').textContent=ho.value+' %'};ho.onchange=()=>saveInfo(i=>{i.homeBgOp=+ho.value},'Visibilité enregistrée ✓')}
   const ws=main.querySelector('#wmstyle');if(ws)ws.onchange=()=>saveInfo(i=>{i.wmStyle=ws.value},'Style enregistré ✓');
   const pu=main.querySelector('#partup');
   if(pu)pu.onchange=async()=>{const fs=[...pu.files];pu.value='';if(!fs.length)return;toast('Envoi…');
