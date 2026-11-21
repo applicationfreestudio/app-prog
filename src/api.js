@@ -115,9 +115,19 @@ export async function handleApi(request, env) {
     const { type, data } = await request.json().catch(() => ({}));
     if (!/^image\/(jpeg|png|webp|gif)$/.test(type || '') || typeof data !== 'string') return bad('Image invalide.');
     if (data.length > 1400000) return bad('Image trop lourde (1 Mo maximum après réduction).', 413);
+    // même image déjà enregistrée : on renvoie son identifiant au lieu d'en créer une copie
+    const same = await env.DB.prepare('SELECT id FROM images WHERE type = ?1 AND length(data) = ?2 AND data = ?3 ORDER BY created_at LIMIT 1').bind(type, data.length, data).first();
+    if (same) return json({ id: same.id, existing: true });
     const id = crypto.randomUUID();
     await env.DB.prepare('INSERT INTO images (id, type, data, created_at) VALUES (?1, ?2, ?3, ?4)').bind(id, type, data, new Date().toISOString()).run();
     return json({ id });
+  }
+  // doublons d'images (même contenu) : { idDoublon: idOriginal }
+  if (route === 'imgdups' && m === 'GET') {
+    const { results } = await env.DB.prepare('SELECT i.id AS id, (SELECT j.id FROM images j WHERE j.type = i.type AND length(j.data) = length(i.data) AND j.data = i.data ORDER BY j.created_at, j.id LIMIT 1) AS orig FROM images i').all();
+    const map = {};
+    for (const r of results) if (r.orig && r.orig !== r.id) map[r.id] = r.orig;
+    return json(map, 200, { 'cache-control': 'no-store' });
   }
   if (route === 'img' && m === 'DELETE' && seg[1]) {
     const id = seg[1];

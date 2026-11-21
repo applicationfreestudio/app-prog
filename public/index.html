@@ -2230,6 +2230,7 @@ window.EJ={themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:(
   const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
   const err=(code,message)=>Object.assign(new Error(message||code),{code});
   const auth=()=>({'Authorization':'Bearer '+token});
+  window.EJ_IMGDUPS=()=>fetch('/api/imgdups',{headers:auth(),cache:'no-store'}).then(r=>r.ok?r.json():{}).catch(()=>({}));
   let canEdit=false;
   const store={settings:null,library:null,drafts:{},public:{}};
   const listeners={settings:[],library:[],drafts:[],public:[]};
@@ -2461,7 +2462,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.134';
+const APP_VERSION='v261120.135';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3244,18 +3245,23 @@ function usedImages(){
     if(typeof o.asset==='string'&&o.asset)set.add(o.asset);Object.values(o).forEach(walk)};
   walk(library());walk(S.drafts);walk(S.pub);walk(settings().weeks);
   const i=settings().info||{};[i.logo,i.watermark,...(i.partners||[])].forEach(x=>x&&set.add(x));
+  [...set].forEach(x=>IMG_DUPS[x]&&set.add(IMG_DUPS[x]));
   return set;
 }
 async function forgetImage(id){
   const base=clone(settings());base.info=base.info||{};base.info.myImgs=(base.info.myImgs||[]).filter(x=>x!==id);
   base.updatedAt=new Date().toISOString();await docSet('config/settings',base);S.settings=base;
 }
+// doublons (même image importée plusieurs fois) : chargés une fois, servent à n'afficher chaque image qu'une seule fois
+let IMG_DUPS={};
+function loadImgDups(){if(window.EJ_IMGDUPS)window.EJ_IMGDUPS().then(m=>{IMG_DUPS=m||{}})}
 function myImages(){
   const set=new Set(((settings().info||{}).myImgs)||[]);
   const walk=o=>{if(!o||typeof o!=='object')return;if(Array.isArray(o)){o.forEach(walk);return}
     if(typeof o.asset==='string'&&o.asset)set.add(o.asset);Object.values(o).forEach(walk)};
   walk(library());walk(S.drafts);walk(S.pub);
-  return [...set].reverse();
+  const out=[],seen=new Set();[...set].reverse().forEach(id=>{const k=IMG_DUPS[id]||id;if(!seen.has(k)){seen.add(k);out.push(k)}});
+  return out;
 }
 async function rememberImage(id){
   try{const base=clone(settings());base.info=base.info||{};base.info.myImgs=(base.info.myImgs||[]).filter(x=>x!==id).concat(id).slice(-200);
@@ -3335,7 +3341,7 @@ function openImagePicker(f,done){
   const m=openModal(`<div class="mh"><h3>🖼️ Choisir l'image</h3><button class="ico" data-a="x">✕</button></div>
     <div class="mb">
       ${S.assets?`<div class="row" style="margin-bottom:6px"><label class="btn"><input type="file" accept="image/*" id="upl" hidden>📤 Importer ma propre image</label>${f.asset?`<span class="kbd">Image importée utilisée</span><button class="btn sm ghost" data-a="noasset">Revenir aux visuels</button>`:''}<span class="kbd" id="uplst"></span></div>`:''}
-      ${(()=>{const mine=myImages();return mine.length?`<div class="sec-t">Images personnelles</div><div class="pick-grid mine">${(()=>{const used=usedImages();return mine.map(id=>`<span class="mine-t"><button class="pick${f.asset===id?' on':''}" data-mine="${esc(id)}"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy"></button>${used.has(id)||f.asset===id?'':`<button class="mine-x" data-mdel="${esc(id)}" title="Supprimer de mes images" aria-label="Supprimer de mes images">✕</button>`}</span>`).join('')})()}</div>`:''})()}
+      ${(()=>{const mine=myImages();return mine.length?`<div class="sec-t">Images personnelles</div><div class="pick-grid mine">${(()=>{const used=usedImages();return mine.map(id=>`<span class="mine-t"><button class="pick${f.asset&&(IMG_DUPS[f.asset]||f.asset)===id?' on':''}" data-mine="${esc(id)}"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy"></button>${used.has(id)||(f.asset&&(IMG_DUPS[f.asset]||f.asset)===id)?'':`<button class="mine-x" data-mdel="${esc(id)}" title="Supprimer de mes images" aria-label="Supprimer de mes images">✕</button>`}</span>`).join('')})()}</div>`:''})()}
       <div class="sec-t">Suggérées pour « ${esc((CATS[cat]||{}).label||'')} »</div>
       <div class="pick-grid">${sugg.map(pick).join('')}</div>
       <div class="sec-t">Toutes les images</div>
@@ -3690,6 +3696,7 @@ async function boot(){
   try{S.canEdit=user?!!(await user.canEdit()):false}catch(e){S.canEdit=false}
   if(S.canEdit){
     [S.assets,S.downloads]=await Promise.all([cl.use('assets'),cl.use('downloads')]);
+    loadImgDups();
   }
   const timer=setTimeout(()=>{S.stale=true;Object.keys(S.ready).forEach(k=>S.ready[k]=true);render()},10000);
   const done=()=>{if(S.ready.settings&&S.ready.pub&&(!S.canEdit||(S.ready.drafts&&S.ready.library)))clearTimeout(timer)};
