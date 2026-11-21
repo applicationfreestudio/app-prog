@@ -254,7 +254,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .card-head .when,.card-head .desc,.card-head .where{display:flex}
 .card-head .desc{display:block;margin-top:4px}
 .card-head .when{margin-top:4px}
-.card.tw .card-head .when{display:inline-flex;margin:0 0 0 8px;vertical-align:baseline}
+.card.tw .card-head .when{display:inline-flex;margin:0 0 0 8px;vertical-align:baseline;max-width:calc(100% - 8px)}
 .card.hl{border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:0 10px 26px -12px rgba(238,42,123,.45)}
 .card.hl h3{font-size:19.5px;font-weight:800}
 .dnote{white-space:nowrap;font-size:14px;padding:9px 10px;gap:8px}
@@ -672,7 +672,12 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card.fold>:not(.card-img):not(.card-head):not(.fold-ar),.card.fold .rib-w{display:none!important}
 .card.fold .card-head>:not(h3){display:none!important}
 .card.fold .card-head{align-self:center;padding-right:38px!important}
-.card.fold h3{margin:0!important}
+.card.fold h3{margin:0!important;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle;line-height:1.25!important}
+.card.fold,.card.fold.morning{grid-template-columns:42px minmax(0,1fr)!important;min-height:0!important;height:42px}
+.card.fold .card-img{width:42px!important;height:42px!important;min-height:0!important;align-self:stretch}
+.card.fold .card-img img{width:100%;height:100%;object-fit:cover}
+.card.fold .card-head{padding:0 34px 0 11px!important;min-width:0}
+.card.fold .fold-ar{right:4px;width:28px;height:28px}
 .card .fold-ar{display:flex;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;align-items:center;justify-content:center;border:0;background:transparent;color:#8a8580;padding:0;cursor:pointer;z-index:3}
 .card .fold-ar svg{width:18px;height:18px;transition:transform .2s}
 .card:not(.fold) .fold-ar{top:8px;transform:none}
@@ -1745,8 +1750,12 @@ function mountPublic(root,data,opts){
     const rows=()=>new Set([...bx.children].map(c=>c.offsetTop)).size, ovf=()=>[...bx.children].some(c=>c.scrollWidth>c.clientWidth+.5);
     ws.forEach(w=>w.textContent=w.dataset.ab);const r0=rows(),h0=bx.offsetHeight;
     ws.forEach(w=>w.textContent=w.dataset.full);if(rows()>r0||bx.offsetHeight>h0+.5||ovf())ws.forEach(w=>w.textContent=w.dataset.ab)})}
-  function fitStay(){fitPlaces();fitPrices();
-    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when,.card.zoomed .card-head .when,.card-head .pj-from').forEach(w=>{
+  // titres des cartes repliées : une seule ligne, police réduite si besoin
+  function fitFold(){root.querySelectorAll('.card.fold h3').forEach(h=>{h.style.fontSize='';const hd=h.parentElement,cs=getComputedStyle(hd);
+    const av=hd.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),w=()=>Math.max(h.scrollWidth,h.getBoundingClientRect().width);
+    let f=parseFloat(getComputedStyle(h).fontSize)||17;while(w()>av+.5&&f>11){f-=.5;h.style.fontSize=f+'px'}})}
+  function fitStay(){fitFold();fitPlaces();fitPrices();
+    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.fold) .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
@@ -1805,7 +1814,7 @@ function mountPublic(root,data,opts){
     const t=e.target.closest('[data-info],[data-close],[data-past]');
     if(!t){const c=e.target.closest('.card');if(!c||c.closest('.zoom-bg'))return;
       const fa=e.target.closest('.fold-ar');
-      if(c.classList.contains('fold')||fa){const op=c.classList.contains('fold');c.classList.toggle('fold',!op);
+      if(c.classList.contains('fold')||fa){const op=c.classList.contains('fold');c.classList.toggle('fold',!op);if(op){const h=c.querySelector('h3');if(h)h.style.fontSize=''}
         const k=c.dataset.fk;if(k){op?OPEN_CARDS.add(k):OPEN_CARDS.delete(k)}
         const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
         markWraps();fitStay();setTimeout(()=>{fitStay();wmTick()},60);return}
@@ -2113,7 +2122,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.94';
+const APP_VERSION='v261120.95';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
