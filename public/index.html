@@ -759,6 +759,31 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .contact a{color:#141317;text-decoration:none;font-weight:500}
 .contact .ctx{color:#6B6670;font-size:14px;margin:0}
 .ishome .pub-foot{padding-top:14px}
+
+/* --- v105 --- */
+.pub.ishome{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.realview .pub.ishome{height:100%}
+html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:none}
+.ishome .home{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:14px 16px 0}
+.ishome .hgrid{flex:1 1 auto;min-height:0;grid-template-rows:1fr 1fr}
+.ishome .ht{aspect-ratio:auto;min-height:0;height:100%}
+.ishome .contact{flex:0 0 auto;margin:12px 0 0}
+.ishome .pub-foot{flex:0 0 auto;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.ishome .pub-foot .partners-box{margin:0}
+.ishome .pub-head .hb{margin-left:auto}
+.ishome .pub-head .brand small{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px!important;line-height:1.2}
+.ishome .ht{gap:clamp(4px,1.2vh,10px);font-size:clamp(13px,2.3vh,17px)}
+.ishome .ht svg{width:clamp(24px,5.5vh,44px);height:clamp(24px,5.5vh,44px)}
+.ishome .ht small{position:static;margin-top:-2px;font-size:clamp(10px,1.5vh,11px)}
+.ishome .contact{padding:clamp(8px,1.6vh,14px) 16px clamp(10px,1.8vh,16px)}
+.ishome .contact .cn{font-size:clamp(14px,2.2vh,17px);margin-bottom:clamp(4px,1vh,8px)}
+.ishome .contact ul{gap:clamp(3px,.9vh,8px)}
+.ishome .contact li{font-size:clamp(12.5px,1.9vh,14.5px)}
+.ishome .partners img{height:clamp(30px,6.5vh,68px)!important}
+.ishome .partners-box{padding:clamp(6px,1.2vh,12px) 12px!important}
+.logo{border-radius:9px!important;box-shadow:none!important;border:2.5px solid transparent;background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--calg,var(--ig)) border-box!important}
+.logo.img{background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box!important}
+.info-btn,.fs-btn:not(.dark){background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box!important}
 </style>
 
 <style>
@@ -1580,7 +1605,7 @@ function stayWhen(a,date){
   return [`<i class="w">${esc(LBL.depart)} </i>${dShort(date)}${A(t.start)}`,`<i class="w">retour </i>${dShort(end)}${A(t.end)}`];
 }
 const ACTS_REG={};
-const OPEN_CARDS=new Set(); // cartes dépliées par le visiteur (clé : id|date)
+const OPEN_CARDS=new Set(),CLOSED_CARDS=new Set();let UNFOLD_ALL=false; // cartes dépliées par le visiteur (clé : id|date)
 function cardHTML(a,opts){
   opts=opts||{};
   if(opts.date&&a.id)ACTS_REG[a.id]={a,date:opts.date};
@@ -1612,7 +1637,7 @@ function cardHTML(a,opts){
   const full='';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!OPEN_CARDS.has(fk);
+  const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
   return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -1756,14 +1781,14 @@ function mountPublic(root,data,opts){
     if(c.text)L.push(`<li class="ctx">${esc(c.text).replace(/\n/g,'<br>')}</li>`);
     return `<section class="contact"><h2>contact</h2><b class="cn">${esc(c.name||info.name||'Espace jeunes')}</b>${L.length?`<ul>${L.join('')}</ul>`:'<p class="ctx">Coordonnées à compléter dans les paramètres.</p>'}</section>`}
   function homeHTML(info){
-    return `<main class="home"><div class="hgrid">${['horaires','programme','informations','inscription'].map(k=>k==='programme'?`<button class="ht on" data-go="prog">${hico(k,44)}<span>${k}</span></button>`:`<div class="ht off" aria-disabled="true">${hico(k,44)}<span>${k}</span><small>bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
+    return `<main class="home"><div class="hgrid">${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${hico(k,44)}<span>${l}</span></button>`:`<div class="ht off" aria-disabled="true">${hico(k,44)}<span>${l}</span><small>bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
   function logoHTML(info){
     if(info.logo&&!opts.noAssets)return `<span class="logo img"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.logo)}" alt=""></span>`;
     const ini=(info.name||'Espace jeunes').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info,wm){
-    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div>${opts.home&&st.view==='home'?'':`<div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div>`}</header>`;
+    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(opts.home&&st.view==='home'?(info.homeSub||'par la communauté de communes Val de Cher Controis'):(info.sub||'le Programme des animations'))}</small></div></div>${opts.home&&st.view==='home'?`<div class="hb">${opts.noFs?'':fsBtn()}</div>`:`<div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div>`}</header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -1841,7 +1866,7 @@ function mountPublic(root,data,opts){
     if(!ks.length&&past.length)ks=past.slice(-7);
     const hidden=all.length-ks.length;
     const pastBtn=!opts.allDays&&!st.past&&hidden>0?`<button class="past-btn" data-past="1">Voir les jours passés (${hidden})</button>`:'';
-    setLabels(info.labels);
+    setLabels(info.labels);UNFOLD_ALL=info.unfoldAll===true;
     const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
@@ -1940,7 +1965,7 @@ function mountPublic(root,data,opts){
     ov.addEventListener('click',()=>{ov.classList.remove('on');setTimeout(()=>ov.remove(),200)});
   }
   function toggleFold(c){if(c._anim||c.classList.contains('nofold'))return;const op=c.classList.contains('fold');
-        const k=c.dataset.fk;if(k){op?OPEN_CARDS.add(k):OPEN_CARDS.delete(k)}
+        const k=c.dataset.fk;if(k){if(op){OPEN_CARDS.add(k);CLOSED_CARDS.delete(k)}else{OPEN_CARDS.delete(k);CLOSED_CARDS.add(k)}}
         const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
         const ez='cubic-bezier(.25,.8,.25,1)',D=340,parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
         // FLIP : le titre et l'image glissent de leur ancienne place vers la nouvelle pendant que la carte change de hauteur
@@ -2269,7 +2294,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.104';
+const APP_VERSION='v261120.105';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3288,6 +3313,8 @@ function renderSettings(main){
         <button class="btn thopt${st.info.themeClosed?'':' on'}" data-th2=""><span class="thprev" style="--calg:linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%);--calm:linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%)"><span class="m">déc</span><b>25</b><i>ven.</i></span><b>Origine</b></button></div>
       <h3 class="thh">Cartouches « nocturne »</h3>
       <label class="sw"><input type="checkbox" id="thnight" ${st.info.showNight===false?'':'checked'}> Afficher les cartouches nocturnes (couleur du thème, en uni)</label>`,st.info.theme?({gr:'Dégradé + relief',g:'Dégradé',fr:'Uni + relief',f:'Uni'})[st.info.theme.style||'gr']:'Dégradé d\'origine')}
+    ${fold('accueil','Page d\'accueil et programme',`<label class="fld"><span>Sous-titre du bandeau sur la page d'accueil</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
+      <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Afficher le programme déployé (cartes dépliées à l'arrivée)</label>`,st.info.unfoldAll?'programme déployé':'programme replié')}
     ${fold('contact','Contact (page d\'accueil)',`<p class="hint">Cartouche « contact » affiché sur la page d'accueil, sous les quatre boutons. Laisser un champ vide pour ne pas l'afficher.</p>
       ${[['name','Nom de la structure',st.info.name||'Espace jeunes'],['address','Adresse','12 rue …\n41130 Selles-sur-Cher',1],['phone','Téléphone','02 54 …'],['email','E-mail','espace.jeunes@…'],['web','Site web','www.…'],['text','Texte libre (horaires d\'accueil, réseaux…)','',1]].map(([k,l,ph,ta])=>`<label class="fld"><span>${l}</span>${ta?`<textarea class="in" data-ic="${k}" style="min-height:64px" placeholder="${esc(ph)}">${esc((st.info.contact||{})[k]||'')}</textarea>`:`<input class="in" data-ic="${k}" value="${esc((st.info.contact||{})[k]||'')}" placeholder="${esc(ph)}">`}</label>`).join('')}`,(st.info.contact&&(st.info.contact.phone||st.info.contact.email))?'renseigné':'à compléter')}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les cartes qui demandent une autorisation parentale.</p>
@@ -3364,6 +3391,7 @@ function bindSettings(main,st){
   main.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=()=>{st.holidays.splice(+b.dataset.hdel,1);rerender()});
   main.querySelector('#hadd').onclick=()=>{st.holidays.push({date:'',label:'Jour férié'});rerender()};
   main.querySelectorAll('[data-if]').forEach(e=>e.oninput=()=>{st.info[e.dataset.if]=e.value;changedBtn()});
+  {const ua=main.querySelector('#unfoldall');if(ua)ua.onchange=()=>saveInfo(i=>{i.unfoldAll=ua.checked},ua.checked?'Programme affiché déployé ✓':'Programme affiché replié ✓')}
   main.querySelectorAll('[data-ic]').forEach(e=>e.oninput=()=>{st.info.contact=Object.assign({},st.info.contact,{[e.dataset.ic]:e.value});changedBtn()});
   main.querySelectorAll('[data-agf]').forEach(e=>e.oninput=()=>{st.info.ages[+e.dataset.agf].label=e.value;changedBtn()});
   main.querySelectorAll('[data-agdel]').forEach(b=>b.onclick=()=>{st.info.ages.splice(+b.dataset.agdel,1);rerender()});
