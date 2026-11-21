@@ -401,7 +401,7 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .rib.blue{background:rgba(58,123,255,.55);color:#fff;font-style:normal}
 .rib.long{font-size:9.5px;letter-spacing:.02em}
 .card.zoomed .rib-w.r{width:100px;height:100px}
-.card.zoomed .rib-w.r .rib{right:-44px;top:16px;width:166px;font-size:13px;padding:5px 0}
+.card.zoomed .rib-w.r .rib{left:auto!important;right:-44px;top:16px;width:166px;font-size:13px;padding:5px 0}
 .card.zoomed .rib-w.r .rib.long{font-size:12px}
 .lblcard{background:var(--paper,#fff);border-radius:var(--r,16px);padding:14px 16px;box-shadow:var(--lift);border:1px solid rgba(20,19,23,.06)}
 .lblcard h3{display:inline;margin:0;font-family:var(--pf,'Poppins'),sans-serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);background:linear-gradient(transparent 60%,#F8C6DD 60%,#F8C6DD 92%,transparent 92%);box-decoration-break:clone;-webkit-box-decoration-break:clone}
@@ -1462,7 +1462,7 @@ function cardHTML(a,opts){
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
     const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
     const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour ${D(end)}${t.end?' à '+fmtT(t.end):''}</span>`;
-    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span>${d2}</span></span>${full}</div>`})():'';
+    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span><i class="w">retour </i>${(()=>{const e=parse(end),s0=parse(opts.date);return '<i class="wd">'+DAYS_S[dow(end)]+'. </i>'+e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'')})()}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -1698,7 +1698,7 @@ function mountPublic(root,data,opts){
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
-      const steps=w.classList.contains('sj-when')?[[],['nowd'],['nowd','noa']]:[[]];
+      const steps=w.classList.contains('sj-when')?[[],['nowd']]:[[]];
       for(let i=0;i<steps.length;i++){
         w.classList.remove('noa','nowd','now');steps[i].forEach(c=>w.classList.add(c));
         let f=base;w.style.fontSize='';const min=i<steps.length-1?12:8;
@@ -2052,7 +2052,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.83';
+const APP_VERSION='v261120.84';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
