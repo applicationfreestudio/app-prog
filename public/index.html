@@ -593,7 +593,7 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 
 /* --- v30 --- */
 .card-info .badges+.bring,.card-info .badges+.about{margin-top:12px}
-.pj-from{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.pj-from{display:block;white-space:nowrap;overflow:hidden;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
 .card.zoomed .pj-from{font-size:15px}
 .about{margin:8px 0 0;font-size:14px;line-height:1.5;color:#3E3B44}
 .card-info .about{margin-left:-72px}
@@ -628,7 +628,7 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .sj-when>div{white-space:nowrap;overflow:hidden}
 .sj-when>div>span:last-child{white-space:nowrap}
 .sj-when .wd{font-style:normal}
-.sj-when.nowd .wd{display:none}
+.sj-when.nowd .sjm .wd{display:none}
 .sj-when>div{display:grid;grid-template-columns:1.6em 1fr;align-items:baseline}
 .sj-when .bus{display:inline-block;width:auto;margin-right:0!important}
 .bring .nw{white-space:nowrap}
@@ -1452,6 +1452,12 @@ const ARR_SVG='<svg class="ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
 function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
+// date adaptative : niveau 0 « mercredi 23 décembre 2026 », 1 sans l'année, 2 « mercredi 23.12 », 3 « mer. 23.12 »
+// o : même mois que la date de référence (mois omis en chiffres) ; ny : même année (année omise)
+function dtTxt(k,L,o,ny){const d=parse(k),m=d.getMonth(),wd=L<3?DAYS[dow(k)]:DAYS_S[dow(k)]+'.';
+  return '<span class="wd">'+wd+' </span>'+d.getDate()+(L<=1?' '+MONTHS[m]+(L===0&&!ny?' '+d.getFullYear():''):(o?'':'.'+pad(m+1)))}
+function DT(k,ref){const o=!!ref&&k.slice(0,7)===ref.slice(0,7),ny=!!ref&&k.slice(0,4)===ref.slice(0,4);
+  return `<span class="dt" data-k="${k}"${o?' data-o="1"':''}${ny?' data-ny="1"':''}>${dtTxt(k,3,o,ny)}</span>`}
 const dShort=k=>{const d=parse(k);return '<i class="wd">'+DAYS_S[dow(k)]+'. </i>'+d.getDate()+'.'+pad(d.getMonth()+1)};
 const dLong=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
 function stayWhen(a,date){
@@ -1466,7 +1472,7 @@ function cardHTML(a,opts){
   const auth=needsAuth(a);
   a=Object.assign({},a,{bring:(a.bring||[]).filter(x=>!AUTH_RE.test(x))});
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
-  const dz=opts.date&&!stay&&!opts.dateLine?(()=>{const d=parse(opts.date);return DAYS_S[dow(opts.date)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)})():'';
+  const dz=opts.date&&!stay&&!opts.dateLine?DT(opts.date):'';
   const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
     if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?', retour ':ARR_SVG)+fmtTH(t.end):'');
     if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return '';})();
@@ -1474,10 +1480,9 @@ function cardHTML(a,opts){
   const pj=isInfo(a);
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
     const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)};
-    const e=parse(end),s0=parse(opts.date),RD=e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'');
-    const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour le ${DAYS_S[dow(end)]}. ${RD}${t.end?' à '+fmtT(t.end):''}</span>`;
+    const full=`<span class="sjf">${esc(LBL.depart)} ${DT(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour le ${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span>`;
     const dep=t.start?`<span><i class="w">${esc(LBL.depart)} </i>${fmtT(t.start)}</span><span class="sjc">, </span>`:'';
-    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm">${dep}<span><i class="w">retour le </i><i class="wd">${DAYS_S[dow(end)]}. </i>${RD}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
+    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm">${dep}<span><i class="w">retour le </i>${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -1496,7 +1501,7 @@ function cardHTML(a,opts){
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
-      ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||(spanOf(a)==='until'&&a.endDate?'jusqu\'au '+esc(dLong(a.endDate)):'à partir du '+esc(dLong(opts.date)))}</span>`:''}
+      ${pj&&(opts.dateLine||opts.date)?`<span class="pj-from">${opts.dateLine||(spanOf(a)==='until'&&a.endDate?'jusqu\'au '+DT(a.endDate):'à partir du '+DT(opts.date))}</span>`:''}
       <h3>${esc(cap(a.title||'activité'))}</h3>
       ${(stay||a.cat==='projet')&&(a.place||a.full)?`<div class="sj-where"><span>${a.place?esc(a.place):''}</span>${false?`<span class="full-tag">${esc(LBL.full)}</span>`:''}</div>`:''}
       ${stayW}
@@ -1684,7 +1689,7 @@ function mountPublic(root,data,opts){
       const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
       const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
       const sp=spanOf(a);
-      return cardHTML(a,Object.assign({},opts,{date:k,dateLine:sp==='multi'?'':sp==='until'&&a.endDate?'jusqu\'au '+esc(dLong(a.endDate)):(sp==='open'?'à partir du ':'')+esc(dl)}));
+      return cardHTML(a,Object.assign({},opts,{date:k,dateLine:sp==='multi'?'':sp==='until'&&a.endDate?'jusqu\'au '+DT(a.endDate):(sp==='open'?'à partir du ':'')+DT(k)}));
     }).join('')}</div></section>`;
   }
   function render(){
@@ -1709,10 +1714,13 @@ function mountPublic(root,data,opts){
       const f=b.querySelector('.pq-f'),box=b.parentNode;if(f&&(f.offsetWidth>box.clientWidth-2||b.scrollWidth>b.clientWidth+1))b.classList.add('condensed')}));
   }
   function fitStay(){fitPrices();
-    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when,.card.zoomed .card-head .when').forEach(w=>{
+    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when,.card.zoomed .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
+      // dates : forme la plus longue qui tient sans réduire la police
+      const dts=[...w.querySelectorAll('.dt')],setL=L=>dts.forEach(x=>x.innerHTML=dtTxt(x.dataset.k,L,!!x.dataset.o,!!x.dataset.ny));
+      if(dts.length){let L=0;for(;L<3;L++){setL(L);if(!over())break}if(L<3)return;setL(3)}
       const steps=w.classList.contains('sj-when')?[[],['nowd']]:[[]];
       for(let i=0;i<steps.length;i++){
         w.classList.remove('noa','nowd','now');steps[i].forEach(c=>w.classList.add(c));
@@ -2067,7 +2075,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.89';
+const APP_VERSION='v261120.90';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
