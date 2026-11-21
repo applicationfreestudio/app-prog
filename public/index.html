@@ -528,12 +528,13 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .dr-foot .pri{display:flex;gap:8px;align-items:stretch}
 .dr-foot .pri .dbtn{flex:1 1 0;min-width:0;white-space:normal;line-height:1.15;text-align:center;font-size:16px}
 .dr-foot .pri{gap:6px}
-.dr-foot .pri .dbtn.sv{font-size:13px;padding-left:4px;padding-right:4px}
+.dr-foot .pri .dbtn.sv.on{background:linear-gradient(#FFE27A,#FFE27A) padding-box,linear-gradient(#E3A600,#E3A600) border-box!important;color:#5C3F00!important}
+.dr-foot .pri .dbtn.sv{font-size:15px;padding-left:4px;padding-right:4px}
 .dr-foot .pri .dbtn.go{font-size:14.5px;padding-left:4px;padding-right:4px}
 .dr-foot .pri .dbtn.eye,.dr-foot .pri .dbtn.more,.dr-foot .pri .dbtn.xclose{flex:0 0 44px!important}
 #pubmonth small{display:block;font-size:11.5px;font-weight:500;opacity:.9}
 #pubmonth{flex-direction:column;gap:0;line-height:1.15}
-@media (max-width:390px){.dr-foot .pri .dbtn.eye,.dr-foot .pri .dbtn.more,.dr-foot .pri .dbtn.xclose{flex:0 0 40px!important}.dr-foot .pri .dbtn.sv{font-size:12px!important}.dr-foot .pri .dbtn.go{font-size:13px!important}}
+@media (max-width:390px){.dr-foot .pri .dbtn.eye,.dr-foot .pri .dbtn.more,.dr-foot .pri .dbtn.xclose{flex:0 0 40px!important}.dr-foot .pri .dbtn.sv{font-size:14px!important}.dr-foot .pri .dbtn.go{font-size:13px!important}}
 .dr-foot .pri .dbtn.sv{flex:1 1 0!important;min-width:0}
 .dr-foot .pri .dbtn.go{flex:1.25 1 0!important;min-width:0}
 .dr-foot .saving{display:none}
@@ -2089,7 +2090,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.92';
+const APP_VERSION='v261120.93';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2378,7 +2379,7 @@ function footHTML(date){
       
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="dbtn more" id="drmore" aria-label="Plus d'actions" aria-haspopup="true">⋯</button>
-      <button class="dbtn sv" data-pa="save">Sauvegarder le brouillon</button>
+      <button class="dbtn sv${s==='draft'?' on':''}" data-pa="save" title="Enregistrer en brouillon (pas en ligne)">Brouillon</button>
       ${s==='pub'?'<button class="dbtn go" disabled>En ligne ✓</button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Publier les modifications':'Publier'}</button>`}
       <button class="dbtn xclose" data-xc="1" title="Fermer" aria-label="Fermer">✕</button>
     </div>`;
@@ -2390,6 +2391,7 @@ function moreMenu(btn){
   if(s==='mod')it.push(['revert','Annuler les modifications (version en ligne)']);
   if(s==='pub'||s==='mod')it.push(['unpub','Retirer du site','r']);
   it.push(['wipe','Vider la journée','r']);
+  if(s!=='todo')it.push(['del','Remettre en construction','r']);
   pop.innerHTML=it.map(([k,l,c])=>`<button data-pa="${k}" class="${c?'r':''}">${l}</button>`).join('');
   document.body.appendChild(pop);
   pop.style.left=Math.max(8,b.left)+'px';pop.style.top=Math.max(8,b.top-pop.offsetHeight-8)+'px';
@@ -2406,8 +2408,8 @@ function bindStatus(){
 }
 async function doPA(a){
     if(!UI.drawer)return;const date=UI.drawer.date;
-    if(a==='save'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');render();refreshDrawerStatus();return}
-    if(a==='pub'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);UI.drawer&&(UI.drawer.orig=S.drafts[date]?clone(S.drafts[date]):null);render();refreshDrawerStatus();return}
+    if(a==='save'){if(S.pub[date]){if(!await confirmBox('Cette journée est en ligne. La passer en brouillon la retire de la page publique. Continuer ?',{ok:'Retirer et garder en brouillon',danger:true}))return;await unpublishDay(date)}UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');render();refreshDrawerStatus();return}
+    if(a==='pub'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);UI.drawer&&(UI.drawer.orig=S.drafts[date]?clone(S.drafts[date]):null);render();closeDrawer();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='dup')return duplicateDay();
@@ -2489,7 +2491,7 @@ async function resetTemplate(){
 }
 async function deleteDraft(){
   const day=UI.drawer.day;
-  if(!await confirmBox('Effacer le brouillon de cette journée ? '+(S.pub[day.date]?'La version en ligne sera aussi retirée.':''),{ok:'Effacer',danger:true}))return;
+  if(!await confirmBox('Remettre cette journée en construction ? Elle repart de la semaine type : brouillon, cartes et information du jour sont effacés'+(S.pub[day.date]?', et elle est retirée de la page publique.':'.'),{ok:'Remettre en construction',danger:true}))return;
   clearTimeout(saveT);dirty=false;
   try{if(S.pub[day.date])await unpublishDay(day.date);await docDel('drafts/'+day.date);delete S.drafts[day.date];openDrawer(day.date);render()}catch(e){}
 }
