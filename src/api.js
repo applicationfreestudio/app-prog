@@ -61,7 +61,7 @@ export async function handleApi(request, env) {
   if (route === 'public' && m === 'GET') {
     const d = await allDocs(env, ['settings', 'public']);
     const s = d.settings || {};
-    return json({ days: d.public, settings: { info: s.info || {}, periods: s.periods || [] } }, 200, { 'cache-control': 'public, max-age=30' });
+    return json({ days: d.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'public, max-age=30' });
   }
   if (route === 'img' && m === 'GET' && seg[1]) {
     const r = await env.DB.prepare('SELECT type, data FROM images WHERE id = ?1').bind(seg[1]).first();
@@ -85,7 +85,7 @@ export async function handleApi(request, env) {
       await env.DB.prepare('UPDATE acces SET last = ?2 WHERE id = ?1').bind(d.id, new Date().toISOString()).run();
       const a = await allDocs(env, ['settings', 'drafts', 'public']);
       const s = a.settings || {};
-      return json({ drafts: a.drafts, public: a.public, settings: { info: s.info || {}, periods: s.periods || [] } }, 200, { 'cache-control': 'no-store' });
+      return json({ drafts: a.drafts, public: a.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'no-store' });
     }
   }
 
