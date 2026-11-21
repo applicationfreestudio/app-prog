@@ -700,7 +700,9 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card.nofold{cursor:default}
 .card.nofold .fold-ar{display:none!important}
 .card.nofold.fold .card-head{padding-right:11px!important}
-.card:not(.zoomed) .card-head .tag-morning,.card:not(.zoomed) .rib-w:not(.r){display:none!important}
+.card.fold .card-head .tag-morning,.card:not(.zoomed) .rib-w:not(.r){display:none!important}
+.badges .bbr{flex:0 0 100%;height:0;margin:0;padding:0}
+.badge.age{background:#3A7BFF!important;color:#fff!important;border-color:#3A7BFF!important;font-weight:600}
 .card:not(.zoomed).hasrib{}
 .ctop{display:flex;align-items:flex-end;gap:8px;margin:0 2px -4px}
 .ctop .tag-morning{display:inline-block;margin:0;font-size:12.5px;line-height:1.2}
@@ -1465,8 +1467,10 @@ const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e e
 let AGES=[{id:'preados',label:'pré-ados'},{id:'ados',label:'ados'}];
 const agesOf=a=>{const L=Array.isArray(a.ages)?a.ages:a.publics&&a.publics!=='tous'?[a.publics]:[];return L.map(id=>(AGES.find(x=>x.id===id)||{}).label).filter(Boolean)};
 function badgesHTML(a){
-  const b=[];
+  const b=[];const ag=agesOf(a);
   if(a.booking&&a.booking.on)b.push(`<span class="badge"><span class="bi">📋</span>${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+`<span class="plw" data-ab="${esc(LBL.places)}" data-full="${+a.booking.places===1?'place':'places'}">${esc(LBL.places)}</span>`:''}</span>`);
+  if(ag.length)b.push(`<span class="badge age">${esc(ag.join(' · '))}</span>`);
+  const nb=b.length;
   const pm=(a.price||{}).mode||'free', pr=resolveGrid(a.price||{});
   let t=[];
   if(pm==='ccv2cc'){
@@ -1482,6 +1486,7 @@ function badgesHTML(a){
   else if(pm==='qf'){const ls=String(pr.text||'selon Qt').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
   if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
+  if(nb&&b.length>nb)b.splice(nb,0,'<i class="bbr" aria-hidden="true"></i>');
   return b.length?`<div class="badges">${b.join('')}</div>`:'';
 }
 const jc=t=>String(t||'').length>=90?' j':'';
@@ -1550,7 +1555,7 @@ function cardHTML(a,opts){
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!OPEN_CARDS.has(fk);
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -1774,11 +1779,15 @@ function mountPublic(root,data,opts){
     ws.forEach(w=>w.textContent=w.dataset.full);if(rows()>r0||bx.offsetHeight>h0+.5||ovf())ws.forEach(w=>w.textContent=w.dataset.ab)})}
   // titres des cartes repliées : une seule ligne, police réduite si besoin
   // un titre de carte ne passe jamais à la ligne : police réduite si besoin (9 px minimum, puis « … »)
-  function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;h.style.fontSize='';
+  function fitH(h,cap){h.style.fontSize='';
     const cs=getComputedStyle(h),pd=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight),rg=document.createRange();rg.selectNodeContents(h);
-    const hd=h.parentElement,hs=getComputedStyle(hd),av=hd.clientWidth-parseFloat(hs.paddingLeft)-parseFloat(hs.paddingRight)-parseFloat(cs.marginLeft)-parseFloat(cs.marginRight);
-    const over=()=>rg.getBoundingClientRect().width+pd+2>av;
-    let f=parseFloat(cs.fontSize)||17;while(over()&&f>9){f-=.5;h.style.fontSize=f+'px'}})}
+    const hd=h.parentElement,hs=getComputedStyle(hd),av=hd.clientWidth-parseFloat(hs.paddingLeft)-parseFloat(hs.paddingRight)-Math.max(0,parseFloat(cs.marginLeft))-Math.max(0,parseFloat(cs.marginRight));
+    const over=()=>{const k=h.offsetWidth?h.getBoundingClientRect().width/h.offsetWidth:1;return rg.getBoundingClientRect().width/(k||1)+pd+2>av};
+    let f=parseFloat(cs.fontSize)||17;if(cap&&f>cap){f=cap;h.style.fontSize=f+'px'}while(over()&&f>9){f-=.5;h.style.fontSize=f+'px'}return f}
+  // le titre replié n'est jamais plus grand que le même titre déplié
+  function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;
+    if(!c.classList.contains('fold')){fitH(h);return}
+    c.classList.remove('fold');const u=fitH(h);c.classList.add('fold');fitH(h,u)})}
   // une carte qui n'a rien d'autre qu'un titre et une image ne se déplie pas
   function markFoldable(){root.querySelectorAll('.card:not(.zoomed)').forEach(c=>{const hd=c.querySelector('.card-head');
     const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
@@ -2165,7 +2174,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.97';
+const APP_VERSION='v261120.98';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
