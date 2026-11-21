@@ -803,11 +803,14 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .isfs .fs-btn{background:linear-gradient(var(--ink,#141317),var(--ink,#141317)) padding-box,var(--calg,var(--ig)) border-box!important;color:#fff!important}
 
 /* --- v110 : logos partenaires de l'accueil, sans cartouche, translucides, sous le contact --- */
-.ishome .contact{position:relative;z-index:2}
+.ishome .home{z-index:1!important}
+.ishome .pub-foot{z-index:3!important;pointer-events:none}
+.ishome .pub-foot a{pointer-events:auto}
 .ishome .pub-foot{position:relative;z-index:1;padding-top:0!important}
-.ishome .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:-24px 0 0!important}
+.ishome .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:calc(-1 * var(--ov,24px)) 0 0!important}
 .ishome .partners{gap:10px 26px;margin:0}
-.ishome .partners img{height:clamp(44px,11vh,104px)!important;max-width:46%!important}
+.ishome .partners img{height:clamp(56px,15vh,150px)!important;max-width:46%!important}
+.ishome .partners{opacity:.32!important}
 </style>
 
 <style>
@@ -1899,7 +1902,7 @@ function mountPublic(root,data,opts){
     const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
-    if(opts.home&&st.view==='home'){root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
+    if(opts.home&&st.view==='home'){requestAnimationFrame(()=>{const c=root.querySelector('.ishome .contact'),pb=root.querySelector('.ishome .partners-box');if(c&&pb)pb.style.setProperty('--ov',Math.round(c.offsetHeight/2)+'px')});root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -2326,7 +2329,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.110';
+const APP_VERSION='v261120.111';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
