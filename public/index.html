@@ -293,6 +293,8 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .partners img{height:68px;max-width:170px}
 .partners-box p{margin:6px 0 2px}
 .cal-ico.multi .rng2,.cal-ico.sj .rng2{display:flex;flex-direction:column;align-items:center;padding:8px 2px 9px;font-size:13px;font-weight:600;line-height:1.25}
+.cal-ico .rng2>span{white-space:nowrap}
+.cal-ico .rng2 small{font-size:11px;font-weight:400;color:var(--ink2)}
 .cal-ico.multi .rng2 i,.cal-ico.sj .rng2 i{font-style:normal;color:#B5B1AA;font-size:11px;line-height:1.1}
 .stay-tag{display:block;width:fit-content;margin:8px auto 0;padding:3px 8px;border-radius:7px;font-size:11.5px;font-weight:500;color:#5A3A00;background:linear-gradient(135deg,#FFE58A,#F9B934);box-shadow:0 4px 10px -4px rgba(217,150,20,.6)}
 .pinned{display:flex;flex-direction:column;gap:10px}
@@ -1261,7 +1263,7 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const U=opts&&opts.until, d2=U?parse(U):null, sameM=!U||(d.getMonth()===d2.getMonth());
-  const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span>${DAYS_S[dow(day.date)]}. ${d.getDate()}${sameM?'':' '+MONTHS_S[d.getMonth()]}</span><i>↓</i><span>${DAYS_S[dow(U)]}. ${d2.getDate()} ${MONTHS_S[d2.getMonth()]}</span></div>`
+  const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span><small>du</small> ${DAYS_S[dow(day.date)]}. ${d.getDate()}${sameM?'':' '+MONTHS_S[d.getMonth()]}</span><span><small>au</small> ${DAYS_S[dow(U)]}. ${d2.getDate()}${sameM?'':' '+MONTHS_S[d2.getMonth()]}</span></div>`
     :`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>`;
   const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}${U?' multi':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}>${head}
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
@@ -1333,13 +1335,14 @@ function mountPublic(root,data,opts){
     const sameM=d1.getMonth()===d2.getMonth()&&d1.getFullYear()===d2.getFullYear();
     const m=sameM?MONTHS_S[d1.getMonth()].replace('.',''):MONTHS_S[d1.getMonth()].replace('.','')+' – '+MONTHS_S[d2.getMonth()].replace('.','');
     const f1=DAYS_S[dow(date)]+'. '+d1.getDate()+(sameM?'':' '+MONTHS_S[d1.getMonth()]);
-    const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+' '+MONTHS_S[d2.getMonth()];
-    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span>${esc(f1)}</span><i>↓</i><span>${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
+    const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+(sameM?'':' '+MONTHS_S[d2.getMonth()]);
+    return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span><small>du</small> ${esc(f1)}</span><span><small>au</small> ${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
   }
   // signature d'une journée : deux jours consécutifs identiques sont regroupés « du … au … »
   function sig(d){
-    return JSON.stringify({c:!!d.closed,r:d.closedReason||'',n:d.note||'',s:(d.slots||[]).map(x=>({a:x.start||'',b:x.end||'',l:x.label||'',v:x.visual||'',i:x.asset||'',f:!!x.free,
-      acts:(x.acts||[]).map(a=>{const c=Object.assign({},a);delete c.id;delete c.rev;return c})}))});
+    const A=x=>(x.acts||[]).map(a=>{const c=Object.assign({},a);delete c.id;delete c.rev;return c});
+    if(d.closed)return JSON.stringify({c:1,n:d.note||'',acts:(d.slots||[]).flatMap(A)});
+    return JSON.stringify({c:0,n:d.note||'',s:(d.slots||[]).filter(x=>x.start||x.end||(x.acts||[]).length).map(x=>({a:x.start||'',b:x.end||'',l:(x.label||'').trim(),v:x.visual||'',i:x.asset||'',f:!!x.free,acts:A(x)}))});
   }
   function withSeps(ks){
     let prev, h='', g=null;
@@ -1733,7 +1736,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.47';
+const APP_VERSION='v261120.48';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2344,7 +2347,7 @@ function kitIcon(k,size,kit){
 function usedImages(){
   const set=new Set();const walk=o=>{if(!o||typeof o!=='object')return;if(Array.isArray(o)){o.forEach(walk);return}
     if(typeof o.asset==='string'&&o.asset)set.add(o.asset);Object.values(o).forEach(walk)};
-  walk(library());walk(S.drafts);walk(S.pub);
+  walk(library());walk(S.drafts);walk(S.pub);walk(settings().weeks);
   const i=settings().info||{};[i.logo,i.watermark,...(i.partners||[])].forEach(x=>x&&set.add(x));
   return set;
 }
