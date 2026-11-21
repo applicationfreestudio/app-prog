@@ -936,10 +936,14 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v56 */
+.cell .top .hr,.cell .hr{font-weight:650!important;color:#2E2A36!important}
 /* v54 */
 .tgrid{border:1.5px solid #E3DED6;border-radius:12px;padding:10px;margin:8px 0;display:flex;flex-direction:column;gap:8px;background:#fff}
 .tgrid .row{flex-wrap:nowrap}
 .tgrid [data-tf="name"]{flex:1 1 auto;min-width:0}
+.tgrid .pill{white-space:nowrap;flex:0 0 auto;font-size:12px}
+.prow-ed .in.t{width:110px!important;flex:0 0 auto}
 .prow-ed{margin-top:8px;display:flex;flex-direction:column;gap:6px}
 /* v49 */
 .pv-bar{flex-wrap:nowrap!important;gap:8px}
@@ -1782,7 +1786,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.55';
+const APP_VERSION='v261120.56';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2301,8 +2305,8 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
           <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
         </div>
         <div class="box"><h4>🤑 Tarif</h4>
-          <select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')} — ${esc(gridSummary(g))}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')} — ${esc(gridSummary(p))}</option>`:''}</select>
-          ${p.mode==='grid'?`<div class="prow-ed">${(p.rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants modifiables pour cette activité. Les tarifs se créent dans Paramètres → Tarifs.</p></div>`:''}
+          <select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select>
+          ${p.mode==='grid'?`<div class="prow-ed">${(p.rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):'QF '+esc(QF_OPS[r.op]||'⩽')+' '+esc(r.qf||'')}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants de cette activité. Les modèles de tarif se créent dans Paramètres → Tarifs.</p></div>`:''}
           <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
           ${p.mode==='single'?`<div class="row" style="margin-top:8px"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:110px"> €</div>`:''}
           ${p.mode==='ccv2cc'?`<div class="row" style="margin-top:8px"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:100px"> €<span class="kbd">Hors communauté</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:100px"> €</div>`:''}
@@ -2331,7 +2335,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
     inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fend',v=>f.endDate=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
-    const pg=$('#pgrid');if(pg)pg.onchange=()=>{const v=pg.value;if(v==='free'){f.price={mode:'free'}}else if(v!=='legacy'&&v!=='keep'){const g=(settings().tarifs||[]).find(x=>x.id===v);if(g)f.price={mode:'grid',gid:g.id,name:g.name,type:g.type,rows:clone(g.rows||[])}}draw()};
+    const pg=$('#pgrid');if(pg)pg.onchange=()=>{const v=pg.value;if(v==='free'){f.price={mode:'free'}}else if(v!=='legacy'&&v!=='keep'){const g=(settings().tarifs||[]).find(x=>x.id===v);if(g)f.price={mode:'grid',gid:g.id,name:g.name,type:g.type,rows:clone(g.rows||[]).map(r=>Object.assign(r,{amount:''}))}}draw()};
     $$('[data-pam]').forEach(e=>e.oninput=()=>{f.price.rows[+e.dataset.pam].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
@@ -2593,12 +2597,11 @@ function renderSettings(main){
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page des activités (sous la dernière activité)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
-    ${fold('tarifs','Tarifs',`<p class="hint">Crée tes tarifs une fois, puis choisis-les dans chaque activité.</p>
+    ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque activité.</p>
       ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
-        <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Nom du tarif"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
-        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:80px">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select><input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`:''}<input class="in t" type="number" step="0.5" min="0" data-rf="amount" value="${esc(r.amount??'')}" placeholder="€" style="width:90px"><span class="kbd">€</span>${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
+        <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Intitulé du tarif (ex. Sortie piscine)"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
+        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:80px">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select><input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
         ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
-        <p class="kbd" style="margin:6px 0 0">Affichage : ${esc(gridSummary(g))}</p>
       </div>`).join('')}
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
@@ -2657,7 +2660,7 @@ function weekPanel(st,type,title){
     ${wk.map((d,i)=>`<div class="wk" data-wd="${i}"><span class="dn">${cap(DAYS[i])}</span>
       <label class="sw" style="font-size:13px"><input type="checkbox" data-wopen ${d.open?'checked':''}></label>
       <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas d'activité">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
-    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-copyfrom="${type}">Copier le mercredi sur tous les jours ouverts</button></div>`,open+' jours ouverts')}</div>`;
+`,open+' jours ouverts')}</div>`;
 }
 function bindSettings(main,st){
   const rerender=()=>render();
@@ -2687,7 +2690,6 @@ function bindSettings(main,st){
       row.querySelectorAll('[data-wsdel]').forEach(b=>b.onclick=()=>{d.slots.splice(+b.dataset.wsdel,1);if(!d.slots.length)d.open=false;rerender()});
       const a=row.querySelector('[data-wsadd]');if(a)a.onclick=()=>{const l=d.slots[d.slots.length-1];d.slots.push({start:l?l.end:'14:00',end:'',label:''});rerender()};
     });
-    sec.querySelector('[data-copyfrom]').onclick=()=>{const src=wk[2];if(!src.open){toast('Le mercredi est fermé dans cette semaine type',true);return}wk.forEach((d,i)=>{if(i!==2&&d.open)d.slots=clone(src.slots)});rerender()};
   });
   const tp=main.querySelector('#tokenpanel');if(tp)window.EJ_CF.mountToken(tp,{toast,confirmBox});
   const ap=main.querySelector('#accespanel');if(ap)window.EJ_CF.mountAccess(ap,{toast,confirmBox});
