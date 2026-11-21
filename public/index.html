@@ -915,6 +915,14 @@ textarea.in{min-height:64px;resize:vertical}
 .kic.k-a{border:1.3px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box}
 .kic.k-c{border:1.3px solid #E3DED6;background:#fff}
 .kemo{line-height:1;vertical-align:-1px}
+.kic.k-e{border:1.3px solid #D9D3CA;background:#fff}
+.cal .cell .mflags i{width:auto!important;height:auto!important;border:0!important;background:transparent!important;display:block}
+.cell .mflags .kic{width:22px!important;height:22px!important}
+.mine-t{position:relative;display:block}
+.pick-grid.mine{grid-template-columns:repeat(3,1fr)!important}
+.pick-grid.mine .pick{height:auto!important;aspect-ratio:1;min-height:0}
+.mine-t .pick{width:100%}
+.mine-x{position:absolute;top:-7px;right:-7px;width:26px;height:26px;border-radius:50%;border:0;background:#141317;color:#fff;font-size:12px;cursor:pointer;box-shadow:2px 2px 0 rgba(20,19,23,.2)}
 .cell .al .kic{margin-right:3px;width:17px!important;height:17px!important;border-radius:5px;vertical-align:-3px}
 .cell .al .kic svg{width:12px;height:12px}
 .cell .al .tg{vertical-align:-3px;margin-right:3px}
@@ -1540,6 +1548,11 @@ window.EJ={isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng
     const r=await fetch('/api/img',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},auth()),body:JSON.stringify({type,data})});
     if(!r.ok)throw err('unavailable','API '+r.status);
     return await r.json();
+  },async remove(id){
+    const r=await fetch('/api/img/'+encodeURIComponent(id),{method:'DELETE',headers:auth()});
+    if(r.status===409)throw err('used','utilisée');
+    if(!r.ok)throw err('unavailable','API '+r.status);
+    return true;
   }};
   const ready=(async()=>{
     if(!token)return;
@@ -1701,7 +1714,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.45';
+const APP_VERSION='v261120.46';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1887,8 +1900,8 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
       <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
       <div class="leg-row"><i class="tg c">C</i>activité complète</div>
-      <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z" fill="#E1306C"/></svg></span>activité épinglée à la une</div>
-      <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#6228D7"/></svg></span>journée avec nocturne</div>
+      <div class="leg-row">${kitIcon('epingle',14)}&nbsp;activité épinglée à la une</div>
+      <div class="leg-row">${kitIcon('nocturne',14)}&nbsp;journée avec nocturne</div>
       <div class="leg-row">${kitIcon('vacances',16)} ${kitIcon('scolaire',16)}&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
     m.el.querySelector('[data-x]').onclick=()=>m.close();
   };
@@ -1908,7 +1921,7 @@ function cellHTML(d,out){
   const dd=parse(d);
   return `<button class="${cls}" data-date="${d}">
     <span class="mside"><span class="mcal${day.closed?' shut':''}"><b>${EJ.MONTHS_S[dd.getMonth()].replace('.','')}</b><i>${dd.getDate()}</i><small>${EJ.DAYS_S[dow(d)]}.</small></span>
-    ${(()=>{const n=!day.closed&&EJ.isNight(day),pn=acts.some(a=>a.pinned);return n||pn?`<span class="mflags">${n?'<i title="Nocturne"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#6228D7"/></svg></i>':''}${pn?'<i title="Épinglée à la une"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z" fill="#E1306C"/></svg></i>':''}</span>`:''})()}</span>
+    ${(()=>{const n=!day.closed&&EJ.isNight(day),pn=acts.some(a=>a.pinned);return n||pn?`<span class="mflags">${n?`<i title="Nocturne">${kitIcon('nocturne',14)}</i>`:''}${pn?`<i title="Épinglée à la une">${kitIcon('epingle',14)}</i>`:''}</span>`:''})()}</span>
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
@@ -2276,9 +2289,14 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
 /* ---------- Kit d'icônes (éditeur) : emoji, A (trait noir), B (pastille couleur), C (trait dégradé) ---------- */
 const KIT_P={"vacances": "<circle cx=\"17\" cy=\"6\" r=\"2.6\"/><path d=\"M3 20h18\"/><path d=\"M11 20 8.5 9.5\"/><path d=\"M2.8 11.2C4 7.4 8 5.4 11.6 6.6l1.4.5L2.8 11.2z\"/><path d=\"M6 21c1.5-1.2 3-1.2 4.5 0s3 1.2 4.5 0 3-1.2 4.5 0\"/>", "scolaire": "<path d=\"M7 8V6.5A5 5 0 0 1 17 6.5V8\"/><rect x=\"4.5\" y=\"8\" width=\"15\" height=\"12.5\" rx=\"3\"/><path d=\"M8.5 13h7v4h-7z\"/><path d=\"M4.5 12.5h15\"/>", "sport": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5l3.4 2.5-1.3 4h-4.2l-1.3-4z\"/><path d=\"M12 3.5v4M15.4 10l4.6-1.6M14.1 14l2.6 3.6M9.9 14l-2.6 3.6M8.6 10 4 8.4\"/>", "jeux": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><circle cx=\"8.6\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8.6\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "creation": "<path d=\"M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4H18a2.5 2.5 0 0 0 2.5-2.5A8.5 8.5 0 0 0 12 3.5z\"/><circle cx=\"7.8\" cy=\"11\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10.5\" cy=\"7.3\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"7.8\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/>", "cuisine": "<path d=\"M7 13.5V20h10v-6.5\"/><path d=\"M7 13.5A4 4 0 0 1 6.2 5.7 4.5 4.5 0 0 1 12 3.5a4.5 4.5 0 0 1 5.8 2.2A4 4 0 0 1 17 13.5z\"/><path d=\"M7 17h10\"/>", "sortie": "<path d=\"M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z\"/><circle cx=\"12\" cy=\"10\" r=\"2.4\"/>", "soiree": "<path d=\"M9 18V5.5l11-2V16\"/><circle cx=\"6.5\" cy=\"18\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"16\" r=\"2.5\"/><path d=\"M9 9.5l11-2\"/>", "bienetre": "<path d=\"M12 20c-4.5 0-8-2.6-8.5-6.5C6 13.2 9.5 14.6 12 20z\"/><path d=\"M12 20c4.5 0 8-2.6 8.5-6.5-2.5-.3-6 1.1-8.5 6.5z\"/><path d=\"M12 20c-2.6-3-2.6-9.5 0-14 2.6 4.5 2.6 11 0 14z\"/>", "culture": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"2\"/><path d=\"M3.5 9 19 4.6l.9 3.1\"/><path d=\"M8.2 7.7l2.3 2.6M13.3 6.3l2.3 2.6\"/>", "projet": "<rect x=\"3.5\" y=\"8\" width=\"17\" height=\"11.5\" rx=\"2.5\"/><path d=\"M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2\"/><path d=\"M3.5 13h17\"/><path d=\"M10.5 13v2h3v-2\"/>", "sejour": "<path d=\"M12 4 3 20h18L12 4z\"/><path d=\"M12 4v16\"/><path d=\"M12 20l-3.2-6M12 20l3.2-6\"/><path d=\"M10 3.2 12 4l2-.8\"/>"}, KIT_C={"vacances": "#F59E0B", "scolaire": "#2F7BEA", "sport": "#13998F", "jeux": "#6B4CE6", "creation": "#E8408C", "cuisine": "#F07B1E", "sortie": "#2F7BEA", "soiree": "#3A2C8F", "bienetre": "#C9578E", "culture": "#D23C3C", "projet": "#4E5866", "sejour": "#2E8B4A"};
 const KIT_EMO={vacances:'🏖️',scolaire:'🎒',ferie:'🎉'};
+const KIT_FILL={epingle:['M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z','#E1306C'],nocturne:['M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z','#6228D7']};
 const iconKit=()=>((settings().info||{}).iconKit)||'emoji';
 function kitIcon(k,size,kit){
   kit=kit||iconKit();size=size||16;if(kit==='c')ensureKitDefs();
+  if(KIT_FILL[k]){const [d,c]=KIT_FILL[k],z=Math.round(size*.72);
+    if(kit==='emoji')return `<span class="kic k-e" style="width:${size+6}px;height:${size+6}px"><svg width="${z}" height="${z}" viewBox="0 0 24 24"><path d="${d}" fill="${c}"/></svg></span>`;
+    if(kit==='b')return `<span class="kic k-b" style="width:${size+6}px;height:${size+6}px;background:${c}"><svg width="${z}" height="${z}" viewBox="0 0 24 24"><path d="${d}" fill="#fff"/></svg></span>`;
+    return `<span class="kic k-${kit}" style="width:${size+6}px;height:${size+6}px"><svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="${kit==='c'?'url(#kitg)':'#141317'}" stroke-width="2.1" stroke-linejoin="round"><path d="${d}"/></svg></span>`}
   const emo=k==='vacances'||k==='scolaire'||k==='ferie'?KIT_EMO[k]:((CATS[k]||{}).emoji||'⭐');
   if(kit==='emoji'||!KIT_P[k])return `<span class="kemo" style="font-size:${size}px">${emo}</span>`;
   const st=kit==='b'?'#fff':kit==='c'?'url(#kitg)':'#141317';
@@ -2286,6 +2304,17 @@ function kitIcon(k,size,kit){
   return `<span class="kic k-${kit}" style="width:${size+6}px;height:${size+6}px${kit==='b'?';background:'+(KIT_C[k]||'#555'):''}">${svg}</span>`;
 }
 // Images personnelles : celles importées (mémorisées dans les paramètres) + celles déjà utilisées
+function usedImages(){
+  const set=new Set();const walk=o=>{if(!o||typeof o!=='object')return;if(Array.isArray(o)){o.forEach(walk);return}
+    if(typeof o.asset==='string'&&o.asset)set.add(o.asset);Object.values(o).forEach(walk)};
+  walk(library());walk(S.drafts);walk(S.pub);
+  const i=settings().info||{};[i.logo,i.watermark,...(i.partners||[])].forEach(x=>x&&set.add(x));
+  return set;
+}
+async function forgetImage(id){
+  const base=clone(settings());base.info=base.info||{};base.info.myImgs=(base.info.myImgs||[]).filter(x=>x!==id);
+  base.updatedAt=new Date().toISOString();await docSet('config/settings',base);S.settings=base;
+}
 function myImages(){
   const set=new Set(((settings().info||{}).myImgs)||[]);
   const walk=o=>{if(!o||typeof o!=='object')return;if(Array.isArray(o)){o.forEach(walk);return}
@@ -2298,15 +2327,17 @@ async function rememberImage(id){
     base.updatedAt=new Date().toISOString();await docSet('config/settings',base);S.settings=base}catch(e){}
 }
 // Recadrage carré, comme l'image apparaît sur les cartes du site
-function cropImage(file){
+function cropImage(file,opt){
+  opt=opt||{};
   return new Promise(resolve=>{
-    const url=URL.createObjectURL(file), img=new Image();
+    const isUrl=typeof file==='string', url=isUrl?file:URL.createObjectURL(file), img=new Image();
+    const revoke=()=>{if(!isUrl)URL.revokeObjectURL(url)};
     img.onload=()=>{
       const m=openModal(`<div class="mh"><h3>Recadrer l'image</h3><button class="ico" data-a="x">✕</button></div>
         <div class="mb"><p class="hint" style="margin:0 0 10px">Fais glisser l'image et ajuste le zoom : le carré montre ce qui apparaîtra sur la carte de l'activité.</p>
           <div class="crop"><div class="crop-v"><img alt="" draggable="false"></div></div>
           <label class="crop-z"><span>－</span><input type="range" min="1" max="4" step="0.01" value="1"><span>＋</span></label></div>
-        <div class="mf"><button class="btn" data-a="x">Annuler</button><button class="btn pri" data-a="ok">Utiliser cette image</button></div>`,{onClose:()=>{URL.revokeObjectURL(url);if(!done)resolve(null)}});
+        <div class="mf"><button class="btn" data-a="x">Annuler</button>${opt.reuse?'<button class="btn" data-a="same">Telle quelle</button>':''}<button class="btn pri" data-a="ok">${opt.reuse?'Recadrer':'Utiliser cette image'}</button></div>`,{onClose:()=>{revoke();if(!done)resolve(null)}});
       let done=false;
       const v=m.el.querySelector('.crop-v'), im=v.querySelector('img'), z=m.el.querySelector('input[type=range]');
       im.src=url;
@@ -2326,15 +2357,16 @@ function cropImage(file){
       v.addEventListener('pointerup',up);v.addEventListener('pointercancel',up);
       v.addEventListener('wheel',e=>{e.preventDefault();sc=Math.max(1,Math.min(4,sc*(e.deltaY<0?1.08:1/1.08)));z.value=sc;draw()},{passive:false});
       m.el.querySelectorAll('[data-a="x"]').forEach(b=>b.onclick=()=>m.close());
+      const sm=m.el.querySelector('[data-a="same"]');if(sm)sm.onclick=()=>{done=true;m.close();resolve('same')};
       m.el.querySelector('[data-a="ok"]').onclick=()=>{
         const b=box(),k=1/(S0*sc);            // px source par px affiché
         const side=b*k, cx=W/2-x*k, cy=H/2-y*k;
         const out=Math.min(900,Math.round(side)), c=document.createElement('canvas');c.width=c.height=out;
         c.getContext('2d').drawImage(img,cx-side/2,cy-side/2,side,side,0,0,out,out);
-        c.toBlob(bl=>{done=true;m.close();URL.revokeObjectURL(url);resolve(bl)},'image/jpeg',.88);
+        c.toBlob(bl=>{done=true;m.close();revoke();resolve(bl)},'image/jpeg',.88);
       };
     };
-    img.onerror=()=>{URL.revokeObjectURL(url);toast('Image illisible',true);resolve(null)};
+    img.onerror=()=>{revoke();toast('Image illisible',true);resolve(null)};
     img.src=url;
   });
 }
@@ -2346,14 +2378,22 @@ function openImagePicker(f,done){
   const m=openModal(`<div class="mh"><h3>🖼️ Choisir l'image</h3><button class="ico" data-a="x">✕</button></div>
     <div class="mb">
       ${S.assets?`<div class="row" style="margin-bottom:6px"><label class="btn"><input type="file" accept="image/*" id="upl" hidden>📤 Importer ma propre image</label>${f.asset?`<span class="kbd">Image importée utilisée</span><button class="btn sm ghost" data-a="noasset">Revenir aux visuels</button>`:''}<span class="kbd" id="uplst"></span></div>`:''}
-      ${(()=>{const mine=myImages();return mine.length?`<div class="sec-t">Images personnelles</div><div class="pick-grid mine">${mine.map(id=>`<button class="pick${f.asset===id?' on':''}" data-mine="${esc(id)}"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy"></button>`).join('')}</div>`:''})()}
+      ${(()=>{const mine=myImages();return mine.length?`<div class="sec-t">Images personnelles</div><div class="pick-grid mine">${(()=>{const used=usedImages();return mine.map(id=>`<span class="mine-t"><button class="pick${f.asset===id?' on':''}" data-mine="${esc(id)}"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy"></button>${used.has(id)||f.asset===id?'':`<button class="mine-x" data-mdel="${esc(id)}" title="Supprimer de mes images" aria-label="Supprimer de mes images">✕</button>`}</span>`).join('')})()}</div>`:''})()}
       <div class="sec-t">Suggérées pour « ${esc((CATS[cat]||{}).label||'')} »</div>
       <div class="pick-grid">${sugg.map(pick).join('')}</div>
       <div class="sec-t">Toutes les images</div>
       <div class="pick-grid">${others.map(pick).join('')}</div>
     </div>`);
   m.el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{f.visual=b.dataset.k;f.asset='';m.close();done()});
-  m.el.querySelectorAll('[data-mine]').forEach(b=>b.onclick=()=>{f.asset=b.dataset.mine;m.close();done()});
+  m.el.querySelectorAll('[data-mine]').forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.mine;const res=await cropImage((window.EJ_ASSET_BASE||'/_blob/')+id,{reuse:true});if(!res)return;
+    if(res==='same'){f.asset=id;m.close();done();return}
+    try{const r=await S.assets.upload(res);f.asset=r.id;rememberImage(r.id);m.close();done();toast('Image recadrée ✓')}catch(e){toast('Recadrage impossible',true)}
+  });
+  m.el.querySelectorAll('[data-mdel]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const id=b.dataset.mdel;
+    if(!await confirmBox('Supprimer définitivement cette image de tes images personnelles ?',{ok:'Supprimer',danger:true}))return;
+    try{await S.assets.remove(id);await forgetImage(id);b.closest('.mine-t').remove();toast('Image supprimée')}
+    catch(err){toast(err&&err.code==='used'?'Image utilisée : suppression impossible':'Suppression impossible',true)}});
   m.el.querySelector('[data-a="x"]').onclick=()=>m.close();
   const na=m.el.querySelector('[data-a="noasset"]');if(na)na.onclick=()=>{f.asset='';m.close();done()};
   const up=m.el.querySelector('#upl');
@@ -2461,8 +2501,8 @@ function renderSettings(main){
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes des types d'activité et des semaines (vacances, scolaire) dans le calendrier de l'éditeur. L'épingle et la lune ne changent pas.</p>
-      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sport','jeux','creation','cuisine','sortie','soiree','bienetre','culture','projet','sejour'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes des types d'activité et des semaines (vacances, scolaire) dans le calendrier de l'éditeur. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sport','jeux','creation','cuisine','sortie','soiree','bienetre','culture','projet','sejour','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}

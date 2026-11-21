@@ -119,6 +119,18 @@ export async function handleApi(request, env) {
     await env.DB.prepare('INSERT INTO images (id, type, data, created_at) VALUES (?1, ?2, ?3, ?4)').bind(id, type, data, new Date().toISOString()).run();
     return json({ id });
   }
+  if (route === 'img' && m === 'DELETE' && seg[1]) {
+    const id = seg[1];
+    // refus si l'image est encore utilisée quelque part (hors liste des images personnelles)
+    const { results } = await env.DB.prepare('SELECT path, data FROM docs WHERE data LIKE ?1').bind('%' + id + '%').all();
+    for (const r of results) {
+      if (r.path !== 'config/settings') return bad('Image utilisée : suppression impossible.', 409);
+      const st = JSON.parse(r.data); if (st.info) delete st.info.myImgs;
+      if (JSON.stringify(st).includes(id)) return bad('Image utilisée : suppression impossible.', 409);
+    }
+    await env.DB.prepare('DELETE FROM images WHERE id = ?1').bind(id).run();
+    return json({ ok: true });
+  }
   if (route === 'backup' && m === 'GET') {
     const { results } = await env.DB.prepare('SELECT path, data, updated_at FROM docs ORDER BY path').all();
     const body = { app: 'le-programme', exportedAt: new Date().toISOString(), docs: results.map(r => ({ path: r.path, updated_at: r.updated_at, data: JSON.parse(r.data) })) };
