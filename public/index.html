@@ -400,7 +400,7 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card.zoomed .wzz{display:inline}
 .card.zoomed .wn:has(+.wzz){display:none}
 .card-info{padding-left:13px!important}
-.card-info::before{left:13px!important}
+.card-info::before{left:var(--sepl,13px)!important}
 .card-info .badges,.card-info .bring,.card-info .imps,.card-info .auth,.card-info .sj-when,.card-info .about,.card-info .gal{margin-left:0!important}
 .card.zoomed .card-info .badges,.card.zoomed .card-info .bring,.card.zoomed .card-info .imps,.card.zoomed .card-info .auth,.card.zoomed .card-info .about,.card.zoomed .card-info .gal{margin-left:0!important}
 .card-info .badges{justify-content:center}
@@ -556,6 +556,7 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card-info .imp{font-size:13px}
 .card.zoomed .card-info .imp{font-size:15px}
 .card.fullsep .card-info::before{left:13px!important}
+.card.zoomed:not(.fullsep) .card-info::before{left:var(--sepl,13px)!important}
 
 /* --- v34 --- */
 .card-head .sj-when{margin:8px 0 2px!important}
@@ -673,8 +674,8 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card.fold .card-head>:not(h3){display:none!important}
 .card.fold .card-head{align-self:center;padding-right:38px!important}
 .card.fold h3{margin:0!important;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle;line-height:1.25!important}
-.card.fold,.card.fold.morning{grid-template-columns:42px minmax(0,1fr)!important;min-height:0!important;height:42px}
-.card.fold .card-img{width:42px!important;height:42px!important;min-height:0!important;align-self:stretch}
+.card.fold,.card.fold.morning{grid-template-columns:36px minmax(0,1fr)!important;min-height:0!important;height:36px}
+.card.fold .card-img{width:36px!important;height:36px!important;min-height:0!important;align-self:stretch}
 .card.fold .card-img img{width:100%;height:100%;object-fit:cover}
 .card.fold .card-head{padding:0 34px 0 11px!important;min-width:0}
 .card.fold .fold-ar{right:4px;width:28px;height:28px}
@@ -690,8 +691,8 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card{-webkit-user-select:none;user-select:none;outline:none}
 .card h3{display:inline-block!important;box-sizing:border-box;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
 .card.fold h3{background:none!important}
-.card.fold{display:flex!important;align-items:center;padding:0 0 0 42px!important}
-.card.fold .card-img{position:absolute!important;left:0;top:0;bottom:0;width:42px!important;height:auto!important;margin:0!important;border-radius:0!important}
+.card.fold{display:flex!important;align-items:center;padding:0 0 0 36px!important}
+.card.fold .card-img{position:absolute!important;left:0;top:0;bottom:0;width:36px!important;height:auto!important;margin:0!important;border-radius:0!important}
 .card.fold .card-img>svg,.card.fold .card-img>img{width:100%!important;height:100%!important;display:block;border-radius:0!important}
 .card.fold .card-head{flex:1 1 auto;min-width:0}
 .card.morning:not(.zoomed){box-shadow:0 0 0 1.5px rgba(224,106,18,.32),var(--lift)!important}
@@ -1787,7 +1788,7 @@ function mountPublic(root,data,opts){
   // le titre replié n'est jamais plus grand que le même titre déplié
   function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;
     if(!c.classList.contains('fold')){fitH(h);return}
-    c.classList.remove('fold');const u=fitH(h);c.classList.add('fold');fitH(h,u)})}
+    c.classList.remove('fold');const u=fitH(h);c.classList.add('fold');fitH(h,Math.min(u,Math.round(c.offsetHeight*.4*2)/2||u))})}
   // une carte qui n'a rien d'autre qu'un titre et une image ne se déplie pas
   function markFoldable(){root.querySelectorAll('.card:not(.zoomed)').forEach(c=>{const hd=c.querySelector('.card-head');
     const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
@@ -1813,7 +1814,10 @@ function mountPublic(root,data,opts){
     // trait de séparation prolongé jusqu'au bord gauche quand l'image est entièrement au-dessus
     requestAnimationFrame(()=>requestAnimationFrame(()=>root.querySelectorAll('.card').forEach(c=>{
       const im=c.querySelector('.card-img'), inf=c.querySelector('.card-info');if(!im||!inf)return;
-      c.classList.toggle('fullsep',inf.getBoundingClientRect().top>=im.getBoundingClientRect().bottom+2);
+      if(c.classList.contains('fold'))return;const ir=im.getBoundingClientRect(),fr=inf.getBoundingClientRect(),full=fr.top>=ir.bottom+2;
+      c.classList.toggle('fullsep',full);
+      // sinon le trait part du bord droit de l'image, sans passer dessous
+      if(!full){const k=inf.offsetWidth?fr.width/inf.offsetWidth:1;inf.style.setProperty('--sepl',Math.max(13,(ir.right-fr.left)/(k||1))+'px')}
     })));
   }
   window.addEventListener('resize',()=>fitStay());
@@ -2174,7 +2178,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.98';
+const APP_VERSION='v261120.99';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
