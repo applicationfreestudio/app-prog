@@ -944,13 +944,19 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v63 */
+.dr-head .r1 .dhb{width:40px!important;height:40px!important;flex:0 0 40px!important}
+.dr-head .r1 .st .pill{height:40px!important;padding:0 8px!important;font-size:12.5px!important}
+.dr-head .r1 h2{flex:1 1 auto;text-align:center}
 /* v61 */
 .steps-hint{display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;color:var(--ink2);margin:2px 0 8px}
 .steps-hint b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ig);color:#fff;font-size:11.5px;margin-right:4px}
 .steps-hint i{font-style:normal;color:#B5B1AA}
 .slot{border:1.5px solid transparent!important;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box!important;border-radius:14px!important}
 .slot-cap{font:700 13px var(--pf,inherit);letter-spacing:.02em;color:#141317;padding:8px 12px 0;background:#F4F0EA}
-.slot-acts{border-left:3px solid #EFE7F7;margin:8px 8px 10px 14px!important;padding-left:8px!important}
+.slot-acts{border-left:0;margin:8px!important;padding-left:0!important}
+.slot-acts .add-act{min-height:38px!important;padding:7px 10px!important;font-size:14px!important;background:#fff!important;border:1.5px dashed #D6D1C9!important;box-shadow:none!important;color:#5d5864!important;font-weight:600}
+.dhb.x{margin-left:2px}
 .dbus{display:grid;place-items:center;margin-top:8px;height:28px;border-radius:8px;background:#fff;border:1.5px solid #E3DED6}
 .dbus .tbus{font-size:17px;margin:0}
 .where .bus{margin-right:6px}
@@ -1838,7 +1844,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.62';
+const APP_VERSION='v261120.63';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2060,7 +2066,7 @@ function cellHTML(d,out){
 /* ---------- Panneau d'une journée ---------- */
 let saveT=null, dirty=false;
 function openDrawer(date){
-  UI.drawer={date,day:getDay(date)};dirty=false;
+  UI.drawer={date,day:getDay(date),orig:S.drafts[date]?clone(S.drafts[date]):null,touched:false};dirty=false;
   renderDrawer();
 }
 function closeDrawer(silent){
@@ -2070,7 +2076,7 @@ function closeDrawer(silent){
   if(!silent)render();
 }
 function scheduleSave(){
-  dirty=true;setSaving('Modifications…');
+  dirty=true;if(UI.drawer)UI.drawer.touched=true;setSaving('Modifications…');
   clearTimeout(saveT);saveT=setTimeout(flushSave,700);
 }
 function flushSave(){
@@ -2108,16 +2114,16 @@ function footHTML(date){
       <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
       ${s==='pub'?'<button class="dbtn go two" data-pa="unpub"><span>Retirer</span><small>déjà en ligne ✓</small></button>':`<button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':'Publier'}</button>`}
       <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-      <button class="dbtn ok" data-x="1">OK</button>
     </div>`;
 }
 function bindStatus(){
   document.querySelectorAll('.drawer [data-x]').forEach(b=>b.onclick=()=>closeDrawer());
+  document.querySelectorAll('.drawer [data-xc]').forEach(b=>b.onclick=()=>askCloseDrawer());
   document.querySelectorAll('.drawer #drprev').forEach(b=>b.onclick=()=>window.__drPrev&&window.__drPrev());
   document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=async()=>{
     const date=UI.drawer.date, a=b.dataset.pa;
-    if(a==='save'){if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
-    if(a==='pub'){if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);render();refreshDrawerStatus();return}
+    if(a==='save'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
+    if(a==='pub'){UI.drawer.touched=false;if(!S.drafts[date])dirty=true;flushSave();await publishDay(date);UI.drawer&&(UI.drawer.orig=S.drafts[date]?clone(S.drafts[date]):null);render();refreshDrawerStatus();return}
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='dup')return duplicateDay();
@@ -2198,18 +2204,17 @@ function renderDrawer(){ensureKitDefs();
   const {date,day}=UI.drawer;
   const t=dayType(date);
   let scrim=document.querySelector('.scrim'),dr=document.querySelector('.drawer');
-  if(!scrim){scrim=document.createElement('div');scrim.className='scrim';scrim.onclick=()=>closeDrawer();document.body.appendChild(scrim)}
+  if(!scrim){scrim=document.createElement('div');scrim.className='scrim';scrim.onclick=()=>askCloseDrawer();document.body.appendChild(scrim)}
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date).replace(/\.\d\d$/,''))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span><button class="dhb x" data-xc="1" title="Fermer" aria-label="Fermer">✕</button></div>
       <span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
-      <div class="steps-hint"><span><b>1</b> créneau horaire</span><i>›</i><span><b>2</b> activités du créneau</span></div>
       <button class="add-act add-slot top" id="addslot">＋ Ajouter un créneau horaire</button>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
       ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}
@@ -2220,7 +2225,6 @@ function renderDrawer(){ensureKitDefs();
 }
 function slotHTML(s,i){
   return `<section class="slot" data-si="${i}">
-    <div class="slot-cap">🕑 Créneau ${i+1}${s.start||s.end?' · '+esc(EJ.rng(s.start,s.end)):''}</div>
     <div class="slot-head">
       <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
       <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Temps libre, Soirée)">
@@ -2247,6 +2251,23 @@ function actRowHTML(a,i,j,n){
 function editActIn(i,j,onClose){
   const day=UI.drawer&&UI.drawer.day;if(!day)return;
   openComposer({mode:'day',onClose,initial:day.slots[i].acts[j],onSave:a=>{day.slots[i].acts[j]=a;scheduleSave();renderDrawer()},onDelete:()=>{day.slots[i].acts.splice(j,1);scheduleSave();renderDrawer()}});
+}
+function choice3(msg,a,b){
+  return new Promise(res=>{let v='cancel';
+    const m=openModal(`<div class="mh"><h3>Modifications non enregistrées</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf"><button class="btn" data-c="cancel">Annuler</button><button class="btn warn" data-c="b">${esc(b)}</button><button class="btn pri" data-c="a">${esc(a)}</button></div>`,{onClose:()=>res(v)});
+    m.el.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{v=x.dataset.c;m.close()});
+  });
+}
+async function askCloseDrawer(){
+  const D=UI.drawer;if(!D)return;
+  if(!D.touched){closeDrawer();return}
+  const c=await choice3('Cette journée a été modifiée sans être enregistrée en brouillon ni publiée.','Enregistrer le brouillon','Ne pas enregistrer');
+  if(c==='cancel')return;
+  if(c==='a'){if(!S.drafts[D.date])dirty=true;flushSave();toast('Brouillon enregistré ✓');closeDrawer();return}
+  clearTimeout(saveT);dirty=false;const date=D.date,orig=D.orig;
+  try{await (queues['drafts/'+date]||Promise.resolve());
+    if(orig){await docSet('drafts/'+date,orig);S.drafts[date]=orig}else if(S.drafts[date]){await docDel('drafts/'+date);delete S.drafts[date]}}catch(e){}
+  closeDrawer();
 }
 async function navDay(n){
   if(!UI.drawer)return;
