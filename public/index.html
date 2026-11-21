@@ -1472,7 +1472,7 @@ function cardHTML(a,opts){
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
   const dz=opts.date&&!stay&&!opts.dateLine?(()=>{const d=parse(opts.date);return DAYS_S[dow(opts.date)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)})():'';
   const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
-    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?ARR_SVG+fmtTH(t.end):'');
+    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?', retour ':' retour ')+fmtTH(t.end):'');
     if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return '';})();
   const w=stay?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:'');
   const pj=isInfo(a);
@@ -2069,7 +2069,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.86';
+const APP_VERSION='v261120.87';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
