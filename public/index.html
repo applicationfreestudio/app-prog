@@ -1109,7 +1109,7 @@ const CATS={
   bienetre:{label:'Bien-être',         emoji:'🪷', color:'#C9578E', visual:'soin'},
   culture: {label:'Culture & médias',  emoji:'🎬', color:'#D23C3C', visual:'cine'},
   projet:  {label:'Projet / info',    emoji:'🧰', color:'#4E5866', visual:'staff'},
-  sejour:  {label:'Nuitée & séjour',   emoji:'🏕️', color:'#2E8B4A', visual:'tente'}
+  sejour:  {label:'Séjour/nuitée',   emoji:'🏕️', color:'#2E8B4A', visual:'tente'}
 };
 
 /* Stock de visuels : clé, emoji, libellé, dégradé, catégories associées */
@@ -1184,8 +1184,8 @@ function actImage(a,opts){
   if(a&&a.asset&&!(opts&&opts.noAssets))return `<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(a.asset)}" alt="" loading="lazy">`;
   return visualSVG((a&&a.visual)||(CATS[a&&a.cat]||{}).visual||'etoile');
 }
-const LBL_DEF={resa:'sur réservation',places:'pl.',hc:'hors CC',free:'gratuit',bring:'à prévoir',morning:'le matin',full:'complet',closed:'l\'établissement est fermé pendant cette sortie',night:'nocturne',depart:'départ'};
-const LBL_NAMES={resa:'Réservation',places:'Places (abréviation)',hc:'Tarif hors communauté',free:'Gratuit',bring:'À prévoir',morning:'Activité du matin',full:'Complet',closed:'Établissement fermé pendant la sortie',night:'Soirée (étiquette du calendrier)',depart:'Départ'};
+const LBL_DEF={resa:'sur réservation',places:'pl.',hc:'hors CC',free:'gratuit',bring:'à prévoir',morning:'le matin',full:'complet',closed:'l\'établissement est fermé pendant l\'activité',night:'nocturne',depart:'départ'};
+const LBL_NAMES={resa:'Réservation',places:'Places (abréviation)',hc:'Tarif hors communauté',free:'Gratuit',bring:'À prévoir',morning:'Activité du matin',full:'Complet',closed:'Établissement fermé pendant l\'activité',night:'Soirée (étiquette du calendrier)',depart:'Départ'};
 let LBL=Object.assign({},LBL_DEF);
 function setLabels(l){LBL=Object.assign({},LBL_DEF);Object.keys(l||{}).forEach(k=>{if(k in LBL_DEF&&String(l[k]).trim())LBL[k]=String(l[k]).trim()})}
 function whenText(a){
@@ -1853,7 +1853,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.67';
+const APP_VERSION='v261120.68';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2037,7 +2037,7 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-draft"></i>Brouillon, non visible</div>
       <div class="leg-row"><i class="dot st-pub"></i>En ligne</div>
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
-      <div class="leg-row">${kitIcon('sejour',16)}&nbsp;nuitée &amp; séjour</div>
+      <div class="leg-row">${kitIcon('sejour',16)}&nbsp;séjour/nuitée</div>
       <div class="leg-row">${kitIcon('projet',16)}&nbsp;projet / info</div>
       <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
       <div class="leg-row"><i class="tg c">C</i>activité complète</div>
@@ -2408,7 +2408,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
     const seg=(name,val,opts)=>`<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" class="${val===v?'on':''}">${l}</button>`).join('')}</div>`;
     const ty=f.cat==='sejour'?'sejour':f.cat==='projet'?'projet':'activite';
-    return `<div class="atype" role="radiogroup" aria-label="Type">${[['activite','Activité'],['sejour','Séjour / nuitée'],['projet','Projet / info']].map(([k,l])=>`<button type="button" class="atb${ty===k?' on':''}" data-aty="${k}">${l}</button>`).join('')}</div>
+    return `<div class="atype" role="radiogroup" aria-label="Type">${[['activite','Activité'],['sejour','Séjour/nuitée'],['projet','Projet / info']].map(([k,l])=>`<button type="button" class="atb${ty===k?' on':''}" data-aty="${k}">${l}</button>`).join('')}</div>
     <div class="form-grid">
       <div>
         <button class="vis-pick" id="pickvis" type="button">${actImage(f)}<span class="chg">🖼️ Changer l'image</span></button>
@@ -2433,7 +2433,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         </div>
         <div class="box"><h4>${BUS_SVG} Transport & 📋 réservation</h4>
           <label class="sw"><input type="checkbox" id="ftransport" ${f.transport?'checked':''}> Transport assuré par l'Espace jeunes</label>
-          <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'établissement est fermé pendant cette sortie</label>
+          <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'établissement est fermé pendant l'activité</label>
           <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
         </div>
         <div class="box"><h4>🤑 Tarif</h4>
@@ -2741,7 +2741,7 @@ function renderSettings(main){
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
       <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
