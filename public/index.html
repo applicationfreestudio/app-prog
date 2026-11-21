@@ -1193,21 +1193,21 @@ function whenText(a){
   return '';
 }
 const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>',hq:'Hors quotient'};
-const qfLine=r=>r.op==='hq'?'Hors quotient':'Quotient '+(QF_OPS[r.op]||'⩽')+' '+(r.qf||'');
+const qfLine=r=>r.op==='hq'?'Hors Qt':'Qt '+(QF_OPS[r.op]||'⩽')+' '+(r.qf||'');
 function gridSummary(p){
   const rows=(p.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
   if(p.type==='unique')return rows[0]?'tarif '+euro(rows[0].amount):'payant';
   if(p.type==='cond')return rows.map(r=>(r.label||'').trim()+' '+euro(r.amount)).join(' · ');
-  const v=rows.map(r=>+r.amount).filter(x=>!isNaN(x));if(!v.length)return 'selon quotient';
+  const v=rows.map(r=>+r.amount).filter(x=>!isNaN(x));if(!v.length)return 'selon Qt';
   const lo=Math.min(...v),hi=Math.max(...v);
-  return (lo===hi?euro(lo):'de '+euro(lo)+' à '+euro(hi))+' selon quotient';
+  return (lo===hi?euro(lo):'de '+euro(lo)+' à '+euro(hi))+' selon Qt';
 }
 function priceText(p){
   p=p||{};
   if(p.mode==='grid')return gridSummary(p);
   if(p.mode==='single')return euro(p.amount)||'Payant';
   if(p.mode==='ccv2cc')return [p.cc!==''&&p.cc!=null?'CCV2CC '+euro(p.cc):'',p.hc!==''&&p.hc!=null?'Hors comm. '+euro(p.hc):''].filter(Boolean).join(' · ')||'Payant';
-  if(p.mode==='qf')return p.text||'Selon quotient familial';
+  if(p.mode==='qf')return p.text||'Selon Qt';
   return 'Gratuit';
 }
 const PUBLICS={tous:'Tout public',preados:'Pré-ados (6e–4e)',ados:'Ados (3e et +)'};
@@ -1226,7 +1226,7 @@ function badgesHTML(a){
       b.push(`<span class="badge pq cond"><span class="pq-f">${parts.join('<i class="sep"></i>')}</span><span class="pq-s">tarif sous condition</span><span class="pq-d">${parts.map(x=>`<span class="pl"><i class="sep"></i>${x}</span>`).join('')}</span></span>`)}
     else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>`<span class="pl"><i class="sep"></i>${esc(qfLine(r))} : ${esc(euro(r.amount))}</span>`).join('')}</span></span>`);
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
-  else if(pm==='qf'){const ls=String(pr.text||'selon quotient familial').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
+  else if(pm==='qf'){const ls=String(pr.text||'selon Qt').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
   if(t.length)b.push(`<span class="badge">${t.join('<i class="sep"></i>')}</span>`);
   if(a.publics&&a.publics!=='tous')b.push(`<span class="badge">${esc(PUBLICS[a.publics].toLowerCase())}</span>`);
@@ -1850,7 +1850,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.64';
+const APP_VERSION='v261120.65';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
