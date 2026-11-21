@@ -1416,7 +1416,7 @@ let AGES=[{id:'preados',label:'pré-ados'},{id:'ados',label:'ados'}];
 const agesOf=a=>{const L=Array.isArray(a.ages)?a.ages:a.publics&&a.publics!=='tous'?[a.publics]:[];return L.map(id=>(AGES.find(x=>x.id===id)||{}).label).filter(Boolean)};
 function badgesHTML(a){
   const b=[];
-  if(a.booking&&a.booking.on)b.push(`<span class="badge"><span class="bi">📋</span>${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+esc(LBL.places):''}</span>`);
+  if(a.booking&&a.booking.on)b.push(`<span class="badge"><span class="bi">📋</span>${esc(LBL.resa)}${a.booking.places?' : '+esc(a.booking.places)+' '+`<span class="plw" data-ab="${esc(LBL.places)}" data-full="${+a.booking.places===1?'place':'places'}">${esc(LBL.places)}</span>`:''}</span>`);
   const pm=(a.price||{}).mode||'free', pr=resolveGrid(a.price||{});
   let t=[];
   if(pm==='ccv2cc'){
@@ -1713,7 +1713,12 @@ function mountPublic(root,data,opts){
     requestAnimationFrame(()=>root.querySelectorAll('.badge.cond').forEach(b=>{b.classList.remove('condensed');
       const f=b.querySelector('.pq-f'),box=b.parentNode;if(f&&(f.offsetWidth>box.clientWidth-2||b.scrollWidth>b.clientWidth+1))b.classList.add('condensed')}));
   }
-  function fitStay(){fitPrices();
+  // « places » en entier si ça ne fait ni passer les badges à la ligne ni déborder, sinon l'abréviation
+  function fitPlaces(){root.querySelectorAll('.badges').forEach(bx=>{const ws=[...bx.querySelectorAll('.plw')];if(!ws.length)return;
+    const rows=()=>new Set([...bx.children].map(c=>c.offsetTop)).size, ovf=()=>[...bx.children].some(c=>c.scrollWidth>c.clientWidth+.5);
+    ws.forEach(w=>w.textContent=w.dataset.ab);const r0=rows(),h0=bx.offsetHeight;
+    ws.forEach(w=>w.textContent=w.dataset.full);if(rows()>r0||bx.offsetHeight>h0+.5||ovf())ws.forEach(w=>w.textContent=w.dataset.ab)})}
+  function fitStay(){fitPlaces();fitPrices();
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when,.card.zoomed .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
@@ -2075,7 +2080,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.90';
+const APP_VERSION='v261120.91';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2171,7 +2176,7 @@ function render(){
   const v=UI.view;
   app.innerHTML=`<div class="cr">
     <header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${APP_VERSION}</span></span>${S.stale?'<span class="who">⚠️ pas à jour</span>':''}<span class="role">Administrateur</span>${EJ.fsBtn('dark')}</div>
-      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','les cartes')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
+      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','les Cartes')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
     <div class="cr-main" id="crmain"></div></div>`;
   const main=document.getElementById('crmain');
   if(v==='activites')renderLibrary(main);
@@ -2243,7 +2248,7 @@ function renderCalendar(main){ensureKitDefs();
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
     <div class="cal-bar">
       <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
-      <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">LG</button><button class="btn${fOn?' fon':''}" id="filt">Filtre${fOn?' ('+flt.length+')':''} ▾</button>
+      <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">Lg</button><button class="btn" id="raz" title="Réinitialiser le mois sur les semaines types" aria-label="Réinitialiser le mois">Raz</button><button class="btn${fOn?' fon':''}" id="filt">Filtre${fOn?' ('+flt.length+')':''} ▾</button>
       <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' jour'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
     </div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
@@ -2266,6 +2271,17 @@ function renderCalendar(main){ensureKitDefs();
    cal.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
    cal.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
      if(Math.abs(dx)>70&&Math.abs(dy)<Math.abs(dx)*.6){const d=new Date(y,m-1+(dx<0?1:-1),1);UI.month=iso(d).slice(0,7);render()}},{passive:true});}
+  main.querySelector('#raz').onclick=async()=>{
+    const pre=y+'-'+String(m).padStart(2,'0')+'-', ds=Object.keys(S.drafts).filter(k=>k.startsWith(pre)).sort();
+    if(!ds.length){toast('Ce mois suit déjà les semaines types');return}
+    const nc=ds.reduce((n,k)=>n+(S.drafts[k].slots||[]).reduce((q,x)=>q+(x.acts||[]).length,0),0), np=ds.filter(k=>S.pub[k]).length;
+    if(!await confirmBox(`Réinitialiser ${MONTHS[m-1]} ${y} sur les semaines types ? ${ds.length} jour${ds.length>1?'s':''} modifié${ds.length>1?'s':''} ${ds.length>1?'reviennent':'revient'} aux horaires types${nc?`, ${nc} carte${nc>1?'s':''} ${nc>1?'seront supprimées':'sera supprimée'}`:''}, les informations du jour sont effacées.${np?` Les ${np} jour${np>1?'s':''} en ligne ne changent sur le site qu'à la prochaine publication.`:''}`,{ok:'Réinitialiser',danger:true}))return;
+    try{for(const k of ds){
+      if(S.pub[k]){const old=S.drafts[k],d=templateDay(k);d.date=k;d.rev=(old.rev||0)+1;d.pubRev=old.pubRev;await docSet('drafts/'+k,d);S.drafts[k]=d}
+      else{await docDel('drafts/'+k);delete S.drafts[k]}
+    }toast('Mois réinitialisé ✓')}catch(e){toast('Réinitialisation interrompue',true)}
+    render();
+  };
   main.querySelector('#legend').onclick=()=>{
     const m=openModal(`<div class="mh"><h3>Légende</h3><button class="ico" data-x>✕</button></div><div class="mb">
       <div class="leg-row"><i class="dot st-todo"></i>À construire (semaine type)</div>
