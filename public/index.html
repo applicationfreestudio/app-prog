@@ -292,8 +292,8 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .partners{gap:10px 22px}
 .partners img{height:68px;max-width:170px}
 .partners-box p{margin:6px 0 2px}
-.cal-ico.sj .rng2{display:flex;flex-direction:column;align-items:center;padding:8px 2px 9px;font-size:13px;font-weight:600;line-height:1.25}
-.cal-ico.sj .rng2 i{font-style:normal;color:#B5B1AA;font-size:11px;line-height:1.1}
+.cal-ico.multi .rng2,.cal-ico.sj .rng2{display:flex;flex-direction:column;align-items:center;padding:8px 2px 9px;font-size:13px;font-weight:600;line-height:1.25}
+.cal-ico.multi .rng2 i,.cal-ico.sj .rng2 i{font-style:normal;color:#B5B1AA;font-size:11px;line-height:1.1}
 .stay-tag{display:block;width:fit-content;margin:8px auto 0;padding:3px 8px;border-radius:7px;font-size:11.5px;font-weight:500;color:#5A3A00;background:linear-gradient(135deg,#FFE58A,#F9B934);box-shadow:0 4px 10px -4px rgba(217,150,20,.6)}
 .pinned{display:flex;flex-direction:column;gap:10px}
 .pin-t{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#6228D7}
@@ -931,6 +931,13 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v47 */
+.dr-head .r1 .dty{font-size:0;cursor:default}
+.dr-head .r1 .dty .kic,.dr-head .r1 .dty .kemo{border:0!important;background:transparent!important}
+.dr-head .r1 .dty .kemo{font-size:22px!important}
+.dr-head .r1 .st .pill{height:var(--h,44px);display:inline-flex;align-items:center;border-radius:12px;padding:0 10px;font-size:13px}
+.dr-head .r1 h2{font-size:17px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-head .r1{gap:6px}
 /* ===== v43 : système visuel unifié de l'éditeur =====
    niveau 1 (base)      : fond blanc, contour dégradé, relief découpé
    niveau 2 (sensible)  : teinte rouge légère (suppression, réinitialisation, retrait)
@@ -1090,8 +1097,8 @@ function actImage(a,opts){
   if(a&&a.asset&&!(opts&&opts.noAssets))return `<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(a.asset)}" alt="" loading="lazy">`;
   return visualSVG((a&&a.visual)||(CATS[a&&a.cat]||{}).visual||'etoile');
 }
-const LBL_DEF={resa:'sur réservation',places:'pl.',hc:'hors CC',free:'gratuit',bring:'à prévoir',morning:'le matin',full:'complet',closed:'l\'accueil est fermé pendant cette sortie',night:'nocturne',depart:'départ'};
-const LBL_NAMES={resa:'Réservation',places:'Places (abréviation)',hc:'Tarif hors communauté',free:'Gratuit',bring:'À prévoir',morning:'Activité du matin',full:'Complet',closed:'Accueil fermé pendant la sortie',night:'Soirée (étiquette du calendrier)',depart:'Départ'};
+const LBL_DEF={resa:'sur réservation',places:'pl.',hc:'hors CC',free:'gratuit',bring:'à prévoir',morning:'le matin',full:'complet',closed:'l\'établissement est fermé pendant cette sortie',night:'nocturne',depart:'départ'};
+const LBL_NAMES={resa:'Réservation',places:'Places (abréviation)',hc:'Tarif hors communauté',free:'Gratuit',bring:'À prévoir',morning:'Activité du matin',full:'Complet',closed:'Établissement fermé pendant la sortie',night:'Soirée (étiquette du calendrier)',depart:'Départ'};
 let LBL=Object.assign({},LBL_DEF);
 function setLabels(l){LBL=Object.assign({},LBL_DEF);Object.keys(l||{}).forEach(k=>{if(k in LBL_DEF&&String(l[k]).trim())LBL[k]=String(l[k]).trim()})}
 function whenText(a){
@@ -1246,14 +1253,17 @@ function periodOf(date,periods){
   return (periods||[]).find(p=>p.start&&p.end&&date>=p.start&&date<=p.end)||null;
 }
 function hoursText(day){
-  if(day.closed)return 'Accueil fermé';
+  if(day.closed)return 'Établissement fermé';
   const s=(day.slots||[]).filter(x=>x.start||x.end);
   return s.map(x=>(x.label?x.label+' ':'')+rng(x.start,x.end)).join(' · ');
 }
 function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
-  const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>
+  const U=opts&&opts.until, d2=U?parse(U):null, sameM=!U||(d.getMonth()===d2.getMonth());
+  const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span>${DAYS_S[dow(day.date)]}. ${d.getDate()}${sameM?'':' '+MONTHS_S[d.getMonth()]}</span><i>↓</i><span>${DAYS_S[dow(U)]}. ${d2.getDate()} ${MONTHS_S[d2.getMonth()]}</span></div>`
+    :`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>`;
+  const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}${U?' multi':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}>${head}
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
       const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);
       const lab=hasActs&&(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
@@ -1269,12 +1279,12 @@ function dayHTML(day,settings,opts){
   const slots=day.slots||[];
   const total=slots.reduce((n,s)=>n+(s.acts||[]).length,0);
   const imgSlot=x=>!(x.acts||[]).length&&(x.visual||x.asset)&&(x.start||x.end)&&!day.closed;
-  if(!total&&!day.closed&&!slots.some(imgSlot))r+=`<div class="empty-day">Pas d'activité programmée. L'accueil est ouvert : passe nous voir.</div>`;
+  if(!total&&!day.closed&&!slots.some(imgSlot))r+=`<div class="empty-day">Pas d'activité programmée. L'établissement est ouvert : passe nous voir.</div>`;
   const multi=slots.filter(x=>(x.acts||[]).length||imgSlot(x)).length>1;
   slots.forEach(s=>{
-    if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Accueil',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
+    if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Établissement ouvert',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
     if(!(s.acts||[]).length)return;
-    if(multi)r+=`<div class="slot-title">${esc(s.label||'Accueil')} <span>${rng(s.start,s.end)}</span></div>`;
+    if(multi)r+=`<div class="slot-title">${esc(s.label||'Ouverture')} <span>${rng(s.start,s.end)}</span></div>`;
     r+=`<div class="cards">${s.acts.map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
   });
   return `<section class="day" id="j-${day.date}"><div class="dgrid">${left}<div class="acts">${r}</div></div></section>`;
@@ -1326,15 +1336,24 @@ function mountPublic(root,data,opts){
     const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+' '+MONTHS_S[d2.getMonth()];
     return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span>${esc(f1)}</span><i>↓</i><span>${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
   }
+  // signature d'une journée : deux jours consécutifs identiques sont regroupés « du … au … »
+  function sig(d){
+    return JSON.stringify({c:!!d.closed,r:d.closedReason||'',n:d.note||'',s:(d.slots||[]).map(x=>({a:x.start||'',b:x.end||'',l:x.label||'',v:x.visual||'',i:x.asset||'',f:!!x.free,
+      acts:(x.acts||[]).map(a=>{const c=Object.assign({},a);delete c.id;delete c.rev;return c})}))});
+  }
   function withSeps(ks){
-    let prev, h='';
+    let prev, h='', g=null;
+    const flush=()=>{if(g){h+=dayHTML(g.d,st.settings,Object.assign({},opts,g.end!==g.d.date?{until:g.end}:{}));g=null}};
     ks.forEach(k=>{
       const p=periodOf(k,st.settings&&st.settings.periods), id=p?p.name:'';
+      const sp=split(st.days[k]), sg=sp.skip?null:sig(sp.d);
+      if(g&&id===prev&&!sp.stays.length&&sg&&sg===g.sig&&addDays(g.end,1)===k){g.end=k;return}
+      flush();
       if(id!==prev){h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
-      const sp=split(st.days[k]);
       sp.stays.forEach(a=>{h+=stayHTML(a,k)});
-      if(!sp.skip)h+=dayHTML(sp.d,st.settings,opts);
+      if(!sp.skip)g={d:sp.d,sig:sg,end:k};
     });
+    flush();
     return h;
   }
   function pinnedHTML(shown){
@@ -1714,7 +1733,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.46';
+const APP_VERSION='v261120.47';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1796,9 +1815,9 @@ function openModal(html,{cls='',onClose}={}){
   modals.push(m);return m;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modals.length)modals[modals.length-1].close();else if(UI.drawer)closeDrawer()}});
-function confirmBox(msg,{ok='Confirmer',danger=false}={}){
+function confirmBox(msg,{ok='Confirmer',no='Annuler',danger=false}={}){
   return new Promise(res=>{
-    const m=openModal(`<div class="mh"><h3>Confirmer</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf"><button class="btn" data-a="no">Annuler</button><button class="btn ${danger?'warn':'pri'}" data-a="ok">${esc(ok)}</button></div>`,{cls:'sm',onClose:()=>res(false)});
+    const m=openModal(`<div class="mh"><h3>Confirmer</h3></div><div class="mb"><p style="margin:0;font-size:15px;line-height:1.5">${esc(msg)}</p></div><div class="mf"><button class="btn" data-a="no">${esc(no)}</button><button class="btn ${danger?'warn':'pri'}" data-a="ok">${esc(ok)}</button></div>`,{cls:'sm',onClose:()=>res(false)});
     // répondre AVANT de fermer : la fermeture répond « non » par défaut (clic à côté, Échap)
     m.el.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;res(a.dataset.a==='ok');m.close()});
   });
@@ -1879,7 +1898,7 @@ function renderCalendar(main){ensureKitDefs();
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
     <div class="cal-bar">
       <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
-      <div class="l2"><button class="btn" id="jump">Aller à une période… ▾</button><button class="btn" id="legend" title="Légende" aria-label="Légende">Lg.</button>
+      <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">LG</button><button class="btn" id="jump">Aller à une période… ▾</button>
       <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' brouillon'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
     </div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
@@ -1898,6 +1917,9 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-draft"></i>Brouillon, non visible</div>
       <div class="leg-row"><i class="dot st-pub"></i>En ligne</div>
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
+      <div class="leg-row">${kitIcon('activite',16)}&nbsp;activité</div>
+      <div class="leg-row">${kitIcon('sejour',16)}&nbsp;nuitée &amp; séjour</div>
+      <div class="leg-row">${kitIcon('projet',16)}&nbsp;projet &amp; staff</div>
       <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
       <div class="leg-row"><i class="tg c">C</i>activité complète</div>
       <div class="leg-row">${kitIcon('epingle',14)}&nbsp;activité épinglée à la une</div>
@@ -1925,7 +1947,7 @@ function cellHTML(d,out){
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${kitIcon(a.cat,15)} ${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${kitIcon(actType(a),15)} ${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -2038,11 +2060,11 @@ function renderDrawer(){ensureKitDefs();
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,22):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty dhb" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,24):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
       <span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
-      <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Accueil fermé ce jour</label>
+      <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
       <button class="add-act add-slot top" id="addslot">＋ Ajouter une période horaire</button>
@@ -2057,7 +2079,7 @@ function slotHTML(s,i){
   return `<section class="slot" data-si="${i}">
     <div class="slot-head">
       <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
-      <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Accueil, Soirée)">
+      <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Temps libre, Soirée)">
       ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas d'activité)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
       <button class="ico" data-sdel="${i}" title="Supprimer cette période">🗑️</button>
     </div>
@@ -2078,10 +2100,22 @@ function actRowHTML(a,i,j,n){
       <button class="ico" data-del="${i}:${j}" title="Supprimer">🗑️</button>
     </div></div>`;
 }
+async function navDay(n){
+  if(!UI.drawer)return;
+  if(dirty){
+    const ok=await confirmBox('Des modifications de cette journée ne sont pas encore enregistrées. Les enregistrer avant de changer de jour ?',{ok:'Enregistrer',no:'Ne pas enregistrer'});
+    if(ok)flushSave();else{clearTimeout(saveT);dirty=false}
+  }
+  openDrawer(addDays(UI.drawer.date,n));render();
+}
 function bindDrawer(dr){
   const day=UI.drawer.day;
 
-  dr.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{flushSave();openDrawer(addDays(UI.drawer.date,+b.dataset.nav));render();});
+  dr.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>navDay(+b.dataset.nav));
+  {const body=dr.querySelector('.dr-body');let x0=null,y0=0;
+   body.addEventListener('touchstart',e=>{if(e.target.closest('input,textarea,select'))return;const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
+   body.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
+     if(Math.abs(dx)>70&&Math.abs(dy)<Math.abs(dx)*.6)navDay(dx<0?1:-1)},{passive:true});}
   bindStatus();
   dr.querySelector('#dclosed').onchange=e=>{day.closed=e.target.checked;scheduleSave();renderDrawer()};
   const r=dr.querySelector('#dreason');if(r)r.oninput=e=>{day.closedReason=e.target.value;scheduleSave()};
@@ -2211,7 +2245,7 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
         </div>
         <div class="box"><h4>${BUS_SVG} Transport & 📋 réservation</h4>
           <label class="sw"><input type="checkbox" id="ftransport" ${f.transport?'checked':''}> Transport assuré par l'Espace jeunes</label>
-          <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'accueil est fermé pendant cette sortie</label>
+          <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'établissement est fermé pendant cette sortie</label>
           <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
         </div>
         <div class="box"><h4>🤑 Tarif</h4>${seg('pmode',p.mode,[['free','Gratuit'],['single','Prix unique'],['ccv2cc','CCV2CC / hors comm.'],['qf','Selon QF / autre']])}
@@ -2287,8 +2321,11 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
 /* ---------- Choix de l'image ---------- */
 
 /* ---------- Kit d'icônes (éditeur) : emoji, A (trait noir), B (pastille couleur), C (trait dégradé) ---------- */
+const KIT_ACT='<path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6-5.6-1.9 5.6-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>';
 const KIT_P={"vacances": "<circle cx=\"17\" cy=\"6\" r=\"2.6\"/><path d=\"M3 20h18\"/><path d=\"M11 20 8.5 9.5\"/><path d=\"M2.8 11.2C4 7.4 8 5.4 11.6 6.6l1.4.5L2.8 11.2z\"/><path d=\"M6 21c1.5-1.2 3-1.2 4.5 0s3 1.2 4.5 0 3-1.2 4.5 0\"/>", "scolaire": "<path d=\"M7 8V6.5A5 5 0 0 1 17 6.5V8\"/><rect x=\"4.5\" y=\"8\" width=\"15\" height=\"12.5\" rx=\"3\"/><path d=\"M8.5 13h7v4h-7z\"/><path d=\"M4.5 12.5h15\"/>", "sport": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5l3.4 2.5-1.3 4h-4.2l-1.3-4z\"/><path d=\"M12 3.5v4M15.4 10l4.6-1.6M14.1 14l2.6 3.6M9.9 14l-2.6 3.6M8.6 10 4 8.4\"/>", "jeux": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><circle cx=\"8.6\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8.6\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "creation": "<path d=\"M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4H18a2.5 2.5 0 0 0 2.5-2.5A8.5 8.5 0 0 0 12 3.5z\"/><circle cx=\"7.8\" cy=\"11\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10.5\" cy=\"7.3\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"7.8\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/>", "cuisine": "<path d=\"M7 13.5V20h10v-6.5\"/><path d=\"M7 13.5A4 4 0 0 1 6.2 5.7 4.5 4.5 0 0 1 12 3.5a4.5 4.5 0 0 1 5.8 2.2A4 4 0 0 1 17 13.5z\"/><path d=\"M7 17h10\"/>", "sortie": "<path d=\"M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z\"/><circle cx=\"12\" cy=\"10\" r=\"2.4\"/>", "soiree": "<path d=\"M9 18V5.5l11-2V16\"/><circle cx=\"6.5\" cy=\"18\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"16\" r=\"2.5\"/><path d=\"M9 9.5l11-2\"/>", "bienetre": "<path d=\"M12 20c-4.5 0-8-2.6-8.5-6.5C6 13.2 9.5 14.6 12 20z\"/><path d=\"M12 20c4.5 0 8-2.6 8.5-6.5-2.5-.3-6 1.1-8.5 6.5z\"/><path d=\"M12 20c-2.6-3-2.6-9.5 0-14 2.6 4.5 2.6 11 0 14z\"/>", "culture": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"2\"/><path d=\"M3.5 9 19 4.6l.9 3.1\"/><path d=\"M8.2 7.7l2.3 2.6M13.3 6.3l2.3 2.6\"/>", "projet": "<rect x=\"3.5\" y=\"8\" width=\"17\" height=\"11.5\" rx=\"2.5\"/><path d=\"M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2\"/><path d=\"M3.5 13h17\"/><path d=\"M10.5 13v2h3v-2\"/>", "sejour": "<path d=\"M12 4 3 20h18L12 4z\"/><path d=\"M12 4v16\"/><path d=\"M12 20l-3.2-6M12 20l3.2-6\"/><path d=\"M10 3.2 12 4l2-.8\"/>"}, KIT_C={"vacances": "#F59E0B", "scolaire": "#2F7BEA", "sport": "#13998F", "jeux": "#6B4CE6", "creation": "#E8408C", "cuisine": "#F07B1E", "sortie": "#2F7BEA", "soiree": "#3A2C8F", "bienetre": "#C9578E", "culture": "#D23C3C", "projet": "#4E5866", "sejour": "#2E8B4A"};
-const KIT_EMO={vacances:'🏖️',scolaire:'🎒',ferie:'🎉'};
+const KIT_EMO={vacances:'🏖️',scolaire:'🎒',ferie:'🎉',activite:'✨'};
+KIT_P.activite=KIT_ACT;KIT_C.activite='#EE2A7B';
+const actType=a=>a.cat==='sejour'?'sejour':a.cat==='projet'?'projet':'activite';
 const KIT_FILL={epingle:['M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z','#E1306C'],nocturne:['M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z','#6228D7']};
 const iconKit=()=>((settings().info||{}).iconKit)||'emoji';
 function kitIcon(k,size,kit){
@@ -2297,7 +2334,7 @@ function kitIcon(k,size,kit){
     if(kit==='emoji')return `<span class="kic k-e" style="width:${size+6}px;height:${size+6}px"><svg width="${z}" height="${z}" viewBox="0 0 24 24"><path d="${d}" fill="${c}"/></svg></span>`;
     if(kit==='b')return `<span class="kic k-b" style="width:${size+6}px;height:${size+6}px;background:${c}"><svg width="${z}" height="${z}" viewBox="0 0 24 24"><path d="${d}" fill="#fff"/></svg></span>`;
     return `<span class="kic k-${kit}" style="width:${size+6}px;height:${size+6}px"><svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="${kit==='c'?'url(#kitg)':'#141317'}" stroke-width="2.1" stroke-linejoin="round"><path d="${d}"/></svg></span>`}
-  const emo=k==='vacances'||k==='scolaire'||k==='ferie'?KIT_EMO[k]:((CATS[k]||{}).emoji||'⭐');
+  const emo=KIT_EMO[k]||((CATS[k]||{}).emoji||'⭐');
   if(kit==='emoji'||!KIT_P[k])return `<span class="kemo" style="font-size:${size}px">${emo}</span>`;
   const st=kit==='b'?'#fff':kit==='c'?'url(#kitg)':'#141317';
   const svg=`<svg width="${Math.round(size*.78)}" height="${Math.round(size*.78)}" viewBox="0 0 24 24" fill="none" stroke="${st}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${KIT_P[k]}</svg>`;
@@ -2501,8 +2538,8 @@ function renderSettings(main){
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes des types d'activité et des semaines (vacances, scolaire) dans le calendrier de l'éditeur. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
-      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sport','jeux','creation','cuisine','sortie','soiree','bienetre','culture','projet','sejour','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet & staff), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','activite','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
@@ -2551,7 +2588,7 @@ function overlapWarn(ps){
 function weekPanel(st,type,title){
   const wk=st.weeks[type];
   const open=wk.filter(d=>d.open).length;
-  return `<div data-wt="${type}">${fold('wk-'+type,title,`<p class="hint">Horaires d'ouverture, jour par jour. Plusieurs périodes possibles (ex. accueil + soirée).</p>
+  return `<div data-wt="${type}">${fold('wk-'+type,title,`<p class="hint">Horaires d'ouverture, jour par jour. Plusieurs périodes possibles (ex. journée + soirée).</p>
     ${wk.map((d,i)=>`<div class="wk" data-wd="${i}"><span class="dn">${cap(DAYS[i])}</span>
       <label class="sw" style="font-size:13px"><input type="checkbox" data-wopen ${d.open?'checked':''}></label>
       <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas d'activité">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
