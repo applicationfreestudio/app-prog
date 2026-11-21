@@ -689,7 +689,7 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 /* --- v96 : titres sur une ligne, repli animé, indicateurs au-dessus de la carte --- */
 .card,.card *{-webkit-tap-highlight-color:transparent}
 .card{-webkit-user-select:none;user-select:none;outline:none}
-.card h3{display:inline-block!important;box-sizing:border-box;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.card h3{display:block!important;width:fit-content;box-sizing:border-box;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
 .card h3{background-clip:content-box!important}
 .card.fold:not(.demi) h3{background:linear-gradient(transparent 80%,color-mix(in srgb,var(--hlx) 55%,transparent) 80%,color-mix(in srgb,var(--hlx) 55%,transparent) 91%,transparent 91%)!important;background-clip:content-box!important}
 .card.fold:not(.demi){display:flex!important;align-items:center;padding:0 0 0 36px!important}
@@ -807,7 +807,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .ishome .pub-foot{position:relative;z-index:1;padding-top:0!important}
 .ishome .pub-foot .partners-box{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:18px 0 0!important}
 .ishome .partners{gap:10px 26px;margin:0}
-.ishome .partners img{height:clamp(30px,9vh,var(--plh,72px))!important;max-width:46%!important}
+.ishome .partners img{height:clamp(34px,10.5vh,var(--plh,84px))!important;max-width:48%!important}
 .ishome .partners{opacity:.75!important;-webkit-mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%));mask-image:linear-gradient(transparent 0%,#000 var(--plf,70%))}
 .hbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
 
@@ -837,6 +837,23 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .contact .cn{color:var(--caln,#C13584)!important}
 /* bouton plein écran : simple trait */
 .fs-btn,.fs-btn:not(.dark){background:none!important;border:0!important;box-shadow:none!important;color:var(--ink,#141317)}
+
+/* --- v117 : en-tête de carte condensé, flèche au niveau du titre --- */
+.card.fold:not(.demi) h3{display:inline-block!important;width:auto}
+.card:not(.fold) .card-head,.card.fold.demi .card-head{padding-top:7px!important;padding-bottom:6px!important}
+.card:not(.fold) .card-head>.desc,.card.fold.demi .card-head>.desc{margin-top:1px!important;margin-bottom:1px!important;line-height:1.3!important}
+.card:not(.fold) .card-head>.when,.card.fold.demi .card-head>.when{margin-top:4px!important}
+.card:not(.fold) .card-head>.sj-when,.card.fold.demi .card-head>.sj-when,.card:not(.fold) .card-head>.sj-where{margin-top:4px!important}
+.card:not(.fold) .card-head>.pj-from,.card.fold.demi .card-head>.pj-from{margin-bottom:1px!important}
+.card:not(.fold) .fold-ar,.card.fold.demi .fold-ar{top:var(--art,8px)!important;transform:none!important}
+.card.fold.demi .card-img{min-height:52px}
+/* accueil : verre moins flou, bord à la couleur du thème ; contact transparent sans flou ; plein écran avec cadre */
+.ishome .ht,.ishome .ht.on{-webkit-backdrop-filter:blur(3px) saturate(1.3)!important;backdrop-filter:blur(3px) saturate(1.3)!important;border:2px solid color-mix(in srgb,var(--caln,#C13584) 60%,rgba(255,255,255,.7))!important}
+.ishome .ht.off{border-color:color-mix(in srgb,var(--caln,#C13584) 42%,rgba(255,255,255,.7))!important}
+.ishome .contact{background:rgba(255,255,255,.6)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.fs-btn,.fs-btn:not(.dark){border:1.5px solid color-mix(in srgb,var(--caln,#C13584) 70%,#141317)!important;background:transparent!important}
+.ishome .partners{flex-wrap:nowrap!important;justify-content:center}
+.ishome .partners img{min-width:0;flex:0 1 auto;object-fit:contain}
 </style>
 
 <style>
@@ -1940,7 +1957,7 @@ function mountPublic(root,data,opts){
     const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
-    if(opts.home&&st.view==='home'){requestAnimationFrame(()=>{const c=root.querySelector('.ishome .contact'),pb=root.querySelector('.ishome .partners-box');if(c&&pb)pb.style.setProperty('--ov',Math.round(c.offsetHeight/2)+'px')});root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||72))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
+    if(opts.home&&st.view==='home'){requestAnimationFrame(()=>{const c=root.querySelector('.ishome .contact'),pb=root.querySelector('.ishome .partners-box');if(c&&pb)pb.style.setProperty('--ov',Math.round(c.offsetHeight/2)+'px')});root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -1972,7 +1989,16 @@ function mountPublic(root,data,opts){
     const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
     const dm=c.classList.contains('demi'),more=[...c.children].some(e=>!e.matches('.card-img,.card-head,.fold-ar,.rib-w:not(.r)')&&has(e))||(hd&&[...hd.children].some(e=>!e.matches(dm?'h3,.tag-morning,.desc,.when,.pj-from,.sj-when,.pdate':'h3,.tag-morning')&&has(e)));
     c.classList.toggle('nofold',!more);if(!more)c.classList.add('fold')})}
-  const fitFold=()=>{markFoldable();fitTitles()};
+  // demi-carte : sous-titre réduit pour tenir sur le moins de lignes possible
+  function fitDesc(c){const d=c.querySelector('.card-head>.desc');if(!d)return;d.style.fontSize='';if(!(c.classList.contains('fold')&&c.classList.contains('demi')))return;
+    const cs=getComputedStyle(d),base=parseFloat(cs.fontSize)||14,lh=()=>{const v=parseFloat(getComputedStyle(d).lineHeight);return v||parseFloat(getComputedStyle(d).fontSize)*1.4},lines=()=>Math.round(d.offsetHeight/lh());
+    d.style.fontSize='11px';const lmin=lines();let f=base;d.style.fontSize=f+'px';while(lines()>lmin&&f>11){f-=.5;d.style.fontSize=f+'px'}}
+  // flèche de dépliage toujours à la hauteur du titre
+  function placeArrow(c){const a=c.querySelector('.fold-ar'),h=c.querySelector('h3');if(!a||!h)return;
+    if(c.classList.contains('fold')&&!c.classList.contains('demi')){c.style.removeProperty('--art');return}
+    let t=h.offsetHeight/2-15,e=h;while(e&&e!==c){t+=e.offsetTop;e=e.offsetParent}c.style.setProperty('--art',Math.round(t)+'px')}
+  function fitCard(c){fitTitles(c);fitDesc(c);placeArrow(c)}
+  const fitFold=()=>{markFoldable();root.querySelectorAll('.card').forEach(fitCard)};
   function fitStay(){fitFold();fitPlaces();fitPrices();
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.fold) .card-head .when,.card.fold.demi .card-head .when,.card-head .pj-from').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
@@ -2040,7 +2066,7 @@ function mountPublic(root,data,opts){
         const ez='cubic-bezier(.25,.8,.25,1)',D=340,parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
         // FLIP : le titre et l'image glissent de leur ancienne place vers la nouvelle pendant que la carte change de hauteur
         const swap=()=>{const els=[c.querySelector('h3'),c.querySelector('.card-img')].filter(Boolean),r0=els.map(e=>e.getBoundingClientRect()),h0=c.offsetHeight;
-          c.classList.toggle('fold',!op);fitTitles(c);if(op)fitStay();const h1=c.offsetHeight,r1=els.map(e=>e.getBoundingClientRect());
+          c.classList.toggle('fold',!op);fitCard(c);if(op)fitStay();const h1=c.offsetHeight,r1=els.map(e=>e.getBoundingClientRect());
           els.forEach((e,n)=>{const a=r0[n],b=r1[n];if(!b.width||!b.height)return;const k=e.tagName==='H3'?a.height/b.height:null;
             e.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${k||a.width/b.width},${k||a.height/b.height})`},{transformOrigin:'0 0',transform:'none'}],{duration:D,easing:ez})});
           return c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:D,easing:ez})};
@@ -2367,7 +2393,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.116';
+const APP_VERSION='v261120.117';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3388,7 +3414,7 @@ function renderSettings(main){
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="hbgup" hidden>${st.info.homeBg?'Changer':'Envoyer une photo'}</label>`:''}${st.info.homeBg?'<button class="btn sm ghost warn" id="hbgdel">Retirer</button>':''}</div>
       ${st.info.homeBg?`<label class="fld"><span>Visibilité de la photo : <b id="hbgv">${st.info.homeBgOp==null?25:st.info.homeBgOp} %</b></span><input type="range" id="hbgop" min="5" max="100" step="5" value="${st.info.homeBgOp==null?25:st.info.homeBgOp}"></label>`:''}
       <h4 class="tsh">Intitulés des 4 boutons</h4>${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>`<label class="fld"><span>Bouton « ${l} »</span><input class="in" data-tile="${k}" value="${esc((st.info.homeTiles||{})[k]||'')}" placeholder="${esc(l)}"></label>`).join('')}<h4 class="tsh">Logos partenaires (bas de page)</h4>
-      <label class="fld"><span>Taille des logos : <b id="plhv">${st.info.partH||72} px</b></span><input type="range" id="plh" min="30" max="140" step="2" value="${st.info.partH||72}"></label>
+      <label class="fld"><span>Taille des logos : <b id="plhv">${st.info.partH||84} px</b></span><input type="range" id="plh" min="30" max="140" step="2" value="${st.info.partH||84}"></label>
       <label class="fld"><span>Fondu : opaque à partir de <b id="plfv">${st.info.partFade==null?70:st.info.partFade} %</b> de la hauteur (0 % = pas de fondu)</span><input type="range" id="plf" min="0" max="100" step="5" value="${st.info.partFade==null?70:st.info.partFade}"></label></div></details>
       <details class="tsub" data-fold="th-cartes" ${UI.open['th-cartes']?'open':''}><summary>Cartes du programme</summary><div class="tsb"><p class="hint">Format des cartes à l'arrivée sur la page du programme.</p>
       <div class="cmodes">${[['petite','Petite carte','image + titre'],['demi','Demi-carte','titre, sous-titre et horaires']].map(([k,l,h])=>`<button type="button" class="btn cmode${(st.info.cardMode||'petite')===k?' on':''}" data-cmode="${k}"><b>${l}</b><small>${h}</small></button>`).join('')}</div>
