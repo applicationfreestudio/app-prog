@@ -952,6 +952,44 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v76 : fenêtre d'activité compacte */
+.mh.slim{padding:8px 14px!important;min-height:0}
+.mh.slim h3{font-size:14px!important;font-weight:600;color:var(--ink2)}
+.cform{display:flex;flex-direction:column;gap:12px}
+.cform .in{min-height:38px!important;padding:6px 10px;font-size:15px;border-radius:10px!important}
+.cform .in.t{height:38px}
+.c-head{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:start}
+.c-img{display:flex;flex-direction:column;gap:6px}
+.vis-pick.sm{width:84px;height:84px;min-height:0;border-radius:14px;overflow:hidden;padding:0;position:relative}
+.vis-pick.sm img,.vis-pick.sm .vis,.vis-pick.sm svg{width:100%;height:100%;object-fit:cover}
+.c-imgb{display:flex;flex-direction:column;gap:4px}
+.c-imgb .btn{min-height:28px!important;font-size:12px;padding:2px 6px;border-radius:8px!important}
+.c-tt{display:flex;flex-direction:column;gap:6px}
+.c-chips{display:flex;flex-wrap:wrap;gap:6px}
+.tg2{display:inline-flex;align-items:center;cursor:pointer}
+.tg2 input{position:absolute;opacity:0;pointer-events:none}
+.tg2 span{display:inline-flex;align-items:center;min-height:32px;padding:0 11px;border-radius:9px;border:1.5px solid #E3DED6;background:#fff;font:600 13px var(--pf,inherit);color:#5d5864}
+.tg2 input:checked+span{border-color:transparent;background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box;color:#141317;box-shadow:2px 2px 0 rgba(20,19,23,.14)}
+.c-sec{background:#fff;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;border:1px solid #EEEAE4}
+.c-sec h4{margin:0;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#8a8590}
+.g4{display:grid;grid-template-columns:auto 1.3fr 1fr;gap:6px;align-items:center}
+.g4>span{font-size:12.5px;color:var(--ink2);font-weight:600}
+.g4.nod{grid-template-columns:auto 1fr 1fr}
+.g4 .in.off{opacity:.4}
+#sphint{margin:0;font-size:12.5px}
+.c-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.c-row select.in{flex:1 1 140px;min-width:0}
+.cform .seg{min-height:38px}.cform .seg button{min-height:32px;font-size:12.5px;padding:0 9px}
+.cform .sugg{display:flex;flex-wrap:wrap;gap:4px}
+.cform .sugg:empty{display:none}
+.mf .tplsw{font-size:13px;min-height:28px;width:100%}
+.mf .fbar{display:flex;gap:8px;align-items:center;width:100%}
+.cform .c-row .in{flex:1 1 auto;width:auto;min-width:0}
+.g4{grid-template-columns:34px minmax(0,1.35fr) minmax(0,1fr)!important}
+.g4.nod{grid-template-columns:58px minmax(0,1fr) minmax(0,1fr)!important}
+.g4 .in{width:100%;min-width:0;font-size:14px!important;padding:4px 6px!important}
+.tg2 span{font-size:13px!important;line-height:1.2;padding:6px 11px!important}
+.cform .chips .chipx{font-size:13px;padding:4px 6px 4px 10px}
 /* v75 */
 .sw.nostart{font-size:14px;font-weight:600;min-height:36px;margin-bottom:6px}
 .fld.off{opacity:.45}
@@ -1914,7 +1952,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.75';
+const APP_VERSION='v261120.76';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2088,6 +2126,7 @@ function renderCalendar(main){ensureKitDefs();
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
   main.querySelector('#filt').onclick=e=>{
+    if(document.querySelector('.fpop')){document.querySelectorAll('.pvpop').forEach(x=>x.remove());return}
     document.querySelectorAll('.pvpop').forEach(x=>x.remove());
     const b=e.currentTarget.getBoundingClientRect(), pop=document.createElement('div');pop.className='pvpop fpop';
     const L={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modifié'};
@@ -2470,14 +2509,13 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       foot=`<button class="btn" data-a="back">‹ Retour</button><span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
-      foot=`${!initial&&mode==='day'?'<button class="btn" data-a="back">‹ Retour</button>':''}
-        ${onDelete?'<button class="btn warn" data-a="delete">Supprimer</button>':''}
+      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme activité type</label>`:''}
+        <div class="fbar">${onDelete?'<button class="btn warn" data-a="delete">Supprimer</button>':!initial&&mode==='day'?'<button class="btn" data-a="back">‹ Retour</button>':''}
         <span style="flex:1"></span>
-        ${mode==='day'?`<label class="sw" style="font-size:13.5px"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme activité type</label>`:''}
-        <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button>`;
+        <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button></div>`;
     }
     const prevMb=m.el.querySelector('.mb'), keepY=prevMb&&prevStep===step?prevMb.scrollTop:0;prevStep=step;
-    m.el.innerHTML=`<div class="mh"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape ${step}/3</span>`:''}<button class="ico" data-a="cancel" title="Fermer">✕</button></div><div class="mb">${body}</div><div class="mf">${foot}</div>`;
+    m.el.innerHTML=`${step===3?`<div class="mh slim"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape 3/3</span>`:''}</div>`:`<div class="mh"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape ${step}/3</span>`:''}<button class="ico" data-a="cancel" title="Fermer">✕</button></div>`}<div class="mb">${body}</div><div class="mf">${foot}</div>`;
     {const nm=m.el.querySelector('.mb');if(nm&&keepY)nm.scrollTop=keepY}
     bind();
   }
@@ -2493,54 +2531,51 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
     const seg=(name,val,opts)=>`<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" class="${val===v?'on':''}">${l}</button>`).join('')}</div>`;
     const DD=mode==='day'&&UI.drawer?UI.drawer.date:null, sp=spanOf(f);
-    return `<div class="form-grid">
-      <div>
-        <button class="vis-pick" id="pickvis" type="button">${actImage(f)}<span class="chg">🖼️ Changer l'image</span></button>
-        ${true?`<label class="fld"><span>Catégorie (image et couleur)</span><select class="in" id="fcat">${Object.entries(CATS).map(([k,x])=>`<option value="${k}" ${k===f.cat?'selected':''}>${x.emoji} ${esc(x.label)}</option>`).join('')}</select></label>`:''}
-        <label class="fld"><span>Public</span>${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}</label>
-        <label class="sw"><input type="checkbox" id="fmorning" ${f.morning?'checked':''}> ☀️ Activité du matin (en orange)</label>
-        <label class="sw"><input type="checkbox" id="ffull" ${f.full?'checked':''}> Complet</label>
-        <label class="sw"><input type="checkbox" id="fhl" ${f.highlight?'checked':''}> Mettre en évidence l'activité</label>
-        <label class="sw"><input type="checkbox" id="fpin" ${f.pinned?'checked':''}> Épingler en tête de page</label>
-        <label class="sw"><input type="checkbox" id="fauth" ${f.auth?'checked':''}> Autorisation parentale à faire signer</label>
+    const chip=(id,on,l)=>`<label class="tg2"><input type="checkbox" id="${id}" ${on?'checked':''}><span>${l}</span></label>`;
+    return `<div class="cform">
+      <div class="c-head">
+        <div class="c-img"><button class="vis-pick sm" id="pickvis" type="button">${actImage(f)}</button>
+          <div class="c-imgb"><button type="button" class="btn sm" id="pickvis2">Changer</button>${f.asset?'<button type="button" class="btn sm" id="recrop">Recadrer</button>':''}</div></div>
+        <div class="c-tt">
+          <input class="in" id="ftitle" value="${esc(f.title)}" placeholder="Titre" style="font-weight:800;font-size:16.5px">
+          <input class="in" id="fdesc" value="${esc(f.desc)}" placeholder="Sous-titre (facultatif)">
+        </div>
       </div>
-      <div>
-        <label class="fld"><span>Titre</span><input class="in" id="ftitle" value="${esc(f.title)}" placeholder="ex. Piscine à l'IloBulles de Contres" style="font-weight:800;font-size:17px"></label>
-        <label class="fld"><span>Description (facultatif)</span><textarea class="in" id="fdesc" placeholder="Une phrase pour donner envie…">${esc(f.desc)}</textarea></label>
-        <label class="fld"><span>Texte descriptif (facultatif, affiché en bas de la carte)</span><textarea class="in" id="fabout" style="min-height:90px" placeholder="Présentation détaillée : objectifs, déroulement…">${esc(f.about||'')}</textarea></label>
-        <div class="box"><h4>📅 Dates et horaires</h4>
-          ${DD?`<label class="sw nostart"><input type="checkbox" id="fnostart" ${sp==='until'?'checked':''}> Pas de date de début (affiche « jusqu'au … »)</label>
-          <div class="dt2"><label class="fld${sp==='until'?' off':''}"><span>Date de début</span><input class="in" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></label><label class="fld"><span>Heure de début</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"></label></div>
-          <div class="dt2"><label class="fld"><span>Date de fin</span><input class="in" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}"></label><label class="fld"><span>Heure de fin</span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></label></div>
-          <p class="kbd" id="sphint" style="margin:2px 0 0">${({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]} Heure de fin plus tôt que le début = après minuit. Avec transport, l'affichage dit « départ / retour ».</p>`
-          :`<div class="dt2"><label class="fld"><span>Heure de début</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"></label><label class="fld"><span>Heure de fin</span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></label></div>`}
-          ${sp==='multi'?`<label class="fld"><span>Intitulé sous le calendrier (facultatif)</span><input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="sans intitulé"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist></label>`:''}
-          <label class="fld"><span>Lieu (facultatif)</span><input class="in" id="fplace" value="${esc(f.place)}" placeholder="ex. Salle des fêtes, gymnase…"></label>
-        </div>
-        <div class="box"><h4>${BUS_SVG} Transport & 📋 réservation</h4>
-          <label class="sw"><input type="checkbox" id="ftransport" ${f.transport?'checked':''}> Transport assuré par l'Espace jeunes</label>
-          <label class="sw"><input type="checkbox" id="fclosed" ${f.closedDuring?'checked':''}> L'établissement est fermé pendant l'activité</label>
-          <div class="row"><label class="sw"><input type="checkbox" id="fbook" ${f.booking.on?'checked':''}> Sur réservation</label>${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:110px"> <span class="kbd">places</span>`:''}</div>
-        </div>
-        <div class="box"><h4>🤑 Tarif</h4>
-          <select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select>
-          ${p.mode==='grid'?`<div class="prow-ed">${(resolveGridC(p).rows||[]).map((r,i)=>`<div class="row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):esc(qfLine(r))}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:100px"> €</div>`).join('')}<p class="kbd" style="margin:4px 0 0">Montants de cette activité. Les modèles de tarif se créent dans Paramètres → Tarifs.</p></div>`:''}
-          <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
-          ${p.mode==='single'?`<div class="row" style="margin-top:8px"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:110px"> €</div>`:''}
-          ${p.mode==='ccv2cc'?`<div class="row" style="margin-top:8px"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:100px"> €<span class="kbd">Hors communauté</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:100px"> €</div>`:''}
-          ${p.mode==='qf'?`<textarea class="in" id="ptext" style="margin-top:8px;min-height:84px" placeholder="Une ligne par tarif, ex.&#10;QF ⩽ 900 : 200 €&#10;QF ⩽ 1400 : 250 €&#10;QF > 1400 : 300 €">${esc(p.text)}</textarea>`:''}
-        </div>
-        <div class="box"><h4>🎒 À prévoir (matériel, repas…)</h4>
-          <div class="chips">${f.bring.map((x,i)=>`<span class="chipx">${esc(x)}<button type="button" data-rmb="${i}" aria-label="Retirer">✕</button></span>`).join('')||'<span class="kbd">Rien de particulier</span>'}</div>
-          <div class="row" style="margin-top:8px"><input class="in" id="fbring" placeholder="Ajouter un élément puis Entrée"><button class="btn sm" type="button" id="addbring">Ajouter</button></div>
-          <div class="sugg">${BRING_SUGG.filter(x=>!f.bring.includes(x)).map(x=>`<button type="button" data-sb="${esc(x)}">+ ${esc(x)}</button>`).join('')}</div>
-        </div>
-        ${true?`<div class="box"><h4>🖼️ Images en pied de carte</h4>
-          <div class="galed">${(f.gallery||[]).map((id,i)=>`<span class="gi"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt=""><button type="button" data-rmg="${i}" aria-label="Retirer">✕</button></span>`).join('')}
-          ${S.assets?`<label class="gadd"><input type="file" accept="image/*" id="galup" multiple hidden>＋ Ajouter</label>`:''}</div>
-          <p class="kbd" style="margin:6px 0 0">Photos affichées en bas de la carte (lieu, hébergement, souvenirs…).</p></div>`:''}
-        <label class="fld"><span>📣 Précaution / information importante (en rouge)</span><input class="in red" id="fimp" value="${esc(f.important)}" placeholder="ex. Obligatoire : attestation de nage"></label>
-      </div></div>`;
+      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}</div>
+      <div class="c-sec"><h4>Dates et horaires</h4>
+        ${DD?`<label class="tg2 nostart"><input type="checkbox" id="fnostart" ${sp==='until'?'checked':''}><span>Pas de date de début (« jusqu'au … »)</span></label>
+        <div class="g4"><span>Début</span><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
+        <span>Fin</span><input class="in" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}"><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
+        <p class="kbd" id="sphint">${({day:'Sur la journée.',multi:'Sur plusieurs jours : « du … au … ».',open:'Sans date de fin : « à partir du … ».',until:'Sans date de début : « jusqu\'au … ».'})[sp]} </p>`
+        :`<div class="g4 nod"><span>Horaires</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>`}
+        ${sp==='multi'?`<input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="Intitulé sous le calendrier (facultatif : séjour, week-end…)"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist>`:''}
+        <input class="in" id="fplace" value="${esc(f.place)}" placeholder="Lieu (facultatif)">
+        <div class="c-chips">${chip('ftransport',f.transport,'🚍 Transport assuré')}${chip('fclosed',f.closedDuring,'Établissement fermé')}</div>
+      </div>
+      <div class="c-sec"><h4>Réservation, tarif, public</h4>
+        <div class="c-row">${chip('fbook',f.booking.on,'📋 Sur réservation')}${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:90px"><span class="kbd">places</span>`:''}</div>
+        <div class="c-row"><select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select>
+        ${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}</div>
+        ${p.mode==='grid'?`<div class="prow-ed">${(resolveGridC(p).rows||[]).map((r,i)=>`<div class="c-row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):esc(qfLine(r))}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:90px"> €</div>`).join('')}</div>`:''}
+        ${p.mode==='single'?`<div class="c-row"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:100px"> €</div>`:''}
+        ${p.mode==='ccv2cc'?`<div class="c-row"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:90px"> €<span class="kbd">Hors comm.</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:90px"> €</div>`:''}
+        ${p.mode==='qf'?`<textarea class="in" id="ptext" style="min-height:70px">${esc(p.text)}</textarea>`:''}
+        <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
+      </div>
+      <div class="c-sec"><h4>À prévoir</h4>
+        <div class="chips">${f.bring.map((x,i)=>`<span class="chipx">${esc(x)}<button type="button" data-rmb="${i}" aria-label="Retirer">✕</button></span>`).join('')}</div>
+        <div class="c-row"><input class="in" id="fbring" placeholder="Tape les premières lettres…" autocomplete="off"><button class="btn sm" type="button" id="addbring">Ajouter</button></div>
+        <div class="sugg" id="bsugg"></div>
+        ${chip('fauth',f.auth,'✍️ Autorisation parentale à faire signer')}
+      </div>
+      <div class="c-sec"><h4>💥 Information importante</h4><input class="in red" id="fimp" value="${esc(f.important)}" placeholder="en rouge, ex. attestation de nage obligatoire"></div>
+      <div class="c-sec"><h4>Bas de carte</h4>
+        <textarea class="in" id="fabout" style="min-height:70px" placeholder="Texte descriptif (facultatif)">${esc(f.about||'')}</textarea>
+        <div class="galed">${(f.gallery||[]).map((id,i)=>`<span class="gi"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt=""><button type="button" data-rmg="${i}" aria-label="Retirer">✕</button></span>`).join('')}
+        ${S.assets?`<label class="gadd"><input type="file" accept="image/*" id="galup" multiple hidden>＋ Photos</label>`:''}</div>
+      </div>
+      <div class="c-sec"><h4>Catégorie</h4><select class="in" id="fcat">${Object.entries(CATS).map(([k,x])=>`<option value="${k}" ${k===f.cat?'selected':''}>${x.emoji} ${esc(x.label)}</option>`).join('')}</select></div>
+    </div>`;
   }
   function bind(){
     const $=s=>m.el.querySelector(s), $$=s=>m.el.querySelectorAll(s);
@@ -2577,7 +2612,16 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     }));
     const addB=()=>{const e=$('#fbring');const v=e.value.trim();if(v&&!f.bring.includes(v)){f.bring.push(v);draw();m.el.querySelector('#fbring').focus()}};
     $('#addbring').onclick=addB;$('#fbring').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addB()}};
-    $$('[data-sb]').forEach(b=>b.onclick=()=>{f.bring.push(b.dataset.sb);draw()});
+    {const fb=$('#fbring'),bs=$('#bsugg');const nrm=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const pool=[...new Set(BRING_SUGG.concat(library().flatMap(a=>a.bring||[])))];
+      const upd=()=>{const q=nrm(fb.value.trim());if(!q){bs.innerHTML='';return}
+        const hits=pool.filter(x=>!f.bring.includes(x)&&nrm(x).split(/[^a-z0-9]+/).some(w=>w.startsWith(q))).slice(0,8);
+        bs.innerHTML=hits.map(x=>`<button type="button" data-sb="${esc(x)}">+ ${esc(x)}</button>`).join('');
+        bs.querySelectorAll('[data-sb]').forEach(b=>b.onclick=()=>{f.bring.push(b.dataset.sb);draw();const n=m.el.querySelector('#fbring');if(n)n.focus()})};
+      fb.oninput=upd;}
+    const pv2=$('#pickvis2');if(pv2)pv2.onclick=()=>openImagePicker(f,()=>draw());
+    const rc=$('#recrop');if(rc)rc.onclick=async()=>{const res=await cropImage((window.EJ_ASSET_BASE||'/_blob/')+f.asset,{reuse:true});if(!res||res==='same')return;
+      try{const r=await S.assets.upload(res);f.asset=r.id;rememberImage(r.id);draw();toast('Image recadrée ✓')}catch(e){toast('Recadrage impossible',true)}};
     $$('[data-rmb]').forEach(b=>b.onclick=()=>{f.bring.splice(+b.dataset.rmb,1);draw()});
     $('#pickvis').onclick=()=>openImagePicker(f,()=>draw());
     $$('[data-rmg]').forEach(b=>b.onclick=()=>{f.gallery.splice(+b.dataset.rmg,1);draw()});
