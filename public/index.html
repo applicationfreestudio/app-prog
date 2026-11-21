@@ -876,6 +876,12 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 
 .back-btn.out{animation:backout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
 @keyframes backout{from{width:26px;margin-left:-8px;margin-right:-6px;opacity:1}to{width:0;margin-left:0;margin-right:-12px;opacity:0}}
+
+/* départ / retour : retour à la ligne après la virgule en carte déployée et agrandie */
+.sjbr{display:none}
+.card:not(.fold) .sjbr,.card.zoomed .sjbr,.card.une .sjbr{display:block;height:0;width:100%}
+.card:not(.fold) .sj-when .sj1,.card.zoomed .sj-when .sj1,.card.une .sj-when .sj1{line-height:1.35}
+.card:not(.fold) .when .wzz,.card.zoomed .when .wzz{white-space:nowrap}
 </style>
 
 <style>
@@ -1718,14 +1724,14 @@ function cardHTML(a,opts){
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
   const dz=opts.date&&!stay&&!opts.dateLine?DT(opts.date):'';
   const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
-    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?', retour ':ARR_SVG)+fmtTH(t.end):'');
+    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?',<i class="sjbr"></i> retour ':ARR_SVG)+fmtTH(t.end):'');
     if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return opts.une?dz:'';})();
   const w=stay?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:(wz?`<span class="wzz">${wz}</span>`:''));
   const pj=isInfo(a);
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
     const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)};
-    const full=`<span class="sjf">${esc(LBL.depart)} ${DT(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour le ${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span>`;
-    const dep=t.start?`<span><i class="w">${esc(LBL.depart)} </i>${fmtT(t.start)}</span><span class="sjc">, </span>`:'';
+    const full=`<span class="sjf">${esc(LBL.depart)} ${DT(opts.date)}${t.start?' à '+fmtT(t.start):''},<i class="sjbr"></i> retour le ${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span>`;
+    const dep=t.start?`<span><i class="w">${esc(LBL.depart)} </i>${fmtT(t.start)}</span><span class="sjc">,<i class="sjbr"></i> </span>`:'';
     return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm">${dep}<span><i class="w">retour le </i>${DT(end,opts.date)}${t.end?' à '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
@@ -2427,7 +2433,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.124';
+const APP_VERSION='v261120.125';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
