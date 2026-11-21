@@ -1468,14 +1468,16 @@ function cardHTML(a,opts){
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
   const dz=opts.date&&!stay&&!opts.dateLine?(()=>{const d=parse(opts.date);return DAYS_S[dow(opts.date)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)})():'';
   const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
-    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?', retour ':' retour ')+fmtTH(t.end):'');
+    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?(t.start?', retour ':ARR_SVG)+fmtTH(t.end):'');
     if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return '';})();
   const w=stay?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:'');
   const pj=isInfo(a);
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
     const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)};
-    const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour ${D(end)}${t.end?' à '+fmtT(t.end):''}</span>`;
-    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span><i class="w">retour </i>${(()=>{const e=parse(end),s0=parse(opts.date);return '<i class="wd">'+DAYS_S[dow(end)]+'. </i>'+e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'')})()}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
+    const e=parse(end),s0=parse(opts.date),RD=e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'');
+    const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour le ${DAYS_S[dow(end)]}. ${RD}${t.end?' à '+fmtT(t.end):''}</span>`;
+    const dep=t.start?`<span><i class="w">${esc(LBL.depart)} </i>${fmtT(t.start)}</span><span class="sjc">, </span>`:'';
+    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm">${dep}<span><i class="w">retour le </i><i class="wd">${DAYS_S[dow(end)]}. </i>${RD}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -2065,7 +2067,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.88';
+const APP_VERSION='v261120.89';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
