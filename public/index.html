@@ -1280,7 +1280,7 @@ function dayHTML(day,settings,opts){
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
       const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);
       const lab=(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
-      const rgH=(a,b)=>`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`;
+      const rgH=(a,b)=>a&&b?`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`:a?`<span class="rg"><span><small>à partir de</small> ${fmtTH(a)}</span></span>`:b?`<span class="rg"><span><small>jusqu'à</small> ${fmtTH(b)}</span></span>`:'';
       if(lab)return slotRanges(day).map(([a,b,s])=>rgH(a,b)+(s.label&&String(s.label).trim()?`<span class="slbl">${esc(lc1(s.label))}</span>`:'')).join('<i></i>');
       return dayRanges(day).map(([a,b])=>rgH(a,b)).join('<i></i>')||'';
     })()}</div></div>${(()=>{if(day.closed)return '';const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);if(!hasActs)return '';
@@ -1389,7 +1389,8 @@ function mountPublic(root,data,opts){
     const past=all.filter(k=>k<today), next=all.filter(k=>k>=today);
     let ks=opts.allDays||st.past?all:next;
     if(!ks.length&&past.length)ks=past.slice(-7);
-    const pastBtn=!opts.allDays&&!st.past&&next.length&&past.length?`<button class="past-btn" data-past="1">Voir les jours passés (${past.length})</button>`:'';
+    const hidden=all.length-ks.length;
+    const pastBtn=!opts.allDays&&!st.past&&hidden>0?`<button class="past-btn" data-past="1">Voir les jours passés (${hidden})</button>`:'';
     setLabels(info.labels);
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
@@ -1748,7 +1749,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.51';
+const APP_VERSION='v261120.52';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
