@@ -391,17 +391,23 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v85 : informations sur toute la largeur --- */
+.card-info{padding-left:13px!important}
+.card-info::before{left:13px!important}
+.card-info .badges,.card-info .bring,.card-info .imps,.card-info .auth,.card-info .sj-when,.card-info .about,.card-info .gal{margin-left:0!important}
+.card.zoomed .card-info .badges,.card.zoomed .card-info .bring,.card.zoomed .card-info .imps,.card.zoomed .card-info .auth,.card.zoomed .card-info .about,.card.zoomed .card-info .gal{margin-left:0!important}
+.card-info .badges{justify-content:center}
 /* --- v42 --- */
 .sj-when .sjf{display:none}
-.card.zoomed .sj-when .sjf{display:inline;white-space:normal}
+.card.zoomed .sj-when .sjf{display:inline;white-space:nowrap}
 .card.zoomed .sj-when .sjm{display:none}
-.card.zoomed .sj-when .sj1{white-space:normal!important;overflow:visible!important}
+.card.zoomed .sj-when .sj1{white-space:nowrap!important}
 .rib-w.r{left:auto;right:0;width:92px;height:92px}
-.rib-w.r .rib{left:auto;right:-40px;top:15px;width:150px;transform:rotate(45deg);padding:5px 0;font-size:12px;box-shadow:none}
+.rib-w.r .rib{left:auto!important;right:-45px!important;top:19px!important;width:150px!important;height:22px;line-height:22px;padding:0!important;transform:rotate(45deg);font-size:12px;box-shadow:none}
 .rib.blue{background:rgba(58,123,255,.55);color:#fff;font-style:normal}
 .rib.long{font-size:9.5px;letter-spacing:.02em}
-.card.zoomed .rib-w.r{width:100px;height:100px}
-.card.zoomed .rib-w.r .rib{left:auto!important;right:-44px;top:16px;width:166px;font-size:13px;padding:5px 0}
+.card.zoomed .rib-w.r{width:110px;height:110px}
+.card.zoomed .rib-w.r .rib{left:auto!important;right:-54px!important;top:23px!important;width:180px!important;height:26px;line-height:26px;font-size:14px;padding:0!important}
 .card.zoomed .rib-w.r .rib.long{font-size:12px}
 .lblcard{background:var(--paper,#fff);border-radius:var(--r,16px);padding:14px 16px;box-shadow:var(--lift);border:1px solid rgba(20,19,23,.06)}
 .lblcard h3{display:inline;margin:0;font-family:var(--pf,'Poppins'),sans-serif;font-weight:700;font-size:20px;line-height:1.25;color:var(--ink);background:linear-gradient(transparent 60%,#F8C6DD 60%,#F8C6DD 92%,transparent 92%);box-decoration-break:clone;-webkit-box-decoration-break:clone}
@@ -2052,7 +2058,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.84';
+const APP_VERSION='v261120.85';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
