@@ -990,6 +990,49 @@ textarea.in{min-height:64px;resize:vertical}
 .g4 .in{width:100%;min-width:0;font-size:14px!important;padding:4px 6px!important}
 .tg2 span{font-size:13px!important;line-height:1.2;padding:6px 11px!important}
 .cform .chips .chipx{font-size:13px;padding:4px 6px 4px 10px}
+/* v78 : formulaires épurés */
+.cform{gap:10px}
+.c-tt .seg{align-self:flex-start}
+.pick-dd{flex:1 1 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:0 12px;border-radius:10px;border:1.5px solid #E3DED6;background:#fff;font:600 14px var(--pf,inherit);color:#141317;cursor:pointer;text-align:left}
+.pick-dd i{font-style:normal;color:#8a8590;font-size:12px}
+.tpop{max-height:50vh;overflow:auto}
+.dwrap{display:flex;align-items:center;gap:4px;min-width:0}
+.dwrap .in{flex:1 1 auto}
+.dx{flex:0 0 24px;width:24px;height:24px;border-radius:7px;border:1.5px solid #E3DED6;background:#fff;color:#B5B1AA;font-size:11px;line-height:1;cursor:pointer;padding:0}
+.dx.on{background:#141317;border-color:#141317;color:#fff}
+.g4{grid-template-columns:30px minmax(0,1.5fr) minmax(0,1fr)!important}
+.sphint{margin:0!important;font-size:12.5px;color:#5d5864!important}
+.combo{position:relative;display:flex;align-items:center}
+.combo .in{flex:1;padding-right:58px!important}
+.combo .cbx,.combo .cdd{position:absolute;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;color:#8a8590;font-size:13px;width:26px;height:26px;border-radius:7px}
+.combo .cbx{right:30px}.combo .cdd{right:4px;font-size:12px}
+.combo .cbx:hover,.combo .cdd:hover{background:#F4F0EA}
+.clist{display:flex;flex-direction:column;max-height:220px;overflow:auto;border:1.5px solid #E3DED6;border-radius:10px;background:#fff;padding:3px;margin-top:-4px}
+.clist button{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:8px;font:500 13.5px var(--pf,inherit);color:#3E3B44;cursor:pointer}
+.clist button.on{color:#141317;font-weight:600}
+.clist button .ck{width:16px;color:#D62976;font-weight:700}
+.clist button.add{color:#D62976;font-weight:600}
+.clist button:hover{background:#F7F4EF}
+.cform .chips{gap:5px}
+.c-sec{gap:6px;padding:9px 10px}
+/* journée au même style */
+.drawer .dr-body{display:flex;flex-direction:column;gap:10px}
+.drawer .slot{margin:0!important;border:1px solid #EEEAE4!important;background:#fff!important;border-radius:12px!important;box-shadow:none}
+.drawer .slot-head{background:#fff!important;border-bottom:1px solid #EEEAE4!important;padding:8px!important;gap:6px!important}
+.drawer .slot-head .in{min-height:38px!important;height:38px;padding:4px 8px!important;font-size:14px!important;border-radius:10px!important}
+.drawer .add-act.add-slot{min-height:40px!important;padding:8px!important;font-size:14.5px!important;margin:0!important}
+.drawer .dnote-in{margin:0!important;min-height:40px!important;border:1px solid #EEEAE4!important;box-shadow:none!important}
+.drawer .sw{min-height:34px;font-size:14.5px}
+.drawer .act{border-color:#EEEAE4!important;box-shadow:none!important}
+.slot-img{min-height:38px!important}
+.g4{grid-template-columns:38px minmax(0,1.5fr) minmax(0,1fr)!important}
+#qres.tpl-grid{display:flex!important;flex-direction:column;gap:6px}
+#qres .tpl{display:grid!important;grid-template-columns:56px 1fr;gap:10px;align-items:center;padding:6px!important;min-height:0;border-radius:12px;text-align:left}
+#qres .tpl .im{width:56px;height:56px;border-radius:10px;overflow:hidden;aspect-ratio:auto!important}
+#qres .tpl .im img,#qres .tpl .im .vis,#qres .tpl .im svg{width:100%;height:100%;object-fit:cover}
+#qres .tpl .bd{padding:0!important}
+#qres .tpl .bd b{font-size:14.5px}
+#qres .tpl.blank{display:flex!important;justify-content:center;min-height:44px;border-width:1.5px!important;font-size:14.5px}
 /* v75 */
 .sw.nostart{font-size:14px;font-weight:600;min-height:36px;margin-bottom:6px}
 .fld.off{opacity:.45}
@@ -1952,7 +1995,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.77';
+const APP_VERSION='v261120.78';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2384,7 +2427,7 @@ function actRowHTML(a,i,j,n){
   const meta=[whenText(a),a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
   return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
     <div class="th">${actImage(a)}</div>
-    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
+    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${meta?esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
       <button class="ico" data-mvup="${i}:${j}" ${j===0?'disabled':''} title="Monter">↑</button>
       <button class="ico" data-mvdn="${i}:${j}" ${j===n-1?'disabled':''} title="Descendre">↓</button>
@@ -2489,10 +2532,10 @@ function tplMeta(a){
 }
 function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   // mode : 'day' (dans une journée) ou 'template' (bibliothèque)
-  let step=initial?3:1, cat=initial?initial.cat:null, f=initial?normalize(initial):null, q='';
-  let saveAsTpl=false;
+  let step=initial?3:2, cat=initial?initial.cat:'jeux', f=initial?normalize(initial):null, q='';
+  let saveAsTpl=false, keepB=null;
   const m=openModal('',{onClose:()=>{onClose&&setTimeout(onClose,0)}});
-  function title(){return step===1?'Quel type de rendez-vous ?':step===2?(CATS[cat].emoji+' '+CATS[cat].label+' — partir d\'un rendez-vous type'):(initial?'Modifier le rendez-vous':mode==='template'?'Nouvelle rendez-vous type':'Nouveau rendez-vous')}
+  function title(){return step===2?'Partir d\'un rendez-vous type':(initial?'Modifier le rendez-vous':mode==='template'?'Nouvelle rendez-vous type':'Nouveau rendez-vous')}
   let prevStep=null;
   function draw(){
     let body='',foot='';
@@ -2503,10 +2546,9 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <div class="tpl-grid" style="margin-top:10px" id="qres">${q?searchRes():''}</div>`;
       foot=`<button class="btn" data-a="cancel">Annuler</button>`;
     } else if(step===2){
-      const list=library().filter(t=>t.cat===cat);
-      body=`<div class="tpl-grid"><button class="tpl blank" data-blank="1">＋ Rendez-vous vierge<br><small style="font-weight:700">${esc(CATS[cat].label)}</small></button>${list.map(tplCard).join('')}</div>
-        ${!list.length?'<p class="kbd" style="margin-top:10px">Pas encore d\'rendez-vous type dans cette catégorie. Crée un rendez-vous vierge et coche « Enregistrer aussi comme rendez-vous type ».</p>':''}`;
-      foot=`<button class="btn" data-a="back">‹ Retour</button><span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
+      body=`<input class="in" id="q" placeholder="Rechercher un rendez-vous type…" value="${esc(q)}" autocomplete="off">
+        <div class="tpl-grid" style="margin-top:10px" id="qres"><button class="tpl blank" data-blank="1">＋ Rendez-vous vierge</button>${searchRes()}</div>`;
+      foot=`<span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
       foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme rendez-vous type</label>`:''}
@@ -2515,7 +2557,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button></div>`;
     }
     const prevMb=m.el.querySelector('.mb'), keepY=prevMb&&prevStep===step?prevMb.scrollTop:0;prevStep=step;
-    m.el.innerHTML=`${step===3?`<div class="mh slim"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape 3/3</span>`:''}</div>`:`<div class="mh"><h3>${esc(title())}</h3>${!initial&&mode==='day'?`<span class="steps">Étape ${step}/3</span>`:''}<button class="ico" data-a="cancel" title="Fermer">✕</button></div>`}<div class="mb">${body}</div><div class="mf">${foot}</div>`;
+    m.el.innerHTML=`${step===3?'':`<div class="mh"><h3>${esc(title())}</h3><button class="ico" data-a="cancel" title="Fermer">✕</button></div>`}<div class="mb">${body}</div><div class="mf">${foot}</div>`;
     {const nm=m.el.querySelector('.mb');if(nm&&keepY)nm.scrollTop=keepY}
     bind();
   }
@@ -2524,13 +2566,15 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   }
   function searchRes(){
     const qq=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    const r=library().filter(t=>(t.title+' '+(t.desc||'')+' '+(t.place||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(qq)).slice(0,12);
+    const r=library().filter(t=>!qq||(t.title+' '+(t.desc||'')+' '+(t.place||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(qq));
     return r.length?r.map(tplCard).join(''):'<p class="kbd">Aucune rendez-vous type trouvée.</p>';
   }
   function formHTML(){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
     const seg=(name,val,opts)=>`<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" class="${val===v?'on':''}">${l}</button>`).join('')}</div>`;
     const DD=mode==='day'&&UI.drawer?UI.drawer.date:null, sp=spanOf(f);
+    const spPreview=k=>{const D=DD,e=f.endDate;const L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'…';
+      return 'À l\'écran : '+({day:'sur la journée (pas de mention de date)',multi:'« du '+L(D)+' au '+L(e)+' »',open:'« à partir du '+L(D)+' »',until:'« jusqu\'au '+L(e)+' »'})[k]};
     const chip=(id,on,l)=>`<label class="tg2"><input type="checkbox" id="${id}" ${on?'checked':''}><span>${l}</span></label>`;
     return `<div class="cform">
       <div class="c-head">
@@ -2539,23 +2583,22 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <div class="c-tt">
           <input class="in" id="ftitle" value="${esc(f.title)}" placeholder="Titre" style="font-weight:800;font-size:16.5px">
           <input class="in" id="fdesc" value="${esc(f.desc)}" placeholder="Sous-titre (facultatif)">
+          ${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}
         </div>
       </div>
       <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}</div>
       <div class="c-sec"><h4>Dates et horaires</h4>
-        ${DD?`<label class="tg2 nostart"><input type="checkbox" id="fnostart" ${sp==='until'?'checked':''}><span>Pas de date de début (« jusqu'au … »)</span></label>
-        <div class="g4"><span>Début</span><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
-        <span>Fin</span><input class="in" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}"><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
-        <p class="kbd" id="sphint">${({day:'Sur la journée.',multi:'Sur plusieurs jours : « du … au … ».',open:'Sans date de fin : « à partir du … ».',until:'Sans date de début : « jusqu\'au … ».'})[sp]} </p>`
+        ${DD?`<div class="g4"><span>Début</span><span class="dwrap"><button type="button" class="dx${sp==='until'?' on':''}" id="xstart" title="Pas de date de début">✕</button><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
+        <span>Fin</span><span class="dwrap"><button type="button" class="dx${sp==='open'?' on':''}" id="xend" title="Pas de date de fin">✕</button><input class="in${sp==='open'?' off':''}" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}" ${sp==='open'?'disabled':''}></span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
+        <p class="kbd sphint" id="sphint">${spPreview(sp)}</p>`
         :`<div class="g4 nod"><span>Horaires</span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}"><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>`}
         ${sp==='multi'?`<input class="in" id="fstay" list="staylist" value="${esc(f.stayLabel||'')}" placeholder="Intitulé sous le calendrier (facultatif : séjour, week-end…)"><datalist id="staylist"><option value="séjour"><option value="week-end"><option value="nuitée"><option value="2 jours"><option value="3 jours"></datalist>`:''}
         <input class="in" id="fplace" value="${esc(f.place)}" placeholder="Lieu (facultatif)">
         <div class="c-chips">${chip('ftransport',f.transport,'🚍 Transport assuré')}${chip('fclosed',f.closedDuring,'Établissement fermé')}</div>
       </div>
-      <div class="c-sec"><h4>Réservation, tarif, public</h4>
+      <div class="c-sec"><h4>Réservation et tarif</h4>
         <div class="c-row">${chip('fbook',f.booking.on,'📋 Sur réservation')}${f.booking.on?`<input class="in t" type="number" min="0" id="fplaces" value="${esc(f.booking.places)}" placeholder="places" style="width:90px"><span class="kbd">places</span>`:''}</div>
-        <div class="c-row"><select class="in" id="pgrid"><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select>
-        ${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}</div>
+        <div class="c-row"><button type="button" class="pick-dd" id="pgridb">${p.mode==='grid'?esc(resolveGridC(p).name||'Tarif'):p.mode&&p.mode!=='free'?'Ancien tarif':'Gratuit'}<i>▾</i></button><select class="in" id="pgrid" hidden><option value="free" ${p.mode==='free'||!p.mode?'selected':''}>Gratuit</option>${(settings().tarifs||[]).map(g=>`<option value="${esc(g.id)}" ${p.mode==='grid'&&p.gid===g.id?'selected':''}>${esc(g.name||'Tarif')}</option>`).join('')}${p.mode&&p.mode!=='free'&&p.mode!=='grid'?`<option value="legacy" selected>Ancien tarif : ${esc(priceText(p))}</option>`:''}${p.mode==='grid'&&!(settings().tarifs||[]).some(g=>g.id===p.gid)?`<option value="keep" selected>${esc(p.name||'Tarif')}</option>`:''}</select></div>
         ${p.mode==='grid'?`<div class="prow-ed">${(resolveGridC(p).rows||[]).map((r,i)=>`<div class="c-row"><span class="kbd" style="flex:1">${p.type==='unique'?'Montant':p.type==='cond'?esc(r.label||''):esc(qfLine(r))}</span><input class="in t" type="number" step="0.5" min="0" data-pam="${i}" value="${esc(r.amount)}" style="width:90px"> €</div>`).join('')}</div>`:''}
         ${p.mode==='single'?`<div class="c-row"><input class="in t" type="number" step="0.5" min="0" id="pamount" value="${esc(p.amount)}" style="width:100px"> €</div>`:''}
         ${p.mode==='ccv2cc'?`<div class="c-row"><span class="kbd">CCV2CC</span><input class="in t" type="number" step="0.5" min="0" id="pcc" value="${esc(p.cc)}" style="width:90px"> €<span class="kbd">Hors comm.</span><input class="in t" type="number" step="0.5" min="0" id="phc" value="${esc(p.hc)}" style="width:90px"> €</div>`:''}
@@ -2563,9 +2606,9 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <div style="display:none">${seg('pmode',p.mode,[['free','Gratuit']])}</div>
       </div>
       <div class="c-sec"><h4>À prévoir</h4>
-        <div class="chips">${f.bring.map((x,i)=>`<span class="chipx">${esc(x)}<button type="button" data-rmb="${i}" aria-label="Retirer">✕</button></span>`).join('')}</div>
-        <div class="c-row"><input class="in" id="fbring" placeholder="Tape les premières lettres…" autocomplete="off"><button class="btn sm" type="button" id="addbring">Ajouter</button></div>
-        <div class="sugg" id="bsugg"></div>
+        ${f.bring.length?`<div class="chips">${f.bring.map((x,i)=>`<span class="chipx">${esc(x)}<button type="button" data-rmb="${i}" aria-label="Retirer">✕</button></span>`).join('')}</div>`:''}
+        <div class="combo"><input class="in" id="fbring" placeholder="Choisir ou taper un élément…" autocomplete="off"><button type="button" class="cbx" id="bclear" aria-label="Effacer" hidden>✕</button><button type="button" class="cdd" id="bopen" aria-label="Déployer">▾</button></div>
+        <div class="clist" id="bsugg" hidden></div>
         ${chip('fauth',f.auth,'✍️ Autorisation parentale à faire signer')}
       </div>
       <div class="c-sec"><h4>💥 Information importante</h4><input class="in red" id="fimp" value="${esc(f.important)}" placeholder="en rouge, ex. attestation de nage obligatoire"></div>
@@ -2574,20 +2617,27 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <div class="galed">${(f.gallery||[]).map((id,i)=>`<span class="gi"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt=""><button type="button" data-rmg="${i}" aria-label="Retirer">✕</button></span>`).join('')}
         ${S.assets?`<label class="gadd"><input type="file" accept="image/*" id="galup" multiple hidden>＋ Photos</label>`:''}</div>
       </div>
-      <div class="c-sec"><h4>Catégorie</h4><select class="in" id="fcat">${Object.entries(CATS).map(([k,x])=>`<option value="${k}" ${k===f.cat?'selected':''}>${x.emoji} ${esc(x.label)}</option>`).join('')}</select></div>
     </div>`;
   }
   function bind(){
     const $=s=>m.el.querySelector(s), $$=s=>m.el.querySelectorAll(s);
     $$('[data-a]').forEach(b=>b.onclick=()=>action(b.dataset.a));
     $$('[data-cat]').forEach(b=>b.onclick=()=>{cat=b.dataset.cat;step=2;draw()});
-    const qi=$('#q');if(qi){qi.oninput=()=>{q=qi.value;$('#qres').innerHTML=q?searchRes():'';bindTpl()};}
+    const qi=$('#q');if(qi){qi.oninput=()=>{q=qi.value;$('#qres').innerHTML='<button class="tpl blank" data-blank="1">＋ Rendez-vous vierge</button>'+searchRes();bindTpl();const bl2=$('[data-blank]');if(bl2)bl2.onclick=()=>{f=blankActivity(cat);step=3;draw()}};}
     bindTpl();
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
     inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
+    const pgb=$('#pgridb');if(pgb)pgb.onclick=()=>{document.querySelectorAll('.pvpop').forEach(x=>x.remove());
+      const r=pgb.getBoundingClientRect(),pop=document.createElement('div');pop.className='pvpop tpop';const cur=f.price.mode==='grid'?f.price.gid:'free';
+      pop.innerHTML=[['free','Gratuit']].concat((settings().tarifs||[]).map(g=>[g.id,g.name||'Tarif'])).map(([v,l])=>`<button data-v="${esc(v)}" class="${cur===v?'on':''}">${esc(l)}</button>`).join('');
+      document.body.appendChild(pop);pop.style.left=r.left+'px';pop.style.minWidth=r.width+'px';
+      const top=r.bottom+6+pop.offsetHeight>innerHeight-10?r.top-pop.offsetHeight-6:r.bottom+6;pop.style.top=top+'px';
+      const off=ev=>{if(!pop.contains(ev.target)&&ev.target!==pgb){pop.remove();document.removeEventListener('mousedown',off,true);document.removeEventListener('touchstart',off,true)}};
+      setTimeout(()=>{document.addEventListener('mousedown',off,true);document.addEventListener('touchstart',off,true)},0);
+      pop.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{pop.remove();const sel=$('#pgrid');sel.value=b.dataset.v;sel.onchange()})};
     const pg=$('#pgrid');if(pg)pg.onchange=()=>{const v=pg.value;if(v==='free'){f.price={mode:'free'}}else if(v!=='legacy'&&v!=='keep'){const g=(settings().tarifs||[]).find(x=>x.id===v);if(g)f.price={mode:'grid',gid:g.id,name:g.name,type:g.type,rows:clone(g.rows||[]).map(r=>Object.assign(r,{amount:''}))}}draw()};
     $$('[data-pam]').forEach(e=>e.oninput=()=>{const i=+e.dataset.pam;f.price.rows=f.price.rows||[];while(f.price.rows.length<=i)f.price.rows.push({amount:''});f.price.rows[i].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
@@ -2597,12 +2647,15 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const spRecalc=()=>{const sd=($('#fsd')||{}).value, ed=($('#fed')||{}).value, D=mode==='day'&&UI.drawer?UI.drawer.date:null;if(!D)return;
       let sp;if(sd&&sd!==D){$('#fsd').value=D;toast('La date de début est celle de la journée (vide = pas de date de début)')}
       const S2=$('#fsd').value;
-      if(S2){if(!ed)sp='open';else if(ed>D)sp='multi';else{sp='day';if(ed<D)$('#fed').value=D}}else sp=ed?'until':'day';
+      if(S2){if(!ed||($('#fed')||{}).disabled)sp='open';else if(ed>D)sp='multi';else{sp='day';if(ed<D)$('#fed').value=D}}else sp=ed?'until':'day';
       const old=spanOf(f);f.span=sp;f.endDate=(sp==='multi'||sp==='until')?ed:'';
-      if((old==='multi')!==(sp==='multi'))draw();else{const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Sur la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
+      draw();if(false){const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Sur la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
     ['#fsd','#fed'].forEach(q=>{const e=$(q);if(e)e.onchange=spRecalc});
-    const ns=$('#fnostart');if(ns)ns.onchange=()=>{const D=UI.drawer.date,sd=$('#fsd'),ed=$('#fed');
-      if(ns.checked){sd.value='';if(!ed.value||ed.value<=D){ed.value=addDays(D,7);toast('Indique la date de fin')}}else sd.value=D;
+    const xs=$('#xstart');if(xs)xs.onclick=()=>{const D=UI.drawer.date,sd=$('#fsd'),ed=$('#fed');
+      if(sd.disabled){sd.disabled=false;sd.value=D}else{sd.value='';sd.disabled=true;if(ed.disabled){ed.disabled=false}if(!ed.value||ed.value<=D){ed.value=addDays(D,7);toast('Indique la date de fin')}}
+      spRecalc();draw()};
+    const xe=$('#xend');if(xe)xe.onclick=()=>{const D=UI.drawer.date,sd=$('#fsd'),ed=$('#fed');
+      if(ed.disabled){ed.disabled=false;ed.value=D}else{ed.value='';ed.disabled=true;if(sd.disabled){sd.disabled=false;sd.value=D}}
       spRecalc();draw()};
     const fc=$('#fcat');if(fc)fc.onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
     $$('[data-seg]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -2610,15 +2663,20 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       if(k==='publics')f.publics=v;else if(k==='tmode')f.timing.mode=v;else if(k==='pmode')f.price.mode=v;
       draw();
     }));
-    const addB=()=>{const e=$('#fbring');const v=e.value.trim();if(v&&!f.bring.includes(v)){f.bring.push(v);draw();m.el.querySelector('#fbring').focus()}};
-    $('#addbring').onclick=addB;$('#fbring').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addB()}};
-    {const fb=$('#fbring'),bs=$('#bsugg');const nrm=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      const pool=[...new Set(BRING_SUGG.concat(library().flatMap(a=>a.bring||[])))];
-      const upd=()=>{const q=nrm(fb.value.trim());if(!q){bs.innerHTML='';return}
-        const hits=pool.filter(x=>!f.bring.includes(x)&&nrm(x).split(/[^a-z0-9]+/).some(w=>w.startsWith(q))).slice(0,8);
-        bs.innerHTML=hits.map(x=>`<button type="button" data-sb="${esc(x)}">+ ${esc(x)}</button>`).join('');
-        bs.querySelectorAll('[data-sb]').forEach(b=>b.onclick=()=>{f.bring.push(b.dataset.sb);draw();const n=m.el.querySelector('#fbring');if(n)n.focus()})};
-      fb.oninput=upd;}
+    {const fb=$('#fbring'),bs=$('#bsugg'),bx=$('#bclear'),bo=$('#bopen');const nrm=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const pool=[...new Set(BRING_SUGG.concat(library().flatMap(a=>a.bring||[])))].sort((a,b)=>a.localeCompare(b,'fr'));
+      const upd=open=>{const raw=fb.value.trim(),q=nrm(raw);bx.hidden=!raw;
+        if(!open&&!q){bs.hidden=true;return}
+        const hits=pool.filter(x=>!q||nrm(x).split(/[^a-z0-9€]+/).some(w=>w.startsWith(q)));
+        const extra=raw&&!pool.some(x=>nrm(x)===q)?`<button type="button" data-new="1" class="add">＋ Ajouter « ${esc(raw)} »</button>`:'';
+        bs.innerHTML=extra+hits.map(x=>`<button type="button" data-sb="${esc(x)}" class="${f.bring.includes(x)?'on':''}"><span class="ck">${f.bring.includes(x)?'✓':''}</span>${esc(x)}</button>`).join('');
+        bs.hidden=!bs.innerHTML;
+        bs.querySelectorAll('[data-sb]').forEach(b=>b.onclick=()=>{const v=b.dataset.sb,k=f.bring.indexOf(v);if(k>=0)f.bring.splice(k,1);else f.bring.push(v);keepB={q:fb.value,open:true};draw()});
+        const nb=bs.querySelector('[data-new]');if(nb)nb.onclick=()=>{f.bring.push(raw);keepB={q:'',open:false};draw()}};
+      fb.oninput=()=>upd(false);fb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const v=fb.value.trim();if(v&&!f.bring.includes(v)){f.bring.push(v);keepB={q:'',open:false};draw()}}};
+      bx.onclick=()=>{fb.value='';upd(!bs.hidden);fb.focus()};
+      bo.onclick=()=>{if(!bs.hidden&&!fb.value.trim()){bs.hidden=true;return}upd(true)};
+      if(keepB){fb.value=keepB.q;upd(keepB.open);if(keepB.open)fb.focus({preventScroll:true});keepB=null}}
     const pv2=$('#pickvis2');if(pv2)pv2.onclick=()=>openImagePicker(f,()=>draw());
     const rc=$('#recrop');if(rc)rc.onclick=async()=>{const res=await cropImage((window.EJ_ASSET_BASE||'/_blob/')+f.asset,{reuse:true});if(!res||res==='same')return;
       try{const r=await S.assets.upload(res);f.asset=r.id;rememberImage(r.id);draw();toast('Image recadrée ✓')}catch(e){toast('Recadrage impossible',true)}};
@@ -2636,7 +2694,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   }
   async function action(a){
     if(a==='cancel')return m.close();
-    if(a==='back'){step=step===3&&!initial?(cat?2:1):1;if(step===2&&!library().some(t=>t.cat===cat)&&false)step=1;draw();return}
+    if(a==='back'){step=2;draw();return}
     if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'ce rendez-vous')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
     if(a==='save'){
       if(!f.title.trim()){toast('Donne un titre au rendez-vous',true);m.el.querySelector('#ftitle').focus();return}
