@@ -933,6 +933,17 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v49 */
+.pv-bar{flex-wrap:nowrap!important;gap:8px}
+.pv-bar .pvsel{flex:1 1 auto;width:auto;min-width:0;font-weight:600}
+.pv-bar .btn{flex:0 0 auto;font-size:14px;padding-left:11px;padding-right:11px}
+.pv-bar .pvsel{font-size:14px;padding-left:10px;padding-right:4px}
+#pvroot .card,#pvroot .cal-ico{cursor:pointer}
+.cr-top .r1{align-items:center}
+.cr-top .app{display:inline-flex;align-items:center;min-height:38px}
+.role{border-radius:10px!important;min-height:38px;display:inline-flex;align-items:center;padding:0 12px!important;font-size:13.5px!important}
+.cr-top .fs-btn.dark{width:38px!important;height:38px!important;border-radius:10px!important}
+.tab{min-height:38px;border-radius:10px!important}
 /* v47 */
 .dr-head .r1 .dty{font-size:0;cursor:default}
 .dr-head .r1 .dty .kic,.dr-head .r1 .dty .kemo{border:0!important;background:transparent!important}
@@ -1181,7 +1192,7 @@ function cardHTML(a,opts){
   const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article class="card${info?'':' noinfo'}${a.full?' isfull':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">
+  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' isfull':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1736,7 +1747,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.48';
+const APP_VERSION='v261120.49';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2102,6 +2113,10 @@ function actRowHTML(a,i,j,n){
       <button class="ico" data-dup="${i}:${j}" title="Dupliquer">⧉</button>
       <button class="ico" data-del="${i}:${j}" title="Supprimer">🗑️</button>
     </div></div>`;
+}
+function editActIn(i,j){
+  const day=UI.drawer&&UI.drawer.day;if(!day)return;
+  openComposer({mode:'day',initial:day.slots[i].acts[j],onSave:a=>{day.slots[i].acts[j]=a;scheduleSave();renderDrawer()},onDelete:()=>{day.slots[i].acts.splice(j,1);scheduleSave();renderDrawer()}});
 }
 async function navDay(n){
   if(!UI.drawer)return;
@@ -2639,9 +2654,9 @@ function renderPreview(main){
   const url=location.href.split('#')[0];
   main.classList.add('full');
   main.innerHTML=`<div class="pv-bar">
-      <div class="seg" id="pvseg"><button data-v="1" class="${UI.previewDrafts?'on':''}">Avec brouillons</button><button data-v="0" class="${UI.previewDrafts?'':'on'}">Sans brouillons</button></div>
-      <span style="flex:1"></span>
-      <button class="btn sm pri" id="realview">Vue réelle</button><button class="btn sm" id="copylink">Copier le lien</button><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Ouvrir</a>
+      <select class="in pvsel" id="pvseg" aria-label="Contenu affiché"><option value="1" ${UI.previewDrafts?'selected':''}>Avec brouillons</option><option value="0" ${UI.previewDrafts?'':'selected'}>Sans brouillons</option></select>
+      <button class="btn" id="copylink">Copier le lien</button>
+      <button class="btn pri" id="realview">Vue réelle</button>
       ${S.downloads?'<button class="btn sm" id="export">Exporter (HTML)</button>':''}
     </div><div id="pvroot"></div>`;
   mountPublic(main.querySelector('#pvroot'),{days,settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
@@ -2653,7 +2668,21 @@ function renderPreview(main){
     mountPublic(ov.querySelector('.rv-root'),{days,settings:{info:settings().info,periods:settings().periods}},{});
     ov.querySelector('.rv-exit').onclick=()=>{ov.remove();document.body.style.overflow=''};
   };
-  main.querySelectorAll('#pvseg button').forEach(b=>b.onclick=()=>{UI.previewDrafts=b.dataset.v==='1';render()});
+  main.querySelector('#pvseg').onchange=e=>{UI.previewDrafts=e.target.value==='1';render()};
+  // clic sur un jour ou une activité de l'aperçu : ouvre l'édition correspondante
+  main.querySelector('#pvroot').addEventListener('click',e=>{
+    const card=e.target.closest('.card[data-aid]'), ico=e.target.closest('.cal-ico'), sec=e.target.closest('section.day[id^="j-"]');
+    if(!card&&!(ico&&sec))return;
+    e.preventDefault();e.stopPropagation();
+    if(card){const id=card.dataset.aid;
+      const keys=[...new Set(Object.keys(S.drafts).concat(Object.keys(S.pub)))].sort();
+      const pref=sec?sec.id.slice(2):null;
+      const order=pref?[pref].concat(keys.filter(k=>k!==pref)):keys;
+      for(const k of order){const d=getDay(k);for(let i=0;i<(d.slots||[]).length;i++){const j=(d.slots[i].acts||[]).findIndex(a=>a.id===id);
+        if(j>=0){openDrawer(k);editActIn(i,j);return}}}
+      return;}
+    openDrawer(sec.id.slice(2));
+  },true);
   main.querySelector('#copylink').onclick=async()=>{
     try{await navigator.clipboard.writeText(url);toast('Lien copié ✓')}catch(e){toast('Lien : '+url,true)}
   };
