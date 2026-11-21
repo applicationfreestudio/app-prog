@@ -858,9 +858,10 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .ishome .ktx{color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;background-image:var(--kbg)!important;background-repeat:no-repeat!important;text-shadow:none!important;
   filter:drop-shadow(1px 1px 0 rgba(255,255,255,.6)) drop-shadow(-1px -1px 0 color-mix(in srgb,var(--caln,#C13584) 55%,rgba(0,0,0,.35)))!important}
 .ishome .kic{display:block;width:clamp(24px,5.5vh,44px);height:clamp(24px,5.5vh,44px);-webkit-background-clip:border-box!important;background-clip:border-box!important;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-.ishome .kic{filter:none!important;background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.55)),var(--kbg)!important}
+.ishome .kic{filter:none!important;background-image:linear-gradient(rgba(255,255,255,.88),rgba(255,255,255,.88)),var(--kbg)!important}
 .ishome .kicw{display:block;filter:drop-shadow(1px 1px 0 rgba(255,255,255,.6)) drop-shadow(-1px -1px 0 color-mix(in srgb,var(--caln,#C13584) 55%,rgba(0,0,0,.35)))}
 .ishome .ht span.ktx{font-weight:700}
+.ishome .ht .ktx:not(.kic){filter:drop-shadow(.6px .6px 0 rgba(255,255,255,.4)) drop-shadow(-.5px -.5px 0 color-mix(in srgb,var(--caln,#C13584) 40%,rgba(0,0,0,.18)))!important}
 .ishome.tbold .ht span.ktx{font-weight:800;letter-spacing:.01em}
 .ishome.tbold .ht small.ktx{font-weight:700}
 .card:not(.fold) h3,.card.fold.demi h3{margin-bottom:4px!important}
@@ -2422,7 +2423,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.119';
+const APP_VERSION='v261120.120';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
