@@ -74,7 +74,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .bring b{font-weight:600;color:var(--ink)}
 .em{flex:0 0 auto;font-size:15px;line-height:1.3}
 .empty-day{background:var(--paper);border-radius:var(--r);padding:20px 16px;text-align:center;color:var(--ink2);font-size:15px;box-shadow:var(--lift)}
-.past-btn{align-self:center;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 14px;font-size:14px;color:var(--ink2);box-shadow:var(--hi)}
+.past-btn{align-self:center;margin:-4px auto 6px;display:block;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 14px;font-size:14px;color:var(--ink2);box-shadow:var(--hi)}
 .stl .pill{font-family:var(--body)}
 .pub-foot{padding:18px 16px 30px;color:var(--ink2);font-size:13px;text-align:center;line-height:1.5}
 .pub-empty{margin:40px 16px;text-align:center;color:var(--ink2)}
@@ -1178,7 +1178,7 @@ function cardHTML(a,opts){
   const stay=a.cat==='sejour'&&opts.date;
   const w=stay||a.cat==='projet'?'':whenHTML(a);
   const pj=a.cat==='projet';
-  const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span>${ARR_SVG}<span>${d2}</span></div></div>`})():'';
+  const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date);return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span>${d1}</span><span class="sjc">, </span><span>${d2}</span></div></div>`})():'';
   const info=badgesHTML(a)
     +(pj&&a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
@@ -1274,7 +1274,7 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const U=opts&&opts.until, d2=U?parse(U):null, sameM=!U||(d.getMonth()===d2.getMonth());
-  const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span><small>du</small> ${DAYS_S[dow(day.date)]}. ${d.getDate()}${sameM?'':' '+MONTHS_S[d.getMonth()]}</span><span><small>au</small> ${DAYS_S[dow(U)]}. ${d2.getDate()}${sameM?'':' '+MONTHS_S[d2.getMonth()]}</span></div>`
+  const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span><small>du</small> ${sameM?DAYS_S[dow(day.date)]+'. '+d.getDate():d.getDate()+' '+MONTHS_S[d.getMonth()]}</span><span><small>au</small> ${sameM?DAYS_S[dow(U)]+'. '+d2.getDate():d2.getDate()+' '+MONTHS_S[d2.getMonth()]}</span></div>`
     :`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>`;
   const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}${U?' multi':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}>${head}
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
@@ -1346,8 +1346,8 @@ function mountPublic(root,data,opts){
     const end=a.endDate&&a.endDate>date?a.endDate:date, d1=parse(date), d2=parse(end);
     const sameM=d1.getMonth()===d2.getMonth()&&d1.getFullYear()===d2.getFullYear();
     const m=sameM?MONTHS_S[d1.getMonth()].replace('.',''):MONTHS_S[d1.getMonth()].replace('.','')+' – '+MONTHS_S[d2.getMonth()].replace('.','');
-    const f1=DAYS_S[dow(date)]+'. '+d1.getDate()+(sameM?'':' '+MONTHS_S[d1.getMonth()]);
-    const f2=DAYS_S[dow(end)]+'. '+d2.getDate()+(sameM?'':' '+MONTHS_S[d2.getMonth()]);
+    const f1=sameM?DAYS_S[dow(date)]+'. '+d1.getDate():d1.getDate()+' '+MONTHS_S[d1.getMonth()];
+    const f2=sameM?DAYS_S[dow(end)]+'. '+d2.getDate():d2.getDate()+' '+MONTHS_S[d2.getMonth()];
     return `<section class="day stay"><div class="dgrid"><aside class="dcol"><div class="cal-ico sj"><div class="m">${esc(m)}</div><div class="rng2"><span><small>du</small> ${esc(f1)}</span><span><small>au</small> ${esc(f2)}</span></div></div><span class="stay-tag">${esc(cap(a.stayLabel||'séjour'))}</span></aside><div class="acts"><div class="cards">${cardHTML(a,Object.assign({},opts,{date}))}</div></div></div></section>`;
   }
   // signature d'une journée : deux jours consécutifs identiques sont regroupés « du … au … »
@@ -1395,7 +1395,7 @@ function mountPublic(root,data,opts){
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
     root.innerHTML=`<div class="pub" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif">${wm}${headHTML(info,wm)}
-      <main class="days">${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?pastBtn+withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
+      <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();
   }
@@ -1405,7 +1405,7 @@ function mountPublic(root,data,opts){
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
-      const steps=w.classList.contains('sj-when')?[[],['noa'],['noa','nowd'],['noa','nowd','now']]:[[]];
+      const steps=w.classList.contains('sj-when')?[[],['nowd'],['nowd','noa']]:[[]];
       for(let i=0;i<steps.length;i++){
         w.classList.remove('noa','nowd','now');steps[i].forEach(c=>w.classList.add(c));
         let f=base;w.style.fontSize='';const min=i<steps.length-1?12:8;
@@ -1458,7 +1458,14 @@ function mountPublic(root,data,opts){
     if(!t){const c=e.target.closest('.card');if(c&&!c.closest('.zoom-bg'))zoom(c);return}
     if(t.dataset.close){ if(e.target===t||t.classList.contains('close')){st.sheet=false;render()} return; }
     if(t.dataset.info){st.sheet=true;render();return}
-    if(t.dataset.past){st.past=true;render()}
+    if(t.dataset.past){
+      const secs=[...root.querySelectorAll('section.day')], top=(root.querySelector('.pub-head')||{getBoundingClientRect:()=>({bottom:0})}).getBoundingClientRect().bottom;
+      const anchor=secs.find(x=>x.getBoundingClientRect().bottom>top+4), y0=anchor?anchor.getBoundingClientRect().top:0, id=anchor&&anchor.id;
+      st.past=true;render();
+      const a2=id&&root.querySelector('#'+CSS.escape(id));
+      if(a2){const sc=root.closest('.realview')||null;const dy=a2.getBoundingClientRect().top-y0;
+        if(sc&&sc.scrollHeight>sc.clientHeight)sc.scrollTop+=dy;else window.scrollBy(0,dy)}
+    }
   });
   function loadJsPDF(){
     if(window.jspdf)return Promise.resolve(window.jspdf);
@@ -1749,7 +1756,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.52';
+const APP_VERSION='v261120.53';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
