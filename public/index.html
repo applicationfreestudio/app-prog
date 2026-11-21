@@ -899,6 +899,11 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .card.nofold .card-head{padding-right:10px!important}
 
 .card.nofold{cursor:pointer}
+
+/* zone de sécurité du haut (plein écran) : tout ce qui se cale sous le bandeau tient compte de son décalage */
+.day{scroll-margin-top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + 10px)!important}
+.dcol{top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + 12px)!important}
+.pub>.wm{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important}
 </style>
 
 <style>
@@ -2456,7 +2461,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.133';
+const APP_VERSION='v261120.134';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
