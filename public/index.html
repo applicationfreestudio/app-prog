@@ -689,7 +689,13 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .card,.card *{-webkit-tap-highlight-color:transparent}
 .card{-webkit-user-select:none;user-select:none;outline:none}
 .card h3{display:inline-block!important;box-sizing:border-box;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
-.card.fold h3{background:linear-gradient(transparent 80%,var(--hlx) 80%,var(--hlx) 93%,transparent 93%)!important}
+.card.fold h3{background:none!important}
+.card.fold{display:flex!important;align-items:center;padding:0 0 0 42px!important}
+.card.fold .card-img{position:absolute!important;left:0;top:0;bottom:0;width:42px!important;height:auto!important;margin:0!important;border-radius:0!important}
+.card.fold .card-img>svg,.card.fold .card-img>img{width:100%!important;height:100%!important;display:block;border-radius:0!important}
+.card.fold .card-head{flex:1 1 auto;min-width:0}
+.card.morning:not(.zoomed){box-shadow:0 0 0 1.5px rgba(224,106,18,.32),var(--lift)!important}
+.ctop .tag-morning{display:none!important}
 .card.fold .card-img{border-radius:0!important;height:auto!important;align-self:stretch!important}
 .card.nofold{cursor:default}
 .card.nofold .fold-ar{display:none!important}
@@ -1543,8 +1549,8 @@ function cardHTML(a,opts){
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!OPEN_CARDS.has(fk);
-  const ctop=a.morning||a.full?`<div class="ctop">${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=agesOf(a);return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -1769,7 +1775,10 @@ function mountPublic(root,data,opts){
   // titres des cartes repliées : une seule ligne, police réduite si besoin
   // un titre de carte ne passe jamais à la ligne : police réduite si besoin (9 px minimum, puis « … »)
   function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;h.style.fontSize='';
-    let f=parseFloat(getComputedStyle(h).fontSize)||17;while(h.scrollWidth>h.clientWidth+.5&&f>9){f-=.5;h.style.fontSize=f+'px'}})}
+    const cs=getComputedStyle(h),pd=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight),rg=document.createRange();rg.selectNodeContents(h);
+    const hd=h.parentElement,hs=getComputedStyle(hd),av=hd.clientWidth-parseFloat(hs.paddingLeft)-parseFloat(hs.paddingRight)-parseFloat(cs.marginLeft)-parseFloat(cs.marginRight);
+    const over=()=>rg.getBoundingClientRect().width+pd+2>av;
+    let f=parseFloat(cs.fontSize)||17;while(over()&&f>9){f-=.5;h.style.fontSize=f+'px'}})}
   // une carte qui n'a rien d'autre qu'un titre et une image ne se déplie pas
   function markFoldable(){root.querySelectorAll('.card:not(.zoomed)').forEach(c=>{const hd=c.querySelector('.card-head');
     const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
@@ -1840,16 +1849,17 @@ function mountPublic(root,data,opts){
       if(c.classList.contains('fold')||fa){if(c._anim)return;const op=c.classList.contains('fold');
         const k=c.dataset.fk;if(k){op?OPEN_CARDS.add(k):OPEN_CARDS.delete(k)}
         const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
-        const h0=c.offsetHeight;c.classList.toggle('fold',!op);fitTitles(c);const h1=c.offsetHeight;
-        const ez='cubic-bezier(.22,.8,.24,1)',parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
-        if(op){fitStay();
-          c._anim=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:320,easing:ez});
-          parts().forEach((e,i)=>e.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:1,transform:'none'}],{duration:260,delay:90+i*25,easing:'ease-out',fill:'backwards'}));
+        const ez='cubic-bezier(.25,.8,.25,1)',D=340,parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
+        // FLIP : le titre et l'image glissent de leur ancienne place vers la nouvelle pendant que la carte change de hauteur
+        const swap=()=>{const els=[c.querySelector('h3'),c.querySelector('.card-img')].filter(Boolean),r0=els.map(e=>e.getBoundingClientRect()),h0=c.offsetHeight;
+          c.classList.toggle('fold',!op);fitTitles(c);if(op)fitStay();const h1=c.offsetHeight,r1=els.map(e=>e.getBoundingClientRect());
+          els.forEach((e,n)=>{const a=r0[n],b=r1[n];if(!b.width||!b.height)return;const k=e.tagName==='H3'?a.height/b.height:null;
+            e.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${k||a.width/b.width},${k||a.height/b.height})`},{transformOrigin:'0 0',transform:'none'}],{duration:D,easing:ez})});
+          return c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:D,easing:ez})};
+        if(op){c._anim=swap();parts().forEach((e,n)=>e.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:1,transform:'none'}],{duration:260,delay:140+n*30,easing:'ease-out',fill:'backwards'}));
           c._anim.onfinish=()=>{c._anim=null;fitStay();wmTick()}}
-        else{c.classList.remove('fold');fitTitles(c);
-          parts().forEach(e=>e.animate([{opacity:1},{opacity:0}],{duration:140,easing:'ease-in',fill:'forwards'}));
-          c._anim=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:280,easing:ez,fill:'forwards'});
-          c._anim.onfinish=()=>{c.classList.add('fold');c._anim.cancel();c.getAnimations({subtree:true}).forEach(x=>x.cancel());c._anim=null;fitTitles(c);wmTick()}}
+        else{const fades=parts().map(e=>e.animate([{opacity:1},{opacity:0}],{duration:130,easing:'ease-in',fill:'forwards'}));c._anim=true;
+          setTimeout(()=>{const an=swap();fades.forEach(x=>x.cancel());an.onfinish=()=>{c._anim=null;wmTick()}},120)}
         return}
       zoom(c);return}
     if(t.dataset.close){ if(e.target===t||t.classList.contains('close')){st.sheet=false;render()} return; }
@@ -2155,7 +2165,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.96';
+const APP_VERSION='v261120.97';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
