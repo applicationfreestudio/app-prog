@@ -881,6 +881,7 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .sjbr{display:none}
 .card:not(.fold) .sjbr,.card.zoomed .sjbr,.card.une .sjbr{display:block;height:0;width:100%}
 .nobr .sjbr{display:none!important}
+.card.fold .sjbr{display:none!important}
 .card:not(.fold) .sj-when .sj1,.card.zoomed .sj-when .sj1,.card.une .sj-when .sj1{line-height:1.35}
 .card:not(.fold) .when .wzz,.card.zoomed .when .wzz{white-space:nowrap}
 </style>
@@ -2438,7 +2439,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.126';
+const APP_VERSION='v261120.127';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
