@@ -392,7 +392,9 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v42 --- */
-.badge.pq .pq-d{display:none;line-height:1.4}
+.badge.pq .pq-d{display:none;line-height:1.45}
+.badge.pq .pq-d .pl{display:block}
+.badge.pq .pq-d .pl .sep{margin:0 6px 0 0!important}
 .badge.cond{max-width:100%;overflow:hidden}
 .badge.cond .pq-f{white-space:nowrap}
 .badge.cond .pq-s{display:none}
@@ -1149,8 +1151,8 @@ function whenText(a){
   if(t.mode==='depart'&&(t.start||t.end))return t.start&&t.end?LBL.depart+' '+fmtT(t.start)+' → '+fmtT(t.end):t.start?LBL.depart+' '+fmtT(t.start):'retour '+fmtT(t.end);
   return '';
 }
-const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>',hq:'hors quotient'};
-const qfLine=r=>r.op==='hq'?'hors quotient':'QF '+(QF_OPS[r.op]||'⩽')+' '+(r.qf||'');
+const QF_OPS={le:'⩽',lt:'<',ge:'⩾',gt:'>',hq:'Hors quotient'};
+const qfLine=r=>r.op==='hq'?'Hors quotient':'Quotient '+(QF_OPS[r.op]||'⩽')+' '+(r.qf||'');
 function gridSummary(p){
   const rows=(p.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
   if(p.type==='unique')return rows[0]?'tarif '+euro(rows[0].amount):'payant';
@@ -1180,8 +1182,8 @@ function badgesHTML(a){
     const rows=(pr.rows||[]).filter(r=>r.amount!==''&&r.amount!=null);
     if(pr.type==='unique')t.push(esc(gridSummary(pr)));
     else if(pr.type==='cond'){const parts=rows.map(r=>esc((r.label||'').trim())+' '+esc(euro(r.amount)));
-      b.push(`<span class="badge pq cond"><span class="pq-f">${parts.join('<i class="sep"></i>')}</span><span class="pq-s">tarif sous condition</span><span class="pq-d">${parts.join('<br>')}</span></span>`)}
-    else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>esc(qfLine(r))+' : '+esc(euro(r.amount))).join('<br>')}</span></span>`);
+      b.push(`<span class="badge pq cond"><span class="pq-f">${parts.join('<i class="sep"></i>')}</span><span class="pq-s">tarif sous condition</span><span class="pq-d">${parts.map(x=>`<span class="pl"><i class="sep"></i>${x}</span>`).join('')}</span></span>`)}
+    else b.push(`<span class="badge pq"><span class="pq-s">${esc(gridSummary(pr))}</span><span class="pq-d">${rows.map(r=>`<span class="pl"><i class="sep"></i>${esc(qfLine(r))} : ${esc(euro(r.amount))}</span>`).join('')}</span></span>`);
   }else if(pm==='single')t.push(esc(euro(pr.amount)||'payant'));
   else if(pm==='qf'){const ls=String(pr.text||'selon quotient familial').split('\n').map(x=>x.trim()).filter(Boolean);if(ls.length>1){b.push(`<span class="badge qf">${ls.map(esc).join('<br>')}</span>`)}else t.push(esc(ls[0]||''))}
   else if(a.booking&&a.booking.on)t.push(esc(LBL.free));
@@ -1806,7 +1808,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.58';
+const APP_VERSION='v261120.59';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2653,7 +2655,7 @@ function renderSettings(main){
     ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque activité.</p>
       ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
         <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Intitulé du tarif (ex. Sortie piscine)"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
-        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">QF</span><select class="in t" data-rf="op" style="width:${r.op==='hq'?'auto':'80px'}">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select>${r.op==='hq'?'':`<input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`}`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
+        ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">Quotient</span><select class="in t" data-rf="op" style="width:${r.op==='hq'?'auto':'80px'}">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select>${r.op==='hq'?'':`<input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`}`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
         ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
       </div>`).join('')}
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
