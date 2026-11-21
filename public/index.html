@@ -944,6 +944,32 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v61 */
+.steps-hint{display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;color:var(--ink2);margin:2px 0 8px}
+.steps-hint b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ig);color:#fff;font-size:11.5px;margin-right:4px}
+.steps-hint i{font-style:normal;color:#B5B1AA}
+.slot{border:1.5px solid transparent!important;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box!important;border-radius:14px!important}
+.slot-cap{font:700 13px var(--pf,inherit);letter-spacing:.02em;color:#141317;padding:8px 12px 0;background:#F4F0EA}
+.slot-acts{border-left:3px solid #EFE7F7;margin:8px 8px 10px 14px!important;padding-left:8px!important}
+.dbus{display:grid;place-items:center;margin-top:8px;height:28px;border-radius:8px;background:#fff;border:1.5px solid #E3DED6}
+.dbus .tbus{font-size:17px;margin:0}
+.where .bus{margin-right:6px}
+.dupm{max-width:520px}
+.dupcal{max-height:70vh;overflow:auto}
+.dupcal .cal{grid-template-columns:1fr!important}
+.dupcal .cal-h{display:none}
+.dupcal .cell{margin-left:70px;overflow:visible;min-height:84px}
+.dupcal .cell .mside{display:flex;flex-direction:column;align-items:center;gap:6px;position:absolute;left:-70px;top:0;width:58px}
+.dupcal .cell .mcal{display:flex;flex-direction:column;align-items:center;width:58px;border-radius:11px;overflow:hidden;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box}
+.dupcal .cell .mcal b{display:block;width:100%;text-align:center;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ig);padding:2px 0}
+.dupcal .cell .mcal i{font-style:normal;font-size:22px;font-weight:700;line-height:1.05}
+.dupcal .cell .mcal small{font-size:11.5px;color:var(--ink2);margin-bottom:3px}
+.dupcal .cell .mcal.shut{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(45deg,#141317,#F5B800) border-box}
+.dupcal .cell .mcal.shut b{background:linear-gradient(90deg,#141317,#F5B800)}
+.dupcal .cell .top .dt{display:none}
+.dupcal .cell.src{opacity:.45}
+.dup-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:sticky;top:-16px;background:#FBF9F6;z-index:2;padding:6px 0}
+.dup-nav b{flex:1;text-align:center;font-size:17px}
 /* v60 */
 .dbtn.two{flex-direction:column;gap:1px;line-height:1.1}
 .dbtn.two small{font-size:11.5px;font-weight:500;opacity:.9;text-decoration:underline;text-underline-offset:2px}
@@ -1067,7 +1093,7 @@ const CATS={
   soiree:  {label:'Soirée',            emoji:'🪩', color:'#3A2C8F', visual:'disco'},
   bienetre:{label:'Bien-être',         emoji:'🪷', color:'#C9578E', visual:'soin'},
   culture: {label:'Culture & médias',  emoji:'🎬', color:'#D23C3C', visual:'cine'},
-  projet:  {label:'Projet & staff',    emoji:'🧰', color:'#4E5866', visual:'staff'},
+  projet:  {label:'Projet / info',    emoji:'🧰', color:'#4E5866', visual:'staff'},
   sejour:  {label:'Nuitée & séjour',   emoji:'🏕️', color:'#2E8B4A', visual:'tente'}
 };
 
@@ -1238,7 +1264,8 @@ function cardHTML(a,opts){
       return `<p class="bring${jc(t)}"><span class="em">${it.length?'📣':'✍️'}</span><span><b>${esc(LBL.bring)} :</b> ${btn?esc(t.replace(/\s+\S+$/,''))+` <span class="nw">${esc(t.match(/\S+$/)[0])}<button type="button" class="pdf-chip" data-auth="${esc(a.id||'')}" title="Télécharger l'autorisation parentale">PDF</button></span>`:esc(t)}</span></p>`})()
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
     +((a.cat==='sejour'||a.cat==='projet')&&(a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'');
-  const bus=a.transport&&!stay?'<span class="bus">'+BUS_SVG+'</span>':'';
+  const noBadges=!badgesHTML(a), busMode=a.transport&&!stay?(noBadges?(a.place&&a.cat!=='projet'?'place':'cal'):'when'):'';
+  const bus=busMode==='when'?'<span class="bus">'+BUS_SVG+'</span>':'';
   const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
@@ -1252,7 +1279,7 @@ function cardHTML(a,opts){
       ${stayW}
       ${a.desc?`<p class="desc${jc(a.desc)}">${esc(a.desc)}</p>`:''}
       ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
-      ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${esc(a.place)}</div>`:''}
+      ${a.place&&!stay&&a.cat!=='projet'?`<div class="where">${busMode==='place'?'<span class="bus">'+BUS_SVG+'</span>':''}${esc(a.place)}</div>`:''}
     </div>
     ${info?`<div class="card-info">${info}</div>`:''}
   </article>`;
@@ -1335,7 +1362,7 @@ function dayHTML(day,settings,opts){
       return dayRanges(day).map(([a,b])=>rgH(a,b)).join('<i></i>')||'';
     })()}</div></div>${(()=>{if(day.closed)return '';const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);if(!hasActs)return '';
       const ims=(day.slots||[]).filter(x=>(x.start||x.end)&&(x.visual||x.asset));
-      return ims.length?`<div class="slot-ims n${Math.min(ims.length,3)}">${ims.map(x=>`<span class="si">${actImage({visual:x.visual,asset:x.asset},opts)}</span>`).join('')}</div>`:''})()}${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
+      return ims.length?`<div class="slot-ims n${Math.min(ims.length,3)}">${ims.map(x=>`<span class="si">${actImage({visual:x.visual,asset:x.asset},opts)}</span>`).join('')}</div>`:''})()}${(day.slots||[]).some(x=>(x.acts||[]).some(a=>a.transport&&a.cat!=='sejour'&&!badgesHTML(a)&&!(a.place&&a.cat!=='projet')))?`<span class="dbus" title="transport assuré">${BUS_SVG}</span>`:''}${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
   if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(lc1(day.note))}</span></div>`;
@@ -1811,7 +1838,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.60';
+const APP_VERSION='v261120.61';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1996,7 +2023,7 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-pub"></i>En ligne</div>
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
       <div class="leg-row">${kitIcon('sejour',16)}&nbsp;nuitée &amp; séjour</div>
-      <div class="leg-row">${kitIcon('projet',16)}&nbsp;projet &amp; staff</div>
+      <div class="leg-row">${kitIcon('projet',16)}&nbsp;projet / info</div>
       <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
       <div class="leg-row"><i class="tg c">C</i>activité complète</div>
       <div class="leg-row">${kitIcon('epingle',14)}&nbsp;activité épinglée à la une</div>
@@ -2120,14 +2147,25 @@ async function duplicateDay(){
   const src=UI.drawer.day;flushSave();
   let picked=null;
   const target=await new Promise(res=>{
-    const m=openModal(`<div class="mh"><h3>Dupliquer vers…</h3><button class="ico" data-a="x">✕</button></div>
-      <div class="mb"><label class="fld"><span>Date de destination</span><input class="in" type="date" id="dupd" value="${addDays(src.date,7)}"></label></div>
-      <div class="mf"><button class="btn" data-a="x">Annuler</button><button class="btn pri" data-a="ok">Continuer</button></div>`,{onClose:()=>res(picked)});
-    m.el.querySelectorAll('[data-a="x"]').forEach(b=>b.onclick=()=>m.close());
-    m.el.querySelector('[data-a="ok"]').onclick=()=>{const v=m.el.querySelector('#dupd').value;if(!v||v===src.date){toast('Choisis une autre date',true);return}picked=v;m.close()};
+    let mo=src.date.slice(0,7);
+    const m=openModal(`<div class="mh"><h3>Dupliquer le ${esc(EJ.fmtShortDate(src.date))} vers…</h3><button class="ico" data-a="x">✕</button></div><div class="mb dupcal"></div>`,{cls:'dupm',onClose:()=>res(picked)});
+    const box=m.el.querySelector('.dupcal');
+    const draw=()=>{const [y,mm]=mo.split('-').map(Number);const days=[];for(let d=iso(new Date(y,mm-1,1));d.slice(0,7)===mo;d=addDays(d,1))days.push(d);
+      box.innerHTML=`<div class="dup-nav"><button class="btn" data-dm="-1">‹</button><b>${cap(MONTHS[mm-1])} ${y}</b><button class="btn" data-dm="1">›</button></div><div class="cal">${days.map(d=>cellHTML(d,false)).join('')}</div>`;
+      box.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{mo=iso(new Date(y,mm-1+(+b.dataset.dm),1)).slice(0,7);draw();box.scrollTop=0});
+      box.querySelectorAll('.cell').forEach(c=>{if(c.dataset.date===src.date)c.classList.add('src');c.onclick=()=>{if(c.dataset.date===src.date){toast('C\'est la journée d\'origine',true);return}picked=c.dataset.date;m.close()}});
+      const cur=box.querySelector('.cell[data-date="'+src.date+'"]');if(cur)setTimeout(()=>cur.scrollIntoView({block:'center'}),0);
+    };
+    draw();
+    let x0=null,y0=0;box.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
+    box.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>70&&Math.abs(dy)<Math.abs(dx)*.6){const [y,mm]=mo.split('-').map(Number);mo=iso(new Date(y,mm-1+(dx<0?1:-1),1)).slice(0,7);draw()}},{passive:true});
+    m.el.querySelector('[data-a="x"]').onclick=()=>m.close();
   });
   if(!target)return;
   const cur=clone(getDay(target)), st=status(target);
+  const empty=!S.drafts[target]&&!S.pub[target];
+  if(empty){const d=clone(src);d.date=target;d.rev=1;d.pubRev=-1;d.updatedAt=new Date().toISOString();(d.slots||[]).forEach(sl=>{sl.id=uid();(sl.acts||[]).forEach(a=>a.id=uid())});
+    try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}return}
   (cur.slots||[]).forEach(x=>(x.acts||[]).forEach(a=>{a.pinned=false}));
   const ok=await new Promise(res=>{let done=false;
     const m=openModal(`<div class="mh"><h3>Écraser le ${esc(EJ.fmtShortDate(target))} ?</h3></div>
@@ -2171,7 +2209,8 @@ function renderDrawer(){ensureKitDefs();
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
-      <button class="add-act add-slot top" id="addslot">＋ Ajouter une période horaire</button>
+      <div class="steps-hint"><span><b>1</b> créneau horaire</span><i>›</i><span><b>2</b> activités du créneau</span></div>
+      <button class="add-act add-slot top" id="addslot">＋ Ajouter un créneau horaire</button>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
       ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}
     </div>
@@ -2181,15 +2220,16 @@ function renderDrawer(){ensureKitDefs();
 }
 function slotHTML(s,i){
   return `<section class="slot" data-si="${i}">
+    <div class="slot-cap">🕑 Créneau ${i+1}${s.start||s.end?' · '+esc(EJ.rng(s.start,s.end)):''}</div>
     <div class="slot-head">
       <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
       <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Temps libre, Soirée)">
       ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas d'activité)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
-      <button class="ico" data-sdel="${i}" title="Supprimer cette période">🗑️</button>
+      <button class="ico" data-sdel="${i}" title="Supprimer ce créneau">🗑️</button>
     </div>
     <div class="slot-acts">
       ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
-      <button class="add-act" data-add="${i}">＋ Ajouter une activité</button>
+      <button class="add-act" data-add="${i}">＋ Ajouter une activité dans ce créneau</button>
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
@@ -2240,7 +2280,7 @@ function bindDrawer(dr){
   });
   dr.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{
     const s=day.slots[+b.dataset.sdel];
-    if((s.acts||[]).length&&!await confirmBox('Supprimer cette période horaire et ses '+s.acts.length+' activité(s) ?',{ok:'Supprimer',danger:true}))return;
+    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' activité(s) ?',{ok:'Supprimer',danger:true}))return;
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
   const af=dr.querySelector('#addfree');
@@ -2330,7 +2370,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
     const seg=(name,val,opts)=>`<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" class="${val===v?'on':''}">${l}</button>`).join('')}</div>`;
     const ty=f.cat==='sejour'?'sejour':f.cat==='projet'?'projet':'activite';
-    return `<div class="atype" role="radiogroup" aria-label="Type">${[['activite','Activité'],['sejour','Séjour / nuitée'],['projet','Projet / staff']].map(([k,l])=>`<button type="button" class="atb${ty===k?' on':''}" data-aty="${k}">${l}</button>`).join('')}</div>
+    return `<div class="atype" role="radiogroup" aria-label="Type">${[['activite','Activité'],['sejour','Séjour / nuitée'],['projet','Projet / info']].map(([k,l])=>`<button type="button" class="atb${ty===k?' on':''}" data-aty="${k}">${l}</button>`).join('')}</div>
     <div class="form-grid">
       <div>
         <button class="vis-pick" id="pickvis" type="button">${actImage(f)}<span class="chg">🖼️ Changer l'image</span></button>
@@ -2346,7 +2386,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
         <label class="fld"><span>Titre</span><input class="in" id="ftitle" value="${esc(f.title)}" placeholder="ex. Piscine à l'IloBulles de Contres" style="font-weight:800;font-size:17px"></label>
         <label class="fld"><span>Description (facultatif)</span><textarea class="in" id="fdesc" placeholder="Une phrase pour donner envie…">${esc(f.desc)}</textarea></label>
         ${f.cat==='projet'?`<label class="fld"><span>Texte descriptif du projet</span><textarea class="in" id="fabout" style="min-height:110px" placeholder="Présente le projet : objectifs, déroulement, ce que les jeunes vont faire…">${esc(f.about||'')}</textarea></label>`:''}
-        <div class="box"><h4>🕑 ${f.cat==='projet'?'Lieu':'Horaires'}</h4>${f.cat==='projet'?'<p class="kbd" style="margin:0 0 4px">Projet & staff : pas d\'horaire, seulement la description.</p>':seg('tmode',t.mode,[['none','Sans horaire particulier'],['range','Début – fin'],['depart','Départ / retour']])}
+        <div class="box"><h4>🕑 ${f.cat==='projet'?'Lieu':'Horaires'}</h4>${f.cat==='projet'?'<p class="kbd" style="margin:0 0 4px">Projet / info : pas d\'horaire, seulement la description.</p>':seg('tmode',t.mode,[['none','Sans horaire particulier'],['range','Début – fin'],['depart','Départ / retour']])}
           ${t.mode!=='none'&&f.cat!=='projet'?`<div class="row" style="margin-top:8px"><span class="kbd">${t.mode==='depart'?'Départ':'Début'}</span><input class="in t" type="time" id="tstart" value="${esc(t.start)}"><span class="kbd">${t.mode==='depart'?'Retour':'Fin'}</span><input class="in t" type="time" id="tend" value="${esc(t.end)}"></div>`:''}
           <label class="fld"><span>Lieu (facultatif)</span><input class="in" id="fplace" value="${esc(f.place)}" placeholder="ex. Salle des fêtes, gymnase…"></label>
           ${f.cat==='sejour'?`<div class="row"><label class="fld" style="flex:1"><span>Jusqu'au (date de retour)</span><input class="in" type="date" id="fend" value="${esc(f.endDate||'')}"></label>
@@ -2663,7 +2703,7 @@ function renderSettings(main){
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet & staff), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, nuitée & séjour, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
       <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
