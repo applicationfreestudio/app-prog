@@ -389,6 +389,39 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig{flex:0 0 300px;height:130px;border-radius:14px;border:1.5px solid #D9D5CF;position:relative}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
+/* --- v42 --- */
+.cal-bar .l2 #jump{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.cal-bar .l2 #legend{flex:0 0 auto;padding-left:12px;padding-right:12px}
+.cal-bar .l2 #pubmonth{flex:0 1 auto;min-width:0;white-space:normal;line-height:1.1;text-align:center;font-size:14px}
+.dr-foot .pri .dbtn{font-size:14.5px!important;padding-left:8px;padding-right:8px}
+.dr-head .r1 h2{font-size:19px}
+.dty{font-size:20px;line-height:1;flex:0 0 auto}
+.dr-head .r1 .st{margin-left:2px;flex:0 0 auto}
+.dr-head .r1 .st .pill{font-size:12.5px;padding:4px 8px}
+.dbtn.eye{flex:0 0 52px!important;padding:0}
+.dbtn.ok{flex:0 0 60px!important}
+.add-slot.top{margin:0 0 4px}
+.act.isfull,.cell .al.isfull{box-shadow:0 0 0 1.5px rgba(214,48,49,.55)}
+.cell .al.isfull{border-radius:6px;padding:0 5px;margin-right:auto;max-width:100%}
+.plist{gap:0!important}
+.prow{border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;border-bottom:1px solid #E7E3DD!important;padding:13px 6px!important;font-weight:500!important}
+.prow:last-child{border-bottom:0!important}
+.prow.vac{background:transparent!important}
+.mflags{display:none}
+@media (max-width:820px){
+  .cal .cell .mflags{position:absolute;left:-70px;top:76px;width:58px;display:flex;justify-content:center;gap:4px}
+  .cal .cell .mflags i{width:22px;height:22px;display:grid;place-items:center;border:1.5px solid #D9D3CA;border-radius:6px;background:#fff}
+  .cal .cell{min-height:104px}
+}
+@media (min-width:821px){.cell .mflags{display:flex;position:absolute;right:26px;top:7px;gap:3px}.cell .mflags i{width:20px;height:20px;display:grid;place-items:center;border:1.5px solid #D9D3CA;border-radius:5px;background:#fff}}
+
+.cal-ico .h .slbl{display:block;align-self:stretch;text-align:center;border-top:1px solid #EEEAE4;margin-top:4px;padding-top:3px;font-size:11.5px;font-weight:500;color:var(--ink2);white-space:normal;line-height:1.2}
+.slot-ims{display:flex;gap:5px;margin-top:8px;justify-content:center}
+.slot-ims .si{flex:1 1 0;max-width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;box-shadow:var(--lift)}
+.slot-ims.n1 .si{flex:0 0 100%}
+.slot-ims .si img,.slot-ims .si .vis,.slot-ims .si svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px}
+.card.isfull{box-shadow:0 0 0 1.5px rgba(214,48,49,.55),var(--lift)!important}
+
 /* --- v41 --- */
 .crop{display:flex;justify-content:center}
 .crop-v{position:relative;width:min(300px,72vw);aspect-ratio:1;border-radius:18px;overflow:hidden;background:#222;touch-action:none;cursor:grab;box-shadow:0 0 0 3px #fff,0 0 0 4.5px #D9D3CA}
@@ -1066,7 +1099,7 @@ function cardHTML(a,opts){
   const full=a.full&&!stay&&!(a.cat==='projet'&&a.place)?`<span class="full-tag">${esc(LBL.full)}</span>`:'';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article class="card${info?'':' noinfo'}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">
+  return `<article class="card${info?'':' noinfo'}${a.full?' isfull':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1111,6 +1144,14 @@ function sepLabel(p){
 }
 const tm=t=>{if(!t)return null;const [h,m]=t.split(':').map(Number);let v=h*60+(m||0);if(v<5*60)v+=24*60;return v};
 const tt=v=>{v=v%(24*60);return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0')};
+// horaires par période, avec leur intitulé (sans fusion)
+function slotRanges(day){
+  return (day.slots||[]).filter(s=>s.start||s.end).map(s=>{
+    let a=tm(s.start),b=tm(s.end);
+    (s.acts||[]).forEach(x=>{const t=x.timing||{};if(t.mode!=='none'&&x.cat!=='projet'&&x.cat!=='sejour'){const e=tm(t.end);if(e!=null&&(b==null||e>b))b=e}});
+    return [a==null?'':tt(a),b==null?'':tt(b),s];
+  });
+}
 function dayRanges(day){
   if(day.closed)return [];
   const r=[];
@@ -1140,7 +1181,15 @@ function dayHTML(day,settings,opts){
   const d=parse(day.date);
   const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
   const left=`<aside class="dcol"><div class="cal-ico${day.closed?' shut':''}"${day.closed&&day.closedReason?` title="${esc(day.closedReason)}"`:''}><div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>
-    <div class="h">${day.closed?'<span class="off">Fermé</span>':dayRanges(day).map(([a,b])=>`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`).join('<i></i>')||''}</div></div>${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
+    <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
+      const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);
+      const lab=hasActs&&(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
+      const rgH=(a,b)=>`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`;
+      if(lab)return slotRanges(day).map(([a,b,s])=>rgH(a,b)+(s.label&&String(s.label).trim()?`<span class="slbl">${esc(lc1(s.label))}</span>`:'')).join('<i></i>');
+      return dayRanges(day).map(([a,b])=>rgH(a,b)).join('<i></i>')||'';
+    })()}</div></div>${(()=>{if(day.closed)return '';const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);if(!hasActs)return '';
+      const ims=(day.slots||[]).filter(x=>(x.start||x.end)&&(x.visual||x.asset)&&(x.acts||[]).length);
+      return ims.length?`<div class="slot-ims n${Math.min(ims.length,3)}">${ims.map(x=>`<span class="si">${actImage({visual:x.visual,asset:x.asset},opts)}</span>`).join('')}</div>`:''})()}${isNight(day)?`<span class="night"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#FCD34D"/></svg>${esc(cap(LBL.night))}</span>`:''}</aside>`;
   let r='';
   if(opts&&opts.statusOf)r+=`<div class="stl">${opts.statusOf(day.date)}</div>`;
   if(day.note)r+=`<div class="dnote"><svg class="warn" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><defs><linearGradient id="wy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD84D"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="url(#wy)" stroke="url(#wy)" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><span>${esc(lc1(day.note))}</span></div>`;
@@ -1348,7 +1397,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -1587,7 +1636,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.41';
+const APP_VERSION='v261120.42';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1750,15 +1799,14 @@ function renderCalendar(main){
   main.innerHTML=`
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
     <div class="cal-bar">
-      <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button><button class="btn" id="legend" title="Légende" aria-label="Légende">Légende</button></div>
-      <div class="l2"><button class="btn" id="jump">Aller à une période… ▾</button>
+      <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
+      <div class="l2"><button class="btn" id="jump">Aller à une période… ▾</button><button class="btn" id="legend" title="Légende" aria-label="Légende">LG</button>
       <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+draftsInMonth.length+' brouillon'+(draftsInMonth.length>1?'s':''):'Rien à publier'}</button></div>
     </div>
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
   main.querySelector('#jump').onclick=()=>{
-    const m=openModal(`<div class="mh"><h3>Aller à une période</h3><button class="ico" data-x>✕</button></div><div class="mb"><div class="plist">${pers.map(p=>`<button class="prow${p.type==='vacances'?' vac':''}" data-go="${p.start}"><span class="pe">${p.type==='vacances'?'🏖️':'🎒'}</span><span>${fmtShort(p.start)} → ${fmtShort(p.end)}</span></button>`).join('')||'<p class="hint">Aucune période dans les paramètres.</p>'}</div></div>`,{cls:'leg'});
-    m.el.querySelector('[data-x]').onclick=()=>m.close();
+    const m=openModal(`<div class="mb"><div class="plist">${pers.map(p=>`<button class="prow${p.type==='vacances'?' vac':''}" data-go="${p.start}"><span class="pe">${p.type==='vacances'?'🏖️':'🎒'}</span><span>${fmtShort(p.start)} → ${fmtShort(p.end)}</span></button>`).join('')||'<p class="hint">Aucune période dans les paramètres.</p>'}</div></div>`,{cls:'leg'});
     m.el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{UI.month=b.dataset.go.slice(0,7);m.close();render()});
   };
   {const cal=main.querySelector('.cal');let x0=null,y0=0;
@@ -1790,10 +1838,11 @@ function cellHTML(d,out){
   const dd=parse(d);
   return `<button class="${cls}" data-date="${d}">
     <span class="mcal${day.closed?' shut':''}"><b>${EJ.MONTHS_S[dd.getMonth()].replace('.','')}</b><i>${dd.getDate()}</i><small>${EJ.DAYS_S[dow(d)]}.</small></span>
+    ${(()=>{const n=!day.closed&&EJ.isNight(day),pn=acts.some(a=>a.pinned);return n||pn?`<span class="mflags">${n?'<i title="Nocturne"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#6228D7"/></svg></i>':''}${pn?'<i title="Épinglée à la une"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z" fill="#E1306C"/></svg></i>':''}</span>`:''})()}
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${a.morning?' m':''}${k>2?' x3':''}">${(CATS[a.cat]||{}).emoji||'⭐'} ${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${a.morning?' m':''}${a.full?' isfull':''}${k>2?' x3':''}">${(CATS[a.cat]||{}).emoji||'⭐'} ${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -1836,7 +1885,7 @@ function refreshDrawerStatus(){
 const ST_SHORT={todo:'À construire',draft:'Brouillon',pub:'En ligne',mod:'Modifié'};
 function statusBar(date){
   const s=status(date);
-  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${ST_SHORT[s]}</span>`;
+  return `<span class="pill p-${s}" title="${ST_LABEL[s]}">${s==='todo'?'Type':ST_SHORT[s]}</span>`;
 }
 function footHTML(date){
   const s=status(date);
@@ -1849,11 +1898,13 @@ function footHTML(date){
     <div class="pri">
       <button class="dbtn" data-pa="save">Enregistrer le brouillon</button>
       <button class="dbtn go" data-pa="pub">${s==='mod'?'Mettre à jour':s==='pub'?'En ligne ✓':'Publier'}</button>
+      <button class="dbtn eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="dbtn ok" data-x="1">OK</button>
     </div>`;
 }
 function bindStatus(){
   document.querySelectorAll('.drawer [data-x]').forEach(b=>b.onclick=()=>closeDrawer());
+  document.querySelectorAll('.drawer #drprev').forEach(b=>b.onclick=()=>window.__drPrev&&window.__drPrev());
   document.querySelectorAll('.drawer [data-pa]').forEach(b=>b.onclick=async()=>{
     const date=UI.drawer.date, a=b.dataset.pa;
     if(a==='save'){if(!S.drafts[date])dirty=true;flushSave();await (queues['drafts/'+date]||Promise.resolve());toast('Brouillon enregistré ✓');closeDrawer();return}
@@ -1904,15 +1955,15 @@ function renderDrawer(){
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><button class="dhb eye" id="drprev" title="Voir le rendu" aria-label="Voir le rendu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-      <div class="r2"><span class="pill">${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}</span><span class="saving" id="saving" hidden></span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'?'🏖️':t.type==='scolaire'?'🎒':t.type==='ferie'?'🎉':'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Accueil fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
+      <button class="add-act add-slot top" id="addslot">＋ Ajouter une période horaire</button>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      <button class="add-act add-slot" id="addslot">＋ Ajouter une période horaire</button>
       ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Séjour ou projet (sans horaire)</button>':''}
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
@@ -1934,7 +1985,7 @@ function slotHTML(s,i){
 }
 function actRowHTML(a,i,j,n){
   const meta=[whenText(a),a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
-  return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
+  return `<div class="act${a.morning?' m':''}${a.full?' isfull':''}" data-edit="${i}:${j}">
     <div class="th">${actImage(a)}</div>
     <div class="tx"><b>${esc(a.title||'Activité')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
@@ -1954,7 +2005,7 @@ function bindDrawer(dr){
   dr.querySelector('#dnote').oninput=e=>{day.note=e.target.value;scheduleSave()};
   dr.querySelectorAll('[data-simg]').forEach(b=>b.onclick=()=>{const s=day.slots[+b.dataset.simg];const o={cat:'jeux',visual:s.visual||'',asset:s.asset||''};
     openImagePicker(o,()=>{s.visual=o.visual||'';s.asset=o.asset||'';scheduleSave();renderDrawer()})});
-  dr.querySelector('#drprev').onclick=()=>{flushSave();const d=clone(day);const ov=document.createElement('div');ov.className='realview';
+  window.__drPrev=()=>{flushSave();const d=clone(day);const ov=document.createElement('div');ov.className='realview';
     ov.innerHTML='<div class="rv-root"></div><button class="rv-exit">Fermer le rendu</button>';document.body.appendChild(ov);
     mountPublic(ov.querySelector('.rv-root'),{days:{[d.date]:d},settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
     ov.querySelector('.rv-exit').onclick=()=>ov.remove()};
