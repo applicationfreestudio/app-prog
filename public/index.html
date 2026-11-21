@@ -892,6 +892,11 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 /* pas de flèche = pas de place réservée pour elle */
 .card.nofold h3{padding-right:0!important}
 .card.nofold .card-head{padding-right:12px!important}
+
+/* titre : seule la place de la flèche est réservée */
+.card.fold.demi h3,.card:not(.fold):not(.zoomed) h3{padding-right:0!important}
+.card.fold.demi:not(.nofold) .card-head,.card:not(.fold):not(.zoomed) .card-head{padding-right:36px!important}
+.card.nofold .card-head{padding-right:10px!important}
 </style>
 
 <style>
@@ -2029,7 +2034,7 @@ function mountPublic(root,data,opts){
   function fitH(h,cap){h.style.fontSize='';
     const cs=getComputedStyle(h),pd=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight),rg=document.createRange();rg.selectNodeContents(h);
     const hd=h.parentElement,hs=getComputedStyle(hd),av=hd.clientWidth-parseFloat(hs.paddingLeft)-parseFloat(hs.paddingRight)-Math.max(0,parseFloat(cs.marginLeft))-Math.max(0,parseFloat(cs.marginRight));
-    const over=()=>{const k=h.offsetWidth?h.getBoundingClientRect().width/h.offsetWidth:1;return rg.getBoundingClientRect().width/(k||1)+pd+2>av};
+    const over=()=>{const k=h.offsetWidth?h.getBoundingClientRect().width/h.offsetWidth:1;return rg.getBoundingClientRect().width/(k||1)+pd+.75>av};
     let f=parseFloat(cs.fontSize)||17;if(cap&&f>cap){f=cap;h.style.fontSize=f+'px'}while(over()&&f>9){f-=.5;h.style.fontSize=f+'px'}return f}
   // le titre replié n'est jamais plus grand que le même titre déplié
   function fitTitles(sc){(sc?[sc]:[...root.querySelectorAll('.card')]).forEach(c=>{const h=c.querySelector('h3');if(!h)return;
@@ -2449,7 +2454,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.131';
+const APP_VERSION='v261120.132';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
