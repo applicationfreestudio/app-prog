@@ -910,6 +910,19 @@ textarea.in{min-height:64px;resize:vertical}
 
 .lgi{display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid #D9D3CA;border-radius:6px;background:#fff;margin-right:8px;vertical-align:middle}
 .leg-row .tg{margin-right:8px}
+/* kit d'icônes */
+.kic{display:inline-grid;place-items:center;border-radius:6px;vertical-align:-4px;flex:0 0 auto}
+.kic.k-a{border:1.3px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box}
+.kic.k-c{border:1.3px solid #E3DED6;background:#fff}
+.kemo{line-height:1;vertical-align:-1px}
+.cell .al .kic{margin-right:3px;width:17px!important;height:17px!important;border-radius:5px;vertical-align:-3px}
+.cell .al .kic svg{width:12px;height:12px}
+.cell .al .tg{vertical-align:-3px;margin-right:3px}
+.kits{display:grid;grid-template-columns:1fr;gap:10px}
+.kitopt{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:12px!important;height:auto!important}
+.kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
+.kprev{display:flex;flex-wrap:wrap;gap:6px}
+.dty .kic{vertical-align:middle}
 /* ===== v43 : système visuel unifié de l'éditeur =====
    niveau 1 (base)      : fond blanc, contour dégradé, relief découpé
    niveau 2 (sensible)  : teinte rouge légère (suppression, réinitialisation, retrait)
@@ -1688,7 +1701,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.44';
+const APP_VERSION='v261120.45';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -1827,7 +1840,8 @@ function renderPublicOnly(){
 }
 
 /* ---------- Calendrier ---------- */
-function renderCalendar(main){
+function ensureKitDefs(){if(document.getElementById('kitdefs'))return;const d=document.createElement('div');d.id='kitdefs';d.innerHTML='<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="kitg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F9CE34"/><stop offset=".5" stop-color="#EE2A7B"/><stop offset="1" stop-color="#6228D7"/></linearGradient></defs></svg>';document.body.appendChild(d)}
+function renderCalendar(main){ensureKitDefs();
   const st=settings();
   if(!S.ready.drafts||!S.ready.settings){main.innerHTML='<div class="loading">Chargement du calendrier…</div>';return}
   const [y,m]=UI.month.split('-').map(Number);
@@ -1858,7 +1872,7 @@ function renderCalendar(main){
     <div class="cal">${DAYS.map(d=>`<div class="cal-h">${d}</div>`).join('')}${cells}</div>`;
   main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const n=+b.dataset.mv;if(!n)UI.month=TODAY.slice(0,7);else{const d=new Date(y,m-1+n,1);UI.month=iso(d).slice(0,7)}render()});
   main.querySelector('#jump').onclick=()=>{
-    const m=openModal(`<div class="mb"><div class="plist">${pers.map(p=>`<button class="prow${p.type==='vacances'?' vac':''}" data-go="${p.start}"><span class="pe">${p.type==='vacances'?'🏖️':'🎒'}</span><span>${fmtShort(p.start)} → ${fmtShort(p.end)}</span></button>`).join('')||'<p class="hint">Aucune période dans les paramètres.</p>'}</div></div>`,{cls:'leg'});
+    const m=openModal(`<div class="mb"><div class="plist">${pers.map(p=>`<button class="prow${p.type==='vacances'?' vac':''}" data-go="${p.start}"><span class="pe">${kitIcon(p.type==='vacances'?'vacances':'scolaire',18)}</span><span>${fmtShort(p.start)} → ${fmtShort(p.end)}</span></button>`).join('')||'<p class="hint">Aucune période dans les paramètres.</p>'}</div></div>`,{cls:'leg'});
     m.el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{UI.month=b.dataset.go.slice(0,7);m.close();render()});
   };
   {const cal=main.querySelector('.cal');let x0=null,y0=0;
@@ -1875,7 +1889,7 @@ function renderCalendar(main){
       <div class="leg-row"><i class="tg c">C</i>activité complète</div>
       <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M15 3l6 6-3 1-4 4 1 5-2 2-4.5-4.5L4 21l-1-1 4.5-4.5L3 11l2-2 5 1 4-4z" fill="#E1306C"/></svg></span>activité épinglée à la une</div>
       <div class="leg-row"><span class="lgi"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="#6228D7"/></svg></span>journée avec nocturne</div>
-      <div class="leg-row"><span style="font-size:17px">🏖️ 🎒</span>&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
+      <div class="leg-row">${kitIcon('vacances',16)} ${kitIcon('scolaire',16)}&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
     m.el.querySelector('[data-x]').onclick=()=>m.close();
   };
   main.querySelectorAll('.cell').forEach(c=>c.onclick=()=>openDrawer(c.dataset.date));
@@ -1898,7 +1912,7 @@ function cellHTML(d,out){
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${(CATS[a.cat]||{}).emoji||'⭐'} ${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${kitIcon(a.cat,15)} ${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -2003,7 +2017,7 @@ async function deleteDraft(){
   clearTimeout(saveT);dirty=false;
   try{if(S.pub[day.date])await unpublishDay(day.date);await docDel('drafts/'+day.date);delete S.drafts[day.date];openDrawer(day.date);render()}catch(e){}
 }
-function renderDrawer(){
+function renderDrawer(){ensureKitDefs();
   const {date,day}=UI.drawer;
   const t=dayType(date);
   let scrim=document.querySelector('.scrim'),dr=document.querySelector('.drawer');
@@ -2011,7 +2025,7 @@ function renderDrawer(){
   if(!dr){dr=document.createElement('aside');dr.className='drawer';document.body.appendChild(dr)}
   const keepScroll=dr.querySelector('.dr-body')?dr.querySelector('.dr-body').scrollTop:0;
   dr.innerHTML=`<div class="dr-head">
-      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'?'🏖️':t.type==='scolaire'?'🎒':t.type==='ferie'?'🎉':'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
+      <div class="r1"><button class="dhb nav" data-nav="-1" title="Jour précédent" aria-label="Jour précédent">‹</button><h2>${esc(EJ.fmtShortDate(date))}</h2><button class="dhb nav" data-nav="1" title="Jour suivant" aria-label="Jour suivant">›</button><span class="dty" title="${esc(t.type==='vacances'?'Semaine de vacances':t.type==='scolaire'?'Semaine scolaire':t.label)}">${t.type==='vacances'||t.type==='scolaire'||t.type==='ferie'?kitIcon(t.type,22):'—'}</span><span id="drstatus" class="st">${statusBar(date)}</span></div>
       <span class="saving" id="saving" hidden></span>
     </div>
     <div class="dr-body">
@@ -2258,6 +2272,19 @@ function openComposer({mode,initial,onSave,onDelete,cats}){
 }
 
 /* ---------- Choix de l'image ---------- */
+
+/* ---------- Kit d'icônes (éditeur) : emoji, A (trait noir), B (pastille couleur), C (trait dégradé) ---------- */
+const KIT_P={"vacances": "<circle cx=\"17\" cy=\"6\" r=\"2.6\"/><path d=\"M3 20h18\"/><path d=\"M11 20 8.5 9.5\"/><path d=\"M2.8 11.2C4 7.4 8 5.4 11.6 6.6l1.4.5L2.8 11.2z\"/><path d=\"M6 21c1.5-1.2 3-1.2 4.5 0s3 1.2 4.5 0 3-1.2 4.5 0\"/>", "scolaire": "<path d=\"M7 8V6.5A5 5 0 0 1 17 6.5V8\"/><rect x=\"4.5\" y=\"8\" width=\"15\" height=\"12.5\" rx=\"3\"/><path d=\"M8.5 13h7v4h-7z\"/><path d=\"M4.5 12.5h15\"/>", "sport": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5l3.4 2.5-1.3 4h-4.2l-1.3-4z\"/><path d=\"M12 3.5v4M15.4 10l4.6-1.6M14.1 14l2.6 3.6M9.9 14l-2.6 3.6M8.6 10 4 8.4\"/>", "jeux": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><circle cx=\"8.6\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"8.6\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"8.6\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15.4\" cy=\"15.4\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\"/>", "creation": "<path d=\"M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4H18a2.5 2.5 0 0 0 2.5-2.5A8.5 8.5 0 0 0 12 3.5z\"/><circle cx=\"7.8\" cy=\"11\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10.5\" cy=\"7.3\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"15\" cy=\"7.8\" r=\"1.2\" fill=\"currentColor\" stroke=\"none\"/>", "cuisine": "<path d=\"M7 13.5V20h10v-6.5\"/><path d=\"M7 13.5A4 4 0 0 1 6.2 5.7 4.5 4.5 0 0 1 12 3.5a4.5 4.5 0 0 1 5.8 2.2A4 4 0 0 1 17 13.5z\"/><path d=\"M7 17h10\"/>", "sortie": "<path d=\"M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z\"/><circle cx=\"12\" cy=\"10\" r=\"2.4\"/>", "soiree": "<path d=\"M9 18V5.5l11-2V16\"/><circle cx=\"6.5\" cy=\"18\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"16\" r=\"2.5\"/><path d=\"M9 9.5l11-2\"/>", "bienetre": "<path d=\"M12 20c-4.5 0-8-2.6-8.5-6.5C6 13.2 9.5 14.6 12 20z\"/><path d=\"M12 20c4.5 0 8-2.6 8.5-6.5-2.5-.3-6 1.1-8.5 6.5z\"/><path d=\"M12 20c-2.6-3-2.6-9.5 0-14 2.6 4.5 2.6 11 0 14z\"/>", "culture": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"2\"/><path d=\"M3.5 9 19 4.6l.9 3.1\"/><path d=\"M8.2 7.7l2.3 2.6M13.3 6.3l2.3 2.6\"/>", "projet": "<rect x=\"3.5\" y=\"8\" width=\"17\" height=\"11.5\" rx=\"2.5\"/><path d=\"M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2\"/><path d=\"M3.5 13h17\"/><path d=\"M10.5 13v2h3v-2\"/>", "sejour": "<path d=\"M12 4 3 20h18L12 4z\"/><path d=\"M12 4v16\"/><path d=\"M12 20l-3.2-6M12 20l3.2-6\"/><path d=\"M10 3.2 12 4l2-.8\"/>"}, KIT_C={"vacances": "#F59E0B", "scolaire": "#2F7BEA", "sport": "#13998F", "jeux": "#6B4CE6", "creation": "#E8408C", "cuisine": "#F07B1E", "sortie": "#2F7BEA", "soiree": "#3A2C8F", "bienetre": "#C9578E", "culture": "#D23C3C", "projet": "#4E5866", "sejour": "#2E8B4A"};
+const KIT_EMO={vacances:'🏖️',scolaire:'🎒',ferie:'🎉'};
+const iconKit=()=>((settings().info||{}).iconKit)||'emoji';
+function kitIcon(k,size,kit){
+  kit=kit||iconKit();size=size||16;if(kit==='c')ensureKitDefs();
+  const emo=k==='vacances'||k==='scolaire'||k==='ferie'?KIT_EMO[k]:((CATS[k]||{}).emoji||'⭐');
+  if(kit==='emoji'||!KIT_P[k])return `<span class="kemo" style="font-size:${size}px">${emo}</span>`;
+  const st=kit==='b'?'#fff':kit==='c'?'url(#kitg)':'#141317';
+  const svg=`<svg width="${Math.round(size*.78)}" height="${Math.round(size*.78)}" viewBox="0 0 24 24" fill="none" stroke="${st}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${KIT_P[k]}</svg>`;
+  return `<span class="kic k-${kit}" style="width:${size+6}px;height:${size+6}px${kit==='b'?';background:'+(KIT_C[k]||'#555'):''}">${svg}</span>`;
+}
 // Images personnelles : celles importées (mémorisées dans les paramètres) + celles déjà utilisées
 function myImages(){
   const set=new Set(((settings().info||{}).myImgs)||[]);
@@ -2434,6 +2461,8 @@ function renderSettings(main){
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes des types d'activité et des semaines (vacances, scolaire) dans le calendrier de l'éditeur. L'épingle et la lune ne changent pas.</p>
+      <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sport','jeux','creation','cuisine','sortie','soiree','bienetre','culture','projet','sejour'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
@@ -2455,6 +2484,7 @@ function renderSettings(main){
     try{await docSet('config/settings',base);S.settings=base;toast(msg)}catch(e){}
     render();
   };
+  main.querySelectorAll('[data-kit]').forEach(b=>b.onclick=()=>saveInfo(i=>{i.iconKit=b.dataset.kit},'Kit d\'icônes enregistré ✓'));
   if(lu)lu.onchange=async()=>{const f=lu.files[0];lu.value='';if(!f)return;toast('Envoi du logo…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.logo=r.id},'Logo enregistré ✓')}catch(e){toast('Envoi du logo impossible',true)}};
   const ld=main.querySelector('#logodel');if(ld)ld.onclick=()=>saveInfo(i=>{delete i.logo},'Logo retiré');
