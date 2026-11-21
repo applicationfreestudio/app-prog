@@ -739,6 +739,26 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .cal-ico.shut .m{background:var(--shm,linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%))!important}
 .night{background:var(--caln,#6228D7)!important;box-shadow:none!important;color:#fff!important}
 .nonight .night{display:none!important}
+
+/* --- v104 : page d'accueil --- */
+.back-btn{display:flex;align-items:center;justify-content:center;width:26px;height:40px;margin:0 -6px 0 -8px;padding:0;border:0;background:none;color:var(--ink,#141317);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.home{padding:22px 16px 6px;position:relative;z-index:1}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ht{aspect-ratio:1/1;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font:600 17px/1.1 var(--pf);text-align:center;position:relative;padding:0;background:#fff;border:1px solid rgba(20,19,23,.07);box-shadow:2px 2px 0 rgba(20,19,23,.12);color:#B5B0A8}
+.ht small{position:absolute;bottom:12px;font-size:11px;font-weight:500;color:#9A958E}
+.ht.on{cursor:pointer;color:#141317;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;-webkit-tap-highlight-color:transparent}
+.ht.on svg{color:var(--caln,#D62976)}
+.ht.on:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(20,19,23,.12)}
+.contact{margin:18px 0 4px;background:#fff;border-radius:20px;border:1px solid rgba(20,19,23,.07);box-shadow:2px 2px 0 rgba(20,19,23,.12);padding:14px 16px 16px}
+.contact h2{margin:0 0 4px;font:600 12px var(--pf);letter-spacing:.08em;text-transform:uppercase;color:#9A958E}
+.contact .cn{display:block;font:700 17px var(--pf);color:#141317;margin-bottom:8px}
+.contact ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.contact li>span,.contact li>a{background:none!important;box-shadow:none!important;border:0!important;padding:0!important;height:auto!important;margin:0!important;border-radius:0!important;flex:1 1 auto;min-width:0;display:block;white-space:normal!important;width:auto!important;position:static!important}
+.contact li{height:auto!important;min-height:0!important;position:static!important;display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.35;color:#3E3B44}
+.contact li svg{flex:0 0 18px;margin-top:1px;color:#9A958E}
+.contact a{color:#141317;text-decoration:none;font-weight:500}
+.contact .ctx{color:#6B6670;font-size:14px;margin:0}
+.ishome .pub-foot{padding-top:14px}
 </style>
 
 <style>
@@ -1723,14 +1743,27 @@ function themeVars(t,p){p=p||'cal';if(!t||!t.color)return '';const c=hexHsl(t.co
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
 function mountPublic(root,data,opts){
   opts=opts||{};{const ag=data&&data.settings&&data.settings.info&&data.settings.info.ages;if(Array.isArray(ag)&&ag.length)AGES=ag}if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
-  const st={days:{},settings:{},sheet:false,past:false};
+  const st={days:{},settings:{},sheet:false,past:false,view:opts.home&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
+  if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;render();window.scrollTo(0,0)}});
+  const HICO={horaires:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
+  const hico=(k,z)=>`<svg viewBox="0 0 24 24" width="${z}" height="${z}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${HICO[k]}</svg>`;
+  function contactHTML(info){const c=info.contact||{},L=[];
+    const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+    if(c.address)L.push(`<li>${ic('<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>')}<span>${esc(c.address).replace(/\n/g,'<br>')}</span></li>`);
+    if(c.phone)L.push(`<li>${ic('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>')}<a href="tel:${esc(String(c.phone).replace(/[^+\d]/g,''))}">${esc(c.phone)}</a></li>`);
+    if(c.email)L.push(`<li>${ic('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}<a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>`);
+    if(c.web)L.push(`<li>${ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>')}<a href="${esc(/^https?:/.test(c.web)?c.web:'https://'+c.web)}" target="_blank" rel="noopener">${esc(String(c.web).replace(/^https?:\/\//,''))}</a></li>`);
+    if(c.text)L.push(`<li class="ctx">${esc(c.text).replace(/\n/g,'<br>')}</li>`);
+    return `<section class="contact"><h2>contact</h2><b class="cn">${esc(c.name||info.name||'Espace jeunes')}</b>${L.length?`<ul>${L.join('')}</ul>`:'<p class="ctx">Coordonnées à compléter dans les paramètres.</p>'}</section>`}
+  function homeHTML(info){
+    return `<main class="home"><div class="hgrid">${['horaires','programme','informations','inscription'].map(k=>k==='programme'?`<button class="ht on" data-go="prog">${hico(k,44)}<span>${k}</span></button>`:`<div class="ht off" aria-disabled="true">${hico(k,44)}<span>${k}</span><small>bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
   function logoHTML(info){
     if(info.logo&&!opts.noAssets)return `<span class="logo img"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.logo)}" alt=""></span>`;
     const ini=(info.name||'Espace jeunes').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info,wm){
-    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div><div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div></header>`;
+    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(info.sub||'le Programme des animations')}</small></div></div>${opts.home&&st.view==='home'?'':`<div class="hb"><button class="info-btn" data-info="1">Infos</button>${opts.noFs?'':fsBtn()}</div>`}</header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -1812,6 +1845,7 @@ function mountPublic(root,data,opts){
     const thv=themeVars(info.theme)+';'+themeVars(info.themeClosed,'sh');
     const font=FONTS[info.font]?info.font:'Poppins';loadFont(font);
     const wm=info.watermark&&!opts.noAssets?`<img class="wm wm-${esc(info.wmStyle||'doux')}" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.watermark)}" alt="" aria-hidden="true">`:'';
+    if(opts.home&&st.view==='home'){root.innerHTML=`<div class="pub ishome" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv}">${wm}${headHTML(info,wm)}
       <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
@@ -1921,6 +1955,8 @@ function mountPublic(root,data,opts){
           setTimeout(()=>{const an=swap();fades.forEach(x=>x.cancel());an.onfinish=()=>{c._anim=null;wmTick()}},120)}
   }
   root.addEventListener('click',e=>{
+    const go=e.target.closest('[data-go],[data-home]');
+    if(go){st.view=go.dataset.home?'home':'prog';if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;return}
     const ci=e.target.closest('.days .cal-ico');
     if(ci){const sec=ci.closest('section.day');if(sec){const cs=[...sec.querySelectorAll('.card:not(.nofold)')];const anyF=cs.some(c=>c.classList.contains('fold'));cs.filter(c=>c.classList.contains('fold')===anyF).forEach(toggleFold)}return}
     const ab=e.target.closest('[data-auth]');if(ab){e.stopPropagation();authPDF(ab.dataset.auth,ab);return}
@@ -2233,7 +2269,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.103';
+const APP_VERSION='v261120.104';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2367,7 +2403,7 @@ function renderPublicOnly(){
   if(!pubMount||!app.contains(pubMount.el)){
     app.innerHTML='<div id="pubroot"></div>';
     const el=document.getElementById('pubroot');
-    pubMount={el,api:mountPublic(el,pubData())};
+    pubMount={el,api:mountPublic(el,pubData(),{home:true,hashNav:true})};
   } else pubMount.api.update(pubData());
 }
 
@@ -3252,6 +3288,8 @@ function renderSettings(main){
         <button class="btn thopt${st.info.themeClosed?'':' on'}" data-th2=""><span class="thprev" style="--calg:linear-gradient(45deg,#141317 0%,#3A3320 45%,#F5B800 100%);--calm:linear-gradient(90deg,#141317 0%,#4A3E14 55%,#F5B800 100%)"><span class="m">déc</span><b>25</b><i>ven.</i></span><b>Origine</b></button></div>
       <h3 class="thh">Cartouches « nocturne »</h3>
       <label class="sw"><input type="checkbox" id="thnight" ${st.info.showNight===false?'':'checked'}> Afficher les cartouches nocturnes (couleur du thème, en uni)</label>`,st.info.theme?({gr:'Dégradé + relief',g:'Dégradé',fr:'Uni + relief',f:'Uni'})[st.info.theme.style||'gr']:'Dégradé d\'origine')}
+    ${fold('contact','Contact (page d\'accueil)',`<p class="hint">Cartouche « contact » affiché sur la page d'accueil, sous les quatre boutons. Laisser un champ vide pour ne pas l'afficher.</p>
+      ${[['name','Nom de la structure',st.info.name||'Espace jeunes'],['address','Adresse','12 rue …\n41130 Selles-sur-Cher',1],['phone','Téléphone','02 54 …'],['email','E-mail','espace.jeunes@…'],['web','Site web','www.…'],['text','Texte libre (horaires d\'accueil, réseaux…)','',1]].map(([k,l,ph,ta])=>`<label class="fld"><span>${l}</span>${ta?`<textarea class="in" data-ic="${k}" style="min-height:64px" placeholder="${esc(ph)}">${esc((st.info.contact||{})[k]||'')}</textarea>`:`<input class="in" data-ic="${k}" value="${esc((st.info.contact||{})[k]||'')}" placeholder="${esc(ph)}">`}</label>`).join('')}`,(st.info.contact&&(st.info.contact.phone||st.info.contact.email))?'renseigné':'à compléter')}
     ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les cartes qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
@@ -3326,6 +3364,7 @@ function bindSettings(main,st){
   main.querySelectorAll('[data-hdel]').forEach(b=>b.onclick=()=>{st.holidays.splice(+b.dataset.hdel,1);rerender()});
   main.querySelector('#hadd').onclick=()=>{st.holidays.push({date:'',label:'Jour férié'});rerender()};
   main.querySelectorAll('[data-if]').forEach(e=>e.oninput=()=>{st.info[e.dataset.if]=e.value;changedBtn()});
+  main.querySelectorAll('[data-ic]').forEach(e=>e.oninput=()=>{st.info.contact=Object.assign({},st.info.contact,{[e.dataset.ic]:e.value});changedBtn()});
   main.querySelectorAll('[data-agf]').forEach(e=>e.oninput=()=>{st.info.ages[+e.dataset.agf].label=e.value;changedBtn()});
   main.querySelectorAll('[data-agdel]').forEach(b=>b.onclick=()=>{st.info.ages.splice(+b.dataset.agdel,1);rerender()});
   {const ag=main.querySelector('#agadd');if(ag)ag.onclick=()=>{st.info.ages.push({id:uid(),label:''});UI.open.ages=true;rerender()}}
@@ -3381,7 +3420,7 @@ function renderPreview(main){
     const ov=document.createElement('div');ov.className='realview';
     ov.innerHTML='<div class="rv-root"></div><button class="rv-exit">Quitter la vue réelle</button>';
     document.body.appendChild(ov);document.body.style.overflow='hidden';
-    mountPublic(ov.querySelector('.rv-root'),{days,settings:{info:settings().info,periods:settings().periods}},{});
+    mountPublic(ov.querySelector('.rv-root'),{days,settings:{info:settings().info,periods:settings().periods}},{home:true});
     ov.querySelector('.rv-exit').onclick=()=>{ov.remove();document.body.style.overflow=''};
   };
   main.querySelector('#pvseg').onclick=()=>{UI.pvMode=({all:'draft',draft:'pub',pub:'all'})[UI.pvMode||'all'];render()};
