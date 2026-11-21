@@ -888,6 +888,10 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .pub-head{-webkit-backdrop-filter:saturate(1.3) blur(7px)!important;backdrop-filter:saturate(1.3) blur(7px)!important}
 
 .card.hl{background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box!important;box-shadow:0 10px 26px -12px color-mix(in srgb,var(--caln,#EE2A7B) 55%,transparent)!important}
+
+/* pas de flèche = pas de place réservée pour elle */
+.card.nofold h3{padding-right:0!important}
+.card.nofold .card-head{padding-right:12px!important}
 </style>
 
 <style>
@@ -2445,7 +2449,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.130';
+const APP_VERSION='v261120.131';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
