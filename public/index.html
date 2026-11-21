@@ -936,6 +936,11 @@ textarea.in{min-height:64px;resize:vertical}
 .kitopt.on{background:linear-gradient(#FFF7FB,#FFF7FB) padding-box,var(--ig) border-box!important;outline:2px solid #EE2A7B;outline-offset:2px}
 .kprev{display:flex;flex-wrap:wrap;gap:6px}
 .dty .kic{vertical-align:middle}
+/* v57 */
+.atype{display:flex;gap:6px;margin:0 0 14px}
+.atb{flex:1 1 0;min-width:0;min-height:44px;font-size:13px!important;letter-spacing:-.01em;border-radius:12px;border:1.5px solid #E3DED6;background:#fff;font:600 13.5px var(--pf,inherit);color:#5B5466;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px;white-space:nowrap;cursor:pointer}
+.atb.on{border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,var(--ig) border-box;color:#141317;box-shadow:2px 2px 0 rgba(20,19,23,.16)}
+.atb .kic{vertical-align:middle}
 /* v56 */
 .cell .top .hr,.cell .hr{font-weight:650!important;color:#2E2A36!important}
 /* v54 */
@@ -1786,7 +1791,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.56';
+const APP_VERSION='v261120.57';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2277,10 +2282,12 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   function formHTML(){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
     const seg=(name,val,opts)=>`<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-v="${v}" class="${val===v?'on':''}">${l}</button>`).join('')}</div>`;
-    return `<div class="form-grid">
+    const ty=f.cat==='sejour'?'sejour':f.cat==='projet'?'projet':'activite';
+    return `<div class="atype" role="radiogroup" aria-label="Type">${[['activite','Activité'],['sejour','Séjour / nuitée'],['projet','Projet / staff']].map(([k,l])=>`<button type="button" class="atb${ty===k?' on':''}" data-aty="${k}">${l}</button>`).join('')}</div>
+    <div class="form-grid">
       <div>
         <button class="vis-pick" id="pickvis" type="button">${actImage(f)}<span class="chg">🖼️ Changer l'image</span></button>
-        <label class="fld"><span>Catégorie</span><select class="in" id="fcat">${Object.entries(CATS).map(([k,x])=>`<option value="${k}" ${k===f.cat?'selected':''}>${x.emoji} ${esc(x.label)}</option>`).join('')}</select></label>
+        ${ty==='activite'?`<label class="fld"><span>Catégorie</span><select class="in" id="fcat">${Object.entries(CATS).filter(([k])=>k!=='sejour'&&k!=='projet').map(([k,x])=>`<option value="${k}" ${k===f.cat?'selected':''}>${x.emoji} ${esc(x.label)}</option>`).join('')}</select></label>`:''}
         <label class="fld"><span>Public</span>${seg('publics',f.publics,[['tous','Tous'],['preados','Pré-ados'],['ados','Ados']])}</label>
         <label class="sw"><input type="checkbox" id="fmorning" ${f.morning?'checked':''}> ☀️ Activité du matin (en orange)</label>
         <label class="sw"><input type="checkbox" id="ffull" ${f.full?'checked':''}> Complet</label>
@@ -2341,7 +2348,10 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
     chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
-    $('#fcat').onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
+    $$('[data-aty]').forEach(b=>b.onclick=()=>{const k=b.dataset.aty,old=f.cat;
+      if(k==='activite'){if(old!=='sejour'&&old!=='projet')return;f.cat=f._prevCat||'jeux'}else{if(old===k)return;if(old!=='sejour'&&old!=='projet')f._prevCat=old;f.cat=k}
+      if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()});
+    const fc=$('#fcat');if(fc)fc.onchange=e=>{const old=f.cat;f.cat=e.target.value;if(!f.asset&&f.visual===(CATS[old]||{}).visual)f.visual=CATS[f.cat].visual;draw()};
     $$('[data-seg]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
       const k=sg.dataset.seg,v=b.dataset.v;
       if(k==='publics')f.publics=v;else if(k==='tmode')f.timing.mode=v;else if(k==='pmode')f.price.mode=v;
@@ -2371,7 +2381,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       f.title=f.title.trim();
       if(f.cat==='projet')f.timing={mode:'none',start:'',end:''};
       if(f.timing.mode==='none'){f.timing.start='';f.timing.end=''}
-      const out=clone(f);
+      const out=clone(f);delete out._prevCat;
       m.close();onSave(out);
       if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajoutée aux activités types ✓')}
     }
