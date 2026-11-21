@@ -1952,7 +1952,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.76';
+const APP_VERSION='v261120.77';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2048,7 +2048,7 @@ function render(){
   const v=UI.view;
   app.innerHTML=`<div class="cr">
     <header class="cr-top"><div class="r1"><span class="app">AppProg<span class="ver">${APP_VERSION}</span></span>${S.stale?'<span class="who">⚠️ pas à jour</span>':''}<span class="role">Administrateur</span>${EJ.fsBtn('dark')}</div>
-      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','Activités')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
+      <nav class="tabs">${tabBtn('createur','Calendrier')}${tabBtn('activites','Rendez-vous')}${tabBtn('parametres','Paramètres')}${tabBtn('apercu','Aperçu public')}</nav></header>
     <div class="cr-main" id="crmain"></div></div>`;
   const main=document.getElementById('crmain');
   if(v==='activites')renderLibrary(main);
@@ -2151,9 +2151,9 @@ function renderCalendar(main){ensureKitDefs();
       <div class="leg-row"><i class="dot st-mod"></i>Modifié depuis la mise en ligne</div>
       <div class="leg-row">${kitIcon('sejour',16)}&nbsp;sur plusieurs jours (séjour/nuitée)</div>
       <div class="leg-row">${kitIcon('projet',16)}&nbsp;information « à partir du » / « jusqu'au »</div>
-      <div class="leg-row"><i class="tg m">M</i>activité du matin</div>
-      <div class="leg-row"><i class="tg c">C</i>activité complète</div>
-      <div class="leg-row">${kitIcon('epingle',14)}&nbsp;activité épinglée à la une</div>
+      <div class="leg-row"><i class="tg m">M</i>rendez-vous du matin</div>
+      <div class="leg-row"><i class="tg c">C</i>rendez-vous complet</div>
+      <div class="leg-row">${kitIcon('epingle',14)}&nbsp;rendez-vous à la une</div>
       <div class="leg-row">${kitIcon('nocturne',14)}&nbsp;journée avec nocturne</div>
       <div class="leg-row">${kitIcon('vacances',16)} ${kitIcon('scolaire',16)}&nbsp;semaine de vacances / scolaire</div></div>`,{cls:'leg'});
     m.el.querySelector('[data-x]').onclick=()=>m.close();
@@ -2178,7 +2178,7 @@ function cellHTML(d,out){
     <div class="top"><span class="dt">${EJ.fmtShortDate(d)}</span>${hrs?`<span class="hr">${esc(hrs)}</span>`:''}</div>
     <i class="dot stdot st-${s}" title="${ST_LABEL[s]}"></i>
     ${t.type==='ferie'?`<span class="ty">${esc(t.label)}</span>`:''}
-    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Activité du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${actType(a)==='activite'?'':kitIcon(actType(a),15)+' '}${esc(a.title)}</span>`).join('')}
+    ${acts.map((a,k)=>`<span class="al${k>2?' x3':''}">${a.morning?'<i class="tg m" title="Rendez-vous du matin">M</i>':''}${a.full?'<i class="tg c" title="Complet">C</i>':''}${actType(a)==='activite'?'':kitIcon(actType(a),15)+' '}${esc(a.title)}</span>`).join('')}
     ${acts.length>3?`<span class="more">+ ${acts.length-3} autre(s)</span>`:''}
     ${!acts.length&&!day.closed&&s==='todo'?'<span class="ghost-txt">à construire</span>':''}
   </button>`;
@@ -2262,7 +2262,7 @@ async function doPA(a){
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='dup')return duplicateDay();
-    if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, activités, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
+    if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, rendez-vous, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
       const d=UI.drawer.day;d.closed=false;d.closedReason='';d.note='';d.slots=[];scheduleSave();flushSave();renderDrawer();toast('Journée vidée');return}
     if(a==='del')return deleteDraft();
     if(a==='revert'){if(!await confirmBox('Annuler les modifications et revenir à la version en ligne ?',{ok:'Revenir à la version en ligne',danger:true}))return;
@@ -2332,7 +2332,7 @@ async function duplicateDay(){
 }
 async function resetTemplate(){
   const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
-  if(!await confirmBox('Réinitialiser cette journée sur la semaine type ? Les horaires et images des périodes seront remplacés. '+(n?'Les '+n+' activité(s) seront rangées dans la première période.':''),{ok:'Réinitialiser'}))return;
+  if(!await confirmBox('Réinitialiser cette journée sur la semaine type ? Les horaires et images des périodes seront remplacés. '+(n?'Les '+n+' rendez-vous seront rangées dans la première période.':''),{ok:'Réinitialiser'}))return;
   const t=templateDay(day.date), acts=day.slots.flatMap(s=>s.acts||[]);
   day.closed=t.closed;day.slots=t.slots;
   if(acts.length){if(!day.slots.length)day.slots.push({id:uid(),start:'',end:'',label:'',acts:[]});day.slots[0].acts=acts}
@@ -2361,7 +2361,7 @@ function renderDrawer(){ensureKitDefs();
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
       <button class="add-act add-slot top" id="addslot">＋ Ajouter un créneau horaire</button>
       ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Activité hors créneau (séjour, info…)</button>':''}
+      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Rendez-vous hors créneau (séjour, info…)</button>':''}
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
@@ -2372,19 +2372,19 @@ function slotHTML(s,i){
     <div class="slot-head">
       <input class="in t" type="time" data-sf="start" value="${esc(s.start)}" aria-label="Début"> – <input class="in t" type="time" data-sf="end" value="${esc(s.end)}" aria-label="Fin">
       <input class="in t lbl" data-sf="label" value="${esc(s.label)}" placeholder="Nom (ex. Temps libre, Soirée)">
-      ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas d'activité)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
+      ${s.free?'':`<button class="slot-img${s.visual||s.asset?' on':''}" data-simg="${i}" title="Choisir une image (affichée quand il n'y a pas de rendez-vous)">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}<span>${s.visual||s.asset?'image':'choisir une image'}</span></button>`}
       <button class="ico" data-sdel="${i}" title="Supprimer ce créneau">🗑️</button>
     </div>
     <div class="slot-acts">
       ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
-      <button class="add-act" data-add="${i}">＋ Ajouter une activité dans ce créneau</button>
+      <button class="add-act" data-add="${i}">＋ Ajouter un rendez-vous dans ce créneau</button>
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
   const meta=[whenText(a),a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):'',a.full?'COMPLET':''].filter(Boolean).join(' · ');
   return `<div class="act${a.morning?' m':''}" data-edit="${i}:${j}">
     <div class="th">${actImage(a)}</div>
-    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Activité')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
+    <div class="tx"><b>${a.full?'<i class="tg c" title="Complet">C</i>':''}${esc(a.title||'Rendez-vous')}</b><small>${esc((CATS[a.cat]||{}).label||'')}${meta?' · '+esc(meta).replace('[[bus]]',BUS_SVG):''}</small></div>
     <div class="tools">
       <button class="ico" data-mvup="${i}:${j}" ${j===0?'disabled':''} title="Monter">↑</button>
       <button class="ico" data-mvdn="${i}:${j}" ${j===n-1?'disabled':''} title="Descendre">↓</button>
@@ -2442,7 +2442,7 @@ function bindDrawer(dr){
   });
   dr.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{
     const s=day.slots[+b.dataset.sdel];
-    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' activité(s) ?',{ok:'Supprimer',danger:true}))return;
+    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' rendez-vous ?',{ok:'Supprimer',danger:true}))return;
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
   const af=dr.querySelector('#addfree');
@@ -2492,24 +2492,24 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   let step=initial?3:1, cat=initial?initial.cat:null, f=initial?normalize(initial):null, q='';
   let saveAsTpl=false;
   const m=openModal('',{onClose:()=>{onClose&&setTimeout(onClose,0)}});
-  function title(){return step===1?'Quel type d\'activité ?':step===2?(CATS[cat].emoji+' '+CATS[cat].label+' — partir d\'une activité type'):(initial?'Modifier l\'activité':mode==='template'?'Nouvelle activité type':'Nouvelle activité')}
+  function title(){return step===1?'Quel type de rendez-vous ?':step===2?(CATS[cat].emoji+' '+CATS[cat].label+' — partir d\'un rendez-vous type'):(initial?'Modifier le rendez-vous':mode==='template'?'Nouvelle rendez-vous type':'Nouveau rendez-vous')}
   let prevStep=null;
   function draw(){
     let body='',foot='';
     if(step===1){
       body=`<div class="cat-grid">${Object.entries(CATS).filter(([k])=>!cats||cats.includes(k)).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div>
-        <div class="sec-t">ou cherche directement dans les activités types</div>
+        <div class="sec-t">ou cherche directement dans les rendez-vous types</div>
         <input class="in" id="q" placeholder="ex. piscine, patinoire, couture…" value="${esc(q)}">
         <div class="tpl-grid" style="margin-top:10px" id="qres">${q?searchRes():''}</div>`;
       foot=`<button class="btn" data-a="cancel">Annuler</button>`;
     } else if(step===2){
       const list=library().filter(t=>t.cat===cat);
-      body=`<div class="tpl-grid"><button class="tpl blank" data-blank="1">＋ Activité vierge<br><small style="font-weight:700">${esc(CATS[cat].label)}</small></button>${list.map(tplCard).join('')}</div>
-        ${!list.length?'<p class="kbd" style="margin-top:10px">Pas encore d\'activité type dans cette catégorie. Crée une activité vierge et coche « Enregistrer aussi comme activité type ».</p>':''}`;
+      body=`<div class="tpl-grid"><button class="tpl blank" data-blank="1">＋ Rendez-vous vierge<br><small style="font-weight:700">${esc(CATS[cat].label)}</small></button>${list.map(tplCard).join('')}</div>
+        ${!list.length?'<p class="kbd" style="margin-top:10px">Pas encore d\'rendez-vous type dans cette catégorie. Crée un rendez-vous vierge et coche « Enregistrer aussi comme rendez-vous type ».</p>':''}`;
       foot=`<button class="btn" data-a="back">‹ Retour</button><span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
-      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme activité type</label>`:''}
+      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme rendez-vous type</label>`:''}
         <div class="fbar">${onDelete?'<button class="btn warn" data-a="delete">Supprimer</button>':!initial&&mode==='day'?'<button class="btn" data-a="back">‹ Retour</button>':''}
         <span style="flex:1"></span>
         <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button></div>`;
@@ -2525,7 +2525,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   function searchRes(){
     const qq=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
     const r=library().filter(t=>(t.title+' '+(t.desc||'')+' '+(t.place||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(qq)).slice(0,12);
-    return r.length?r.map(tplCard).join(''):'<p class="kbd">Aucune activité type trouvée.</p>';
+    return r.length?r.map(tplCard).join(''):'<p class="kbd">Aucune rendez-vous type trouvée.</p>';
   }
   function formHTML(){
     const c=CATS[f.cat]||CATS.jeux, t=f.timing, p=f.price;
@@ -2599,7 +2599,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       const S2=$('#fsd').value;
       if(S2){if(!ed)sp='open';else if(ed>D)sp='multi';else{sp='day';if(ed<D)$('#fed').value=D}}else sp=ed?'until':'day';
       const old=spanOf(f);f.span=sp;f.endDate=(sp==='multi'||sp==='until')?ed:'';
-      if((old==='multi')!==(sp==='multi'))draw();else{const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Activité de la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
+      if((old==='multi')!==(sp==='multi'))draw();else{const h=$('#sphint');if(h)h.firstChild.textContent=({day:'Sur la journée.',multi:'Sur plusieurs jours : affichée « du … au … ».',open:'Sans date de fin : affichée « à partir du … ».',until:'Sans date de début : affichée « jusqu\'au … » sur cette journée.'})[sp]+' '}};
     ['#fsd','#fed'].forEach(q=>{const e=$(q);if(e)e.onchange=spRecalc});
     const ns=$('#fnostart');if(ns)ns.onchange=()=>{const D=UI.drawer.date,sd=$('#fsd'),ed=$('#fed');
       if(ns.checked){sd.value='';if(!ed.value||ed.value<=D){ed.value=addDays(D,7);toast('Indique la date de fin')}}else sd.value=D;
@@ -2637,16 +2637,16 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   async function action(a){
     if(a==='cancel')return m.close();
     if(a==='back'){step=step===3&&!initial?(cat?2:1):1;if(step===2&&!library().some(t=>t.cat===cat)&&false)step=1;draw();return}
-    if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'cette activité')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
+    if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'ce rendez-vous')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
     if(a==='save'){
-      if(!f.title.trim()){toast('Donne un titre à l\'activité',true);m.el.querySelector('#ftitle').focus();return}
+      if(!f.title.trim()){toast('Donne un titre au rendez-vous',true);m.el.querySelector('#ftitle').focus();return}
       f.title=f.title.trim();
       if(!f.span)f.span=spanOf(f);
       f.timing.mode=(f.timing.start||f.timing.end)?(f.transport?'depart':'range'):'none';
 
       const out=clone(f);delete out._prevCat;
       m.close();onSave(out);
-      if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajoutée aux activités types ✓')}
+      if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajouté aux rendez-vous types ✓')}
     }
   }
   draw();
@@ -2705,7 +2705,7 @@ function cropImage(file,opt){
     const revoke=()=>{if(!isUrl)URL.revokeObjectURL(url)};
     img.onload=()=>{
       const m=openModal(`<div class="mh"><h3>Recadrer l'image</h3><button class="ico" data-a="x">✕</button></div>
-        <div class="mb"><p class="hint" style="margin:0 0 10px">Fais glisser l'image et ajuste le zoom : le carré montre ce qui apparaîtra sur la carte de l'activité.</p>
+        <div class="mb"><p class="hint" style="margin:0 0 10px">Fais glisser l'image et ajuste le zoom : le carré montre ce qui apparaîtra sur la carte du rendez-vous.</p>
           <div class="crop"><div class="crop-v"><img alt="" draggable="false"></div></div>
           <label class="crop-z"><span>－</span><input type="range" min="1" max="4" step="0.01" value="1"><span>＋</span></label></div>
         <div class="mf"><button class="btn" data-a="x">Annuler</button>${opt.reuse?'<button class="btn" data-a="same">Telle quelle</button>':''}<button class="btn pri" data-a="ok">${opt.reuse?'Recadrer':'Utiliser cette image'}</button></div>`,{onClose:()=>{revoke();if(!done)resolve(null)}});
@@ -2777,7 +2777,7 @@ function openImagePicker(f,done){
   };
 }
 
-/* ---------- Bibliothèque d'activités types ---------- */
+/* ---------- Bibliothèque d'rendez-vous types ---------- */
 async function saveLibrary(items){
   S.library={items};
   await docSet('config/library',{items,updatedAt:new Date().toISOString()});
@@ -2799,32 +2799,32 @@ const FILTERS=[
   ['precaution','📣 Précautions',a=>a.important]
 ];
 function renderLibrary(main){
-  if(!S.ready.library){main.innerHTML='<div class="loading">Chargement des activités types…</div>';return}
+  if(!S.ready.library){main.innerHTML='<div class="loading">Chargement des rendez-vous types…</div>';return}
   const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   let list=library().slice().sort((a,b)=>a.title.localeCompare(b.title,'fr'));
   if(UI.libCat!=='all')list=list.filter(a=>a.cat===UI.libCat);
   if(UI.libFlt){const f=FILTERS.find(x=>x[0]===UI.libFlt);if(f)list=list.filter(f[2])}
   if(UI.libQ)list=list.filter(a=>norm(a.title+' '+a.desc+' '+a.place).includes(norm(UI.libQ)));
   const count=k=>library().filter(a=>a.cat===k).length;
-  main.innerHTML=`<div class="h-row"><h1>Activités types</h1><span class="kbd">${library().length} modèles réutilisables</span><span style="flex:1"></span><input class="in" id="lq" placeholder="Rechercher…" value="${esc(UI.libQ)}" style="max-width:240px"><button class="btn pri" id="newtpl">＋ Nouvelle activité type</button></div>
+  main.innerHTML=`<div class="h-row"><h1>Rendez-vous types</h1><span class="kbd">${library().length} modèles réutilisables</span><span style="flex:1"></span><input class="in" id="lq" placeholder="Rechercher…" value="${esc(UI.libQ)}" style="max-width:240px"><button class="btn pri" id="newtpl">＋ Nouvelle rendez-vous type</button></div>
     <div class="filters"><button class="fchip${UI.libCat==='all'?' on':''}" data-lc="all">Toutes</button>${Object.entries(CATS).map(([k,c])=>`<button class="fchip${UI.libCat===k?' on':''}" data-lc="${k}">${c.emoji} ${esc(c.label)} <span style="opacity:.6">${count(k)}</span></button>`).join('')}</div>
     <div class="filters">${FILTERS.map(([k,l])=>`<button class="fchip${UI.libFlt===k?' on':''}" data-lf="${k}">${l.replace('[[bus]]',BUS_SVG)}</button>`).join('')}</div>
-    ${!library().length?'<div class="note">La bibliothèque est vide. Crée une première activité type, ou coche « Enregistrer aussi comme activité type » quand tu ajoutes une activité dans une journée.</div>':''}
+    ${!library().length?'<div class="note">La bibliothèque est vide. Crée un premier rendez-vous type, ou coche « Enregistrer aussi comme rendez-vous type » quand tu ajoutes une activité dans une journée.</div>':''}
     <div class="tpl-grid">${list.map(t=>`<button class="tpl" data-id="${esc(t.id)}"><div class="im">${actImage(t)}</div><div class="bd"><small>${(CATS[t.cat]||{}).emoji||''} ${esc((CATS[t.cat]||{}).label||'')}</small><b>${esc(t.title)}</b><div class="mini-badges">${tplMeta(t).map(x=>`<span>${esc(x).replace('[[bus]]',BUS_SVG)}</span>`).join('')}</div></div></button>`).join('')}</div>
-    ${library().length&&!list.length?'<p class="kbd">Aucune activité ne correspond à ces filtres.</p>':''}`;
+    ${library().length&&!list.length?'<p class="kbd">Aucun rendez-vous ne correspond à ces filtres.</p>':''}`;
   main.querySelectorAll('[data-lc]').forEach(b=>b.onclick=()=>{UI.libCat=b.dataset.lc;render()});
   main.querySelectorAll('[data-lf]').forEach(b=>b.onclick=()=>{UI.libFlt=UI.libFlt===b.dataset.lf?null:b.dataset.lf;render()});
   const lq=main.querySelector('#lq');lq.oninput=()=>{UI.libQ=lq.value;clearTimeout(lq._t);lq._t=setTimeout(()=>{render();const n=document.getElementById('lq');n.focus();n.setSelectionRange(n.value.length,n.value.length)},250)};
   main.querySelector('#newtpl').onclick=()=>{
     const m=openModal(`<div class="mh"><h3>Quelle catégorie ?</h3><button class="ico" data-x>✕</button></div><div class="mb"><div class="cat-grid">${Object.entries(CATS).map(([k,c])=>`<button class="cat-tile" data-cat="${k}" style="--c:${c.color}"><span class="e">${c.emoji}</span><b>${esc(c.label)}</b></button>`).join('')}</div></div>`);
     m.el.querySelector('[data-x]').onclick=()=>m.close();
-    m.el.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{m.close();openComposer({mode:'template',initial:Object.assign(blankActivity(b.dataset.cat),{title:''}),onSave:t=>{saveTemplate(t).then(()=>{toast('Activité type enregistrée ✓');render()})}})});
+    m.el.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{m.close();openComposer({mode:'template',initial:Object.assign(blankActivity(b.dataset.cat),{title:''}),onSave:t=>{saveTemplate(t).then(()=>{toast('Rendez-vous type enregistrée ✓');render()})}})});
   };
   main.querySelectorAll('.tpl[data-id]').forEach(b=>b.onclick=()=>{
     const t=library().find(x=>x.id===b.dataset.id);
     openComposer({mode:'template',initial:t,
-      onSave:n=>{n.id=t.id;saveTemplate(n).then(()=>{toast('Activité type mise à jour ✓');render()})},
-      onDelete:()=>{saveLibrary(library().filter(x=>x.id!==t.id)).then(()=>{toast('Activité type supprimée');render()}).catch(()=>{})}});
+      onSave:n=>{n.id=t.id;saveTemplate(n).then(()=>{toast('Rendez-vous type mis à jour ✓');render()})},
+      onDelete:()=>{saveLibrary(library().filter(x=>x.id!==t.id)).then(()=>{toast('Rendez-vous type supprimé');render()}).catch(()=>{})}});
   });
 }
 
@@ -2868,24 +2868,24 @@ function renderSettings(main){
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
-      <label class="fld"><span>Pied de page des activités (sous la dernière activité)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
+      <label class="fld"><span>Pied de page des rendez-vous (sous le dernier)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
-    ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque activité.</p>
+    ${fold('tarifs','Tarifs',`<p class="hint">Crée ici les modèles de tarif (intitulé, conditions ou tranches de quotient). Les montants se saisissent dans chaque rendez-vous.</p>
       ${st.tarifs.map((g,i)=>`<div class="tgrid" data-ti="${i}">
         <div class="row"><input class="in" data-tf="name" value="${esc(g.name||'')}" placeholder="Intitulé du tarif (ex. Sortie piscine)"><span class="pill">${g.type==='unique'?'Unique':g.type==='cond'?'Sous condition':'Quotient'}</span><button class="btn sm warn" data-tdel="${i}">Supprimer</button></div>
         ${(g.rows||[]).map((r,j)=>`<div class="row" data-tr="${j}">${g.type==='cond'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Condition (ex. hors CC)">`:''}${g.type==='qf'?`<span class="kbd">Quotient</span><select class="in t" data-rf="op" style="width:${r.op==='hq'?'auto':'80px'}">${Object.entries(QF_OPS).map(([k,o])=>`<option value="${k}" ${(r.op||'le')===k?'selected':''}>${o}</option>`).join('')}</select>${r.op==='hq'?`<input class="in" data-rf="label" value="${esc(r.label||'')}" placeholder="Intitulé (ex. Hors Qt)">`:`<input class="in t" type="number" min="0" data-rf="qf" value="${esc(r.qf||'')}" placeholder="900" style="width:90px">`}`:''}${g.type==='unique'?'<span class="kbd" style="flex:1">Un seul montant, saisi dans l\'activité</span>':''}${g.type!=='unique'?`<button class="ico" data-rdel="${j}" aria-label="Retirer">✕</button>`:''}</div>`).join('')}
         ${g.type!=='unique'?`<button class="btn sm" data-radd="${i}">＋ ${g.type==='cond'?'condition':'tranche de quotient'}</button>`:''}
       </div>`).join('')}
       <div class="row" style="margin-top:8px"><button class="btn sm" data-tadd="unique">＋ Tarif unique</button><button class="btn sm" data-tadd="cond">＋ Sous condition</button><button class="btn sm" data-tadd="qf">＋ Selon quotient</button></div>`,st.tarifs.length+' tarif(s)')}
-    ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes d'activité. Laisser vide pour revenir au texte par défaut.</p>
+    ${fold('intitules','Intitulés de la page publique',`<p class="hint">Mots affichés sur les cartes des rendez-vous. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}`)}
-    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (activité, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
+    ${fold('icones','Kit d\'icônes',`<p class="hint">Icônes du calendrier de l'éditeur : semaines (vacances, scolaire), types (rendez-vous, séjour/nuitée, projet / info), à la une et nocturne. L'épingle (à la une) et la lune (nocturne) suivent le même style.</p>
       <div class="kits">${[['emoji','Emojis (actuel)'],['a','A · Trait noir'],['b','B · Pastille couleur'],['c','C · Trait dégradé']].map(([k,l])=>`<button class="btn kitopt${(st.info.iconKit||'emoji')===k?' on':''}" data-kit="${k}"><span class="kprev">${['vacances','scolaire','sejour','projet','epingle','nocturne'].map(c=>kitIcon(c,18,k)).join('')}</span><b>${l}</b></button>`).join('')}</div>`,(()=>{const k=st.info.iconKit||'emoji';return k==='emoji'?'Emojis':'Kit '+k.toUpperCase()})())}
-    ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les activités qui demandent une autorisation parentale.</p>
+    ${fold('autorisation','Autorisation parentale (PDF)',`<p class="hint">Document téléchargeable depuis les rendez-vous qui demandent une autorisation parentale.</p>
       <label class="sw"><input type="checkbox" id="authcheck" ${st.info.authCheck===false?'':'checked'}> Ajouter une case à cocher d'engagement</label>
       <label class="fld"><span>Texte de la case à cocher</span><textarea class="in" data-if="authText" style="min-height:90px" placeholder="J'ai bien pris note des conditions d'organisation de l'activité et du matériel nécessaire à son bon déroulement, et que la participation de mon enfant ne sera pas possible au moment du départ s'il n'a pas le matériel prévu ci-dessus.">${esc(st.info.authText)}</textarea></label>`)}
     ${window.EJ_CF?fold('acces','Accès des utilisateurs','<div id="accespanel"><p class="hint">Chargement…</p></div>'):''}
-    ${window.EJ_CF?fold('sauvegarde','Sauvegarde',`<p class="hint">Copie complète (paramètres, activités types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
+    ${window.EJ_CF?fold('sauvegarde','Sauvegarde',`<p class="hint">Copie complète (paramètres, rendez-vous types, brouillons, journées en ligne) à garder sur ton ordinateur. La restauration remplace tout le contenu actuel.</p>
       <div class="row"><button class="btn" id="bkdl">Télécharger une sauvegarde</button><label class="btn warn"><input type="file" accept="application/json,.json" id="bkup" hidden>Restaurer…</label></div>`):''}
    </div>
    <div>
@@ -2932,7 +2932,7 @@ function weekPanel(st,type,title){
   return `<div data-wt="${type}">${fold('wk-'+type,title,`<p class="hint">Horaires d'ouverture, jour par jour. Plusieurs périodes possibles (ex. journée + soirée).</p>
     ${wk.map((d,i)=>`<div class="wk" data-wd="${i}"><span class="dn">${cap(DAYS[i])}</span>
       <label class="sw" style="font-size:13px"><input type="checkbox" data-wopen ${d.open?'checked':''}></label>
-      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas d'activité">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
+      <div class="sl">${d.open?(d.slots.map((s,j)=>`<div class="row" data-ws="${j}"><input class="in t" type="time" data-wf="start" value="${esc(s.start)}">–<input class="in t" type="time" data-wf="end" value="${esc(s.end)}"><input class="in t" data-wf="label" value="${esc(s.label)}" placeholder="Nom" style="width:110px"><button class="slot-img sm${s.visual||s.asset?' on':''}" data-wsimg="${j}" title="Image affichée quand il n'y a pas de rendez-vous">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button><button class="ico" data-wsdel="${j}">✕</button></div>`).join('')+`<button class="btn sm ghost" data-wsadd style="align-self:flex-start">＋ période</button>`):'<span class="kbd" style="padding-top:6px">Fermé</span>'}</div></div>`).join('')}
 `,open+' jours ouverts')}</div>`;
 }
 function bindSettings(main,st){
@@ -2951,7 +2951,7 @@ function bindSettings(main,st){
     box.querySelectorAll('[data-tr]').forEach(r=>{const row=g.rows[+r.dataset.tr];r.querySelectorAll('[data-rf]').forEach(e=>{e.oninput=()=>{row[e.dataset.rf]=e.value;changedBtn()};e.onchange=()=>{row[e.dataset.rf]=e.value;changedBtn();if(e.dataset.rf==='op')rerender()}})});
     box.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{g.rows.splice(+b.dataset.rdel,1);rerender()});
     const ad=box.querySelector('[data-radd]');if(ad)ad.onclick=()=>{g.rows.push(g.type==='cond'?{label:'',amount:''}:{op:'gt',qf:'',amount:''});rerender()};
-    box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les activités qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
+    box.querySelector('[data-tdel]').onclick=async()=>{if(!await confirmBox('Supprimer le tarif « '+(g.name||'')+' » ? Les rendez-vous qui l\'utilisent gardent leurs montants.',{ok:'Supprimer',danger:true}))return;st.tarifs.splice(+box.dataset.ti,1);rerender()};
   });
   main.querySelectorAll('[data-wt]').forEach(sec=>{
     const wk=st.weeks[sec.dataset.wt];
