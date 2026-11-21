@@ -1853,7 +1853,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.66';
+const APP_VERSION='v261120.67';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2117,6 +2117,7 @@ function footHTML(date){
   return `<div class="sec">
       ${del?'<button class="dbtn sm warn" data-pa="del">Effacer le brouillon</button>':''}
       <button class="dbtn sm" data-pa="tpl">Revenir à la semaine type</button>
+      <button class="dbtn sm warn" data-pa="wipe">Supprimer</button>
       <button class="dbtn sm" data-pa="dup">Dupliquer</button>
     </div>
     <div class="pri">
@@ -2136,6 +2137,8 @@ function bindStatus(){
     if(a==='unpub'){if(!await confirmBox('Retirer cette journée de la page publique ? Elle reste en brouillon.',{ok:'Retirer',danger:true}))return;await unpublishDay(date);refreshDrawerStatus();return}
     if(a==='tpl')return resetTemplate();
     if(a==='dup')return duplicateDay();
+    if(a==='wipe'){if(!await confirmBox('Supprimer toutes les informations de cette journée (créneaux, activités, information du jour) ? Elle sera vide, en brouillon.',{ok:'Supprimer',danger:true}))return;
+      const d=UI.drawer.day;d.closed=false;d.closedReason='';d.note='';d.slots=[];scheduleSave();flushSave();renderDrawer();toast('Journée vidée');return}
     if(a==='del')return deleteDraft();
   });
 }
