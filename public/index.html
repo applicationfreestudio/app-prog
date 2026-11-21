@@ -395,7 +395,7 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .card{position:relative}
 .card.isfull{box-shadow:var(--lift)!important}
 .rib-w{position:absolute;top:0;left:0;width:118px;height:118px;overflow:hidden;z-index:5;pointer-events:none}
-.rib{position:absolute;top:24px;left:-38px;width:170px;transform:rotate(-45deg);background:#FFC90E;color:#141317;text-align:center;font:italic 800 13px/1 var(--pf,'Poppins'),sans-serif;letter-spacing:.06em;padding:7px 0 6px;box-shadow:0 3px 6px rgba(0,0,0,.28)}
+.rib{position:absolute;top:24px;left:-38px;width:170px;transform:rotate(-45deg);background:#FFC90E;color:#141317;text-align:center;font:normal 800 13px/1 var(--pf,'Poppins'),sans-serif;font-style:normal;letter-spacing:.06em;padding:7px 0 6px;box-shadow:0 3px 6px rgba(0,0,0,.28)}
 .card.zoomed .rib-w{width:150px;height:150px}.card.zoomed .rib{top:32px;left:-44px;width:210px;font-size:16px}
 .pdfdoc .rib{box-shadow:none}
 .badge.pq .pq-d{display:none;line-height:1.45}
@@ -1309,7 +1309,7 @@ function cardHTML(a,opts){
   const full='';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()} !</span></span>`:''}
+  return `<article data-aid="${esc(a.id||'')}" class="card${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
       ${a.morning?`<span class="tag-morning">${esc(LBL.morning)}</span>`:''}
@@ -1880,7 +1880,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.69';
+const APP_VERSION='v261120.70';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
