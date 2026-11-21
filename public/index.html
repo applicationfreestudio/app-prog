@@ -392,6 +392,13 @@ sup{font-size:.62em;vertical-align:.55em;line-height:0;margin-left:.5px}
 .pdfdoc .sig span{position:absolute;top:8px;left:12px;font-size:12.5px;color:var(--ink2)}
 .pdfdoc .partners-box{box-shadow:none;margin:0}
 /* --- v85 : informations sur toute la largeur --- */
+.card .card-info .gal{margin-left:0!important}
+.card-head{min-width:0}
+.card-head .when{max-width:100%;min-width:0}
+.card-head .when .wt,.card-head .when .wtx{min-width:0}
+.wzz{display:none}
+.card.zoomed .wzz{display:inline}
+.card.zoomed .wn:has(+.wzz){display:none}
 .card-info{padding-left:13px!important}
 .card-info::before{left:13px!important}
 .card-info .badges,.card-info .bring,.card-info .imps,.card-info .auth,.card-info .sj-when,.card-info .about,.card-info .gal{margin-left:0!important}
@@ -1463,12 +1470,16 @@ function cardHTML(a,opts){
   const auth=needsAuth(a);
   a=Object.assign({},a,{bring:(a.bring||[]).filter(x=>!AUTH_RE.test(x))});
   const stay=spanOf(a)==='multi'&&opts.date&&a.endDate>opts.date;
-  const w=stay?'':whenHTML(a);
+  const dz=opts.date&&!stay&&!opts.dateLine?(()=>{const d=parse(opts.date);return DAYS_S[dow(opts.date)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)})():'';
+  const wz=(()=>{if(!dz||stay)return '';const t=a.timing||{};if(spanOf(a)!=='day')return '';
+    if(t.mode==='depart'&&(t.start||t.end))return esc(LBL.depart)+' '+dz+(t.start?' à '+fmtTH(t.start):'')+(t.end?ARR_SVG+fmtTH(t.end):'');
+    if(t.start&&t.end)return dz+' de '+fmtTH(t.start)+' à '+fmtTH(t.end);if(t.start)return dz+' à partir de '+fmtTH(t.start);if(t.end)return dz+' jusqu\'à '+fmtTH(t.end);return '';})();
+  const w=stay?'':(whenHTML(a)?`<span class="wn">${whenHTML(a)}</span>${wz?`<span class="wzz">${wz}</span>`:''}`:'');
   const pj=isInfo(a);
   const stayW=stay?(()=>{const [d1,d2]=stayWhen(a,opts.date),t=a.timing||{},end=a.endDate;
-    const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]};
+    const D=k=>{const d=parse(k);return DAYS_S[dow(k)]+'. '+d.getDate()+'.'+pad(d.getMonth()+1)};
     const full=`<span class="sjf">${esc(LBL.depart)} ${D(opts.date)}${t.start?' à '+fmtT(t.start):''}, retour ${D(end)}${t.end?' à '+fmtT(t.end):''}</span>`;
-    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span><i class="w">retour </i>${(()=>{const e=parse(end),s0=parse(opts.date);return '<i class="wd">'+DAYS_S[dow(end)]+'. </i>'+e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'')})()}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div>`})():'';
+    return `<div class="sj-when"><div class="sj1">${a.transport?BUS_SVG:''}<span class="sjm"><span>${t.start?`<i class="w">${esc(LBL.depart)} </i>`+fmtT(t.start):`<i class="w">${esc(LBL.depart)}</i>`}</span><span class="sjc">, </span><span><i class="w">retour </i>${(()=>{const e=parse(end),s0=parse(opts.date);return '<i class="wd">'+DAYS_S[dow(end)]+'. </i>'+e.getDate()+(e.getMonth()!==s0.getMonth()?'.'+pad(e.getMonth()+1):'')})()}${t.end?' '+fmtT(t.end):''}</span></span>${full}</div></div>`})():'';
   const info=badgesHTML(a)
     +(()=>{const it=(a.bring||[]).map(x=>String(x).trim().replace(/[.,;]+$/,'')).filter(Boolean), au=auth&&!opts.noAuthBtn, A="l'autorisation parentale à faire signer";
       if(!it.length&&!au)return '';
@@ -1700,7 +1711,7 @@ function mountPublic(root,data,opts){
       const f=b.querySelector('.pq-f'),box=b.parentNode;if(f&&(f.offsetWidth>box.clientWidth-2||b.scrollWidth>b.clientWidth+1))b.classList.add('condensed')}));
   }
   function fitStay(){fitPrices();
-    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when').forEach(w=>{
+    requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.tw) .card-head .when,.card.zoomed .card-head .when').forEach(w=>{
       w.style.fontSize='';w.classList.remove('noa','nowd','now');const base=parseFloat(getComputedStyle(w).fontSize)||14;
       const kids=w.classList.contains('sj-when')?[...w.children]:[w];
       const over=()=>kids.some(d=>d.scrollWidth>d.clientWidth+.5);
@@ -2058,7 +2069,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.85';
+const APP_VERSION='v261120.86';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
