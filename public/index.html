@@ -764,11 +764,12 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .pub.ishome{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .pub.ishome{position:fixed;inset:0;margin:0 auto;max-width:680px;touch-action:none;overscroll-behavior:none}
 .realview .pub.ishome{position:absolute;height:auto}
-.ishome{--hh:88px}
-.ishome .pub-head{height:var(--hh);flex:0 0 auto}
-.ishome .pub-head .logo{width:54px;height:54px}
-.ishome .pub-head .brand b{font-size:19px}
-.ishome .pub-foot{padding-bottom:calc(22px + env(safe-area-inset-bottom))!important}
+.pub{--hh:88px!important}
+.pub-head{height:var(--hh)!important;flex:0 0 auto}
+.pub-head .logo{width:54px;height:54px}
+.pub-head .brand b{font-size:19px}
+.ishome .contact{margin-top:16px!important}
+.ishome .pub-foot{padding:16px 16px calc(16px + env(safe-area-inset-bottom))!important}
 .ishome a,.ishome button{touch-action:manipulation}
 html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:none}
 .ishome .home{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:14px 16px 0}
@@ -2310,7 +2311,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.106';
+const APP_VERSION='v261120.107';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
