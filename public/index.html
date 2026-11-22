@@ -922,6 +922,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 /* les cartes à la une restent en haut, toutes figées ; la journée glisse dessous ; pas de mention en tête */
 .pub.dayview .days>*:not(section.day.dvon):not(.pinned){display:none!important}
 .pub.dayview{touch-action:pan-y}
+html:has(.pub.dayview),.realview:has(.pub.dayview){overflow-anchor:none}
 .pub.dayview .days>section.dvon{margin-top:10px}
 .pub.dayview .days>section.dvon img,.pub.dayview .days>section.dvon a{-webkit-user-drag:none;user-select:none}
 .pub.dayview .days>section.dvon .cal-ico{cursor:pointer;box-shadow:0 0 0 2px var(--caln,#700000)}
@@ -2440,9 +2441,16 @@ function mountPublic(root,data,opts){
   let dv=null,auHold=0;const dvOpened=new Set();
   const dvSecs=()=>[...root.querySelectorAll('.days>section.day[id^="j-"]')];
   // la journée se place juste sous le bandeau (et la bande des cartes à la une figées) si la page est déjà descendue plus bas ; sinon les cartes à la une restent visibles au-dessus
-  const dvScTop=sec=>{const sc=scrollerOf(sec||root);if(!sec){sc.scrollTop=0;return}const base=refBase()||0,d=sec.getBoundingClientRect().top-base-8;if(d<0)sc.scrollTop+=d}
-  // même règle que la vue continue : seules les cartes à déploiement automatique se déploient (une fois) ; les autres gardent leur état
-  function dvOpen(sec){const all=!!((st.settings||{}).info||{}).autoUnfold;sec.querySelectorAll(all?'.card.fold:not(.nofold)':'.card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;autoDone.add(k);toggleFold(c)})}
+  const dvScTop=sec=>{const sc=scrollerOf(sec||root);sc.scrollTop=0;pinMini=false;pinScroll()}
+  // vue jour par jour : de haut en bas, une carte repliée se déploie seulement si, une fois déployée, le pied de page reste
+  // entièrement visible à l'écran ; sinon elle reste repliée et on teste la suivante. Les cartes déjà déployées le restent.
+  function dvOpen(sec){const ft=root.querySelector('.pub-foot');if(!ft)return;const sc=scrollerOf(sec),doc=sc===(document.scrollingElement||document.documentElement);
+    const vb=doc?(window.visualViewport?visualViewport.height:innerHeight):sc.getBoundingClientRect().bottom,fixed=getComputedStyle(ft).position==='fixed';
+    const fits=()=>fixed?sec.getBoundingClientRect().bottom<=ft.getBoundingClientRect().top+.5:ft.getBoundingClientRect().bottom<=vb+.5;
+    if(!fits())return;const ok=[];
+    sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(c.closest('.pinned'))return;c.classList.remove('fold');fitCard(c);if(fits())ok.push(c);else{c.classList.add('fold');fitCard(c)}});
+    ok.forEach(c=>{c.classList.add('fold');fitCard(c)});
+    ok.forEach(c=>{if(c.dataset.fk)autoDone.add(c.dataset.fk);toggleFold(c)})}
   // en vue jour par jour, les cartes à la une non figées rejoignent la bande figée (et y retournent ensuite)
   let dvMv=null;
   function dvPinIn(){if(dvMv)return;const pn=root.querySelector('.days>.pinned:not(.pinfix)');if(!pn)return;const pf=root.querySelector('.days>.pinned.pinfix');
@@ -2455,7 +2463,7 @@ function mountPublic(root,data,opts){
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();return}
     if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
     pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn()}
-  function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;
+  function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;if(glued)glued.release();
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
       dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       
@@ -2732,7 +2740,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.164';
+const APP_VERSION='v261120.165';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
