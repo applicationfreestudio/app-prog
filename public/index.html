@@ -2263,7 +2263,15 @@ function mountPublic(root,data,opts){
   const pinScroll=()=>{const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
     // distance parcourue sous la carte (avec seuils différents pour éviter tout va-et-vient)
     const amt=8-(nx.getBoundingClientRect().top-pf.getBoundingClientRect().bottom),under=pinMini?amt>8:amt>110;if(under===pinMini)return;pinMini=under;
-    pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;c.classList.toggle('demi',!under);fitTitles(c);placeArrow&&placeArrow(c)});
+    pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;
+      const els=[c.querySelector('h3'),c.querySelector('.card-img')].filter(Boolean),r0=els.map(e=>e.getBoundingClientRect()),h0=c.offsetHeight;
+      c.classList.toggle('demi',!under);fitTitles(c);placeArrow&&placeArrow(c);const h1=c.offsetHeight,r1=els.map(e=>e.getBoundingClientRect());
+      // transition douce : la carte se réduit (ou s'agrandit), titre et image glissent à leur nouvelle place
+      const ez='cubic-bezier(.25,.8,.25,1)',D=320;c.style.overflow='hidden';
+      const an=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:D,easing:ez});an.onfinish=an.oncancel=()=>{c.style.overflow=''};
+      els.forEach((e,n)=>{const a=r0[n],b=r1[n];if(!b.width||!b.height)return;const k=e.tagName==='H3'?a.height/b.height:null;
+        e.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${k||a.width/b.width},${k||a.height/b.height})`},{transformOrigin:'0 0',transform:'none'}],{duration:D,easing:ez})});
+      if(!under)c.querySelectorAll('.card-head>:not(h3)').forEach((e,n)=>e.animate([{opacity:0},{opacity:1}],{duration:220,delay:120+n*30,easing:'ease-out',fill:'backwards'}))});
     const pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.round(pf.offsetHeight)+'px')};
   document.addEventListener('scroll',pinScroll,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
@@ -2519,7 +2527,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.140';
+const APP_VERSION='v261120.141';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
