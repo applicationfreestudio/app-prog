@@ -917,17 +917,17 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .slot-title.ptxt .fbt{padding:0;display:flex;gap:6px;align-items:baseline}
 .slot-title.ptxt .fbt span{margin:0}
 /* parcours jour par jour : seule la journée choisie est affichée */
-/* les cartes à la une (figées ou non) et la mention du programme restent en haut ; la journée glisse dessous */
-.pub.dayview .days>*:not(section.day.dvon):not(.pinned):not(.act-foot){display:none!important}
+/* les cartes à la une restent en haut, toutes figées ; la journée glisse dessous ; pas de mention en tête */
+.pub.dayview .days>*:not(section.day.dvon):not(.pinned){display:none!important}
 .pub.dayview{touch-action:pan-y}
 .pub.dayview .days>section.dvon{margin-top:10px}
 .pub.dayview .days>section.dvon img,.pub.dayview .days>section.dvon a{-webkit-user-drag:none;user-select:none}
 .pub.dayview .days>section.dvon .cal-ico{cursor:pointer;box-shadow:0 0 0 2px var(--caln,#700000)}
 /* bouton lien externe d'une carte */
-.ext{margin:10px 0 0;text-align:right}
-.ext .ext-chip{text-decoration:none;display:inline-flex;align-items:center;gap:5px}
-.ext .ext-chip svg{width:12px;height:12px}
-.pdfdoc .ext{display:none}
+.ext{margin:8px 0 0;text-align:right}
+.ext-chip{text-decoration:none;float:right;margin:0 0 0 10px!important;position:relative;top:1px}
+.ext .ext-chip{float:none}
+.pdfdoc .ext,.pdfdoc .ext-chip{display:none}
 /* journée : ajout d'une période horaire ou d'une carte hors période, toujours possible */
 .dr-body>*{flex-shrink:0}
 .add-pair{display:flex;gap:8px;margin:0 0 4px}
@@ -1862,7 +1862,11 @@ function cardHTML(a,opts){
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
     +(a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
     +((a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'')
-    +(()=>{const u=extUrl(a.link);return u?`<p class="ext"><a class="pdf-chip ext-chip" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc((a.linkLabel||'').trim()||'Lien externe')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a></p>`:''})();
+;
+  // bouton « Lien » (même gabarit que le bouton PDF) : calé à droite sur la dernière ligne de la carte s'il y a la place, sinon juste en dessous
+  const extU=extUrl(a.link);let info2=info;
+  if(extU){const chip=`<a class="pdf-chip ext-chip" href="${esc(extU)}" target="_blank" rel="noopener noreferrer">Lien</a>`;
+    if(/<\/p>$/.test(info2))info2=info2.replace(/<\/p>$/,chip+'</p>');else if(/<\/span><\/p><\/div>$/.test(info2))info2=info2.replace(/<\/span><\/p><\/div>$/,chip+'</span></p></div>');else info2+=`<p class="ext">${chip}</p>`}
   const noBadges=!badgesHTML(a), busMode=a.transport&&!stay?(noBadges?(a.place&&!pj?'place':'cal'):'when'):'';
   const bus=busMode==='when'?'<span class="bus">'+BUS_SVG+'</span>':'';
   const full='';
@@ -1870,7 +1874,7 @@ function cardHTML(a,opts){
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!a.alwaysOpen&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${a.alwaysOpen?' aopen':''}${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${a.alwaysOpen?' aopen':''}${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info2?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -1883,7 +1887,7 @@ function cardHTML(a,opts){
       ${w||bus||full||(opts&&opts.dateLine&&!pj)?`<div class="when">${opts&&opts.dateLine&&!pj?`<span class="pdate">${opts.dateLine}</span>`:''}${w||bus?`<span class="wt">${bus}${w?`<span class="wtx">${w}</span>`:''}</span>`:''}${full}</div>`:''}
       ${a.place&&!stay&&!pj?`<div class="where">${busMode==='place'?'<span class="bus">'+BUS_SVG+'</span>':''}${esc(a.place)}</div>`:''}
     </div>
-    ${info?`<div class="card-info">${info}</div>`:''}
+    ${info2?`<div class="card-info">${info2}</div>`:''}
   </article>`;
 }
 const FONTS={
@@ -2353,7 +2357,7 @@ function mountPublic(root,data,opts){
   }
   // carte à la une figée : demi-carte en haut de page, petite carte dès qu'on fait défiler
   let pinMini=false;
-  const pinScroll=()=>{if(glued||!root.isConnected)return;const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
+  const pinScroll=()=>{if(glued||!root.isConnected)return;const pf=root.querySelector('.pinfix');if(!pf)return;let nx=pf.nextElementSibling;while(nx&&!nx.getClientRects().length)nx=nx.nextElementSibling;if(!nx)return;
     // distance parcourue sous la carte (avec seuils différents pour éviter tout va-et-vient)
     const amt=8-(nx.getBoundingClientRect().top-pf.getBoundingClientRect().bottom),under=pinMini?amt>8:amt>110;if(under===pinMini)return;pinMini=under;
     pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;
@@ -2421,13 +2425,22 @@ function mountPublic(root,data,opts){
   const dvSecs=()=>[...root.querySelectorAll('.days>section.day[id^="j-"]')];
   // la journée se place juste sous le bandeau (et la bande des cartes à la une figées) si la page est déjà descendue plus bas ; sinon les cartes à la une restent visibles au-dessus
   const dvScTop=sec=>{const sc=root.closest('.realview')||document.scrollingElement;if(!sec){sc.scrollTop=0;return}const base=refBase()||0,d=sec.getBoundingClientRect().top-base-8;if(d<0)sc.scrollTop+=d}
-  function dvOpen(sec){const all=!!((st.settings||{}).info||{}).autoUnfold;sec.querySelectorAll(all?'.card.fold:not(.nofold)':'.card.fold[data-au]:not(.nofold)').forEach(c=>{if(c.dataset.fk)dvOpened.add(c.dataset.fk);toggleFold(c)})}
+  function dvOpen(sec){sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(c.dataset.fk)dvOpened.add(c.dataset.fk);toggleFold(c)})}
+  // en vue jour par jour, les cartes à la une non figées rejoignent la bande figée (et y retournent ensuite)
+  let dvMv=null;
+  function dvPinIn(){if(dvMv)return;const pn=root.querySelector('.days>.pinned:not(.pinfix)');if(!pn)return;const pf=root.querySelector('.days>.pinned.pinfix');
+    if(pf){const box=pf.querySelector('.cards'),nodes=[...pn.querySelector('.cards').childNodes];nodes.forEach(n=>box.appendChild(n));pn.style.display='none';dvMv={pn,nodes}}
+    else{pn.classList.add('pinfix');dvMv={pn,own:true}}
+    root.querySelectorAll('.pinfix .card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;pinScroll();refBase()}
+  function dvPinOut(){if(!dvMv)return;const m=dvMv;dvMv=null;if(m.own)m.pn.classList.remove('pinfix');else{const box=m.pn.querySelector('.cards');m.nodes.forEach(n=>box.appendChild(n));m.pn.style.display=''}
+    root.querySelectorAll('.pinned:not(.pinfix) .card').forEach(c=>delete c.dataset.demi);pinMini=false;pinScroll();refBase()}
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);
-    if(!sec){if(dv){dv=null}pb.classList.remove('dayview');return}
-    pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec))}
+    if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();return}
+    if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
+    pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn()}
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
-      dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');auHold=performance.now()+900;
+      dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       root.querySelectorAll('.days .card:not(.fold)').forEach(c=>{if(dvOpened.has(c.dataset.fk))toggleFold(c)});dvOpened.clear();
       const base=refBase()||0;const sc=root.closest('.realview')||document.scrollingElement;sc.scrollTop+=sec.getBoundingClientRect().top-base-6;return}
     dv=sec.id.slice(2);dvApply();dvScTop(sec);dvOpen(sec)}
@@ -2700,7 +2713,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.161';
+const APP_VERSION='v261120.162';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3386,8 +3399,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       <div class="c-sec"><h4>💥 Information importante</h4><input class="in red" id="fimp" value="${esc(f.important)}" placeholder="en rouge, ex. attestation de nage obligatoire"></div>
       <div class="c-sec"><h4>Bas de carte</h4>
         <textarea class="in" id="fabout" style="min-height:70px" placeholder="Texte descriptif (facultatif)">${esc(f.about||'')}</textarea>
-        <input class="in" id="flink" type="url" inputmode="url" value="${esc(f.link||'')}" placeholder="🔗 Lien externe : adresse du site (facultatif)">
-        <input class="in" id="flinkl" value="${esc(f.linkLabel||'')}" placeholder="Texte du bouton (par défaut : Lien externe)">
+        <input class="in" id="flink" type="url" inputmode="url" value="${esc(f.link||'')}" placeholder="🔗 Lien : adresse du site (facultatif)">
         <div class="galed">${(f.gallery||[]).map((id,i)=>`<span class="gi"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt=""><button type="button" data-rmg="${i}" aria-label="Retirer">✕</button></span>`).join('')}
         ${S.assets?`<label class="gadd"><input type="file" accept="image/*" id="galup" multiple hidden>＋ Photos</label>`:''}</div>
       </div>
@@ -3402,7 +3414,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
-    inp('#flink',v=>f.link=v.trim());inp('#flinkl',v=>f.linkLabel=v);inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
+    inp('#flink',v=>f.link=v.trim());inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
     const pgb=$('#pgridb');if(pgb)pgb.onclick=()=>{document.querySelectorAll('.pvpop').forEach(x=>x.remove());
       const r=pgb.getBoundingClientRect(),pop=document.createElement('div');pop.className='pvpop tpop';const cur=f.price.mode==='grid'?f.price.gid:'free';
