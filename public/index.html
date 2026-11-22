@@ -1785,7 +1785,8 @@ function stayWhen(a,date){
   return [`<i class="w">${esc(LBL.depart)} </i>${dShort(date)}${A(t.start)}`,`<i class="w">retour </i>${dShort(end)}${A(t.end)}`];
 }
 const ACTS_REG={};
-const OPEN_CARDS=new Set(),CLOSED_CARDS=new Set();let UNFOLD_ALL=false,CARD_MODE='petite'; // cartes dépliées par le visiteur (clé : id|date)
+const OPEN_CARDS=new Set(),CLOSED_CARDS=new Set();
+function resetVisitor(){OPEN_CARDS.clear();CLOSED_CARDS.clear()}let UNFOLD_ALL=false,CARD_MODE='petite'; // cartes dépliées par le visiteur (clé : id|date)
 function cardHTML(a,opts){
   opts=opts||{};
   if(opts.date&&a.id)ACTS_REG[a.id]={a,date:opts.date};
@@ -2272,7 +2273,7 @@ function mountPublic(root,data,opts){
   }
   // carte à la une figée : demi-carte en haut de page, petite carte dès qu'on fait défiler
   let pinMini=false;
-  const pinScroll=()=>{if(glued)return;const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
+  const pinScroll=()=>{if(glued||!root.isConnected)return;const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
     // distance parcourue sous la carte (avec seuils différents pour éviter tout va-et-vient)
     const amt=8-(nx.getBoundingClientRect().top-pf.getBoundingClientRect().bottom),under=pinMini?amt>8:amt>110;if(under===pinMini)return;pinMini=under;
     pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;
@@ -2291,7 +2292,7 @@ function mountPublic(root,data,opts){
   // ligne de référence mesurée en direct : bas de la bande des cartes à la une figées, sinon bas du bandeau
   const refBase=()=>{const hd=root.querySelector('.pub-head');if(!hd)return null;const pf=root.querySelector('.pinfix'),hb=hd.getBoundingClientRect().bottom;
     const base=pf?Math.max(hb,pf.getBoundingClientRect().bottom):hb,pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.max(0,Math.round(base-hb))+'px');return base};
-  const autoUnfold=()=>{if(st.view==='home'||glued)return;const all=!!((st.settings||{}).info||{}).autoUnfold;
+  const autoUnfold=()=>{if(!root.isConnected||!root.offsetParent||st.view==='home'||glued)return;const all=!!((st.settings||{}).info||{}).autoUnfold;
     const base=refBase();if(base==null)return;const stop=base+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{if(glued)return;const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
       const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:c.getBoundingClientRect().top<=stop;
@@ -2325,7 +2326,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={resetVisitor,linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -2574,7 +2575,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.149';
+const APP_VERSION='v261120.150';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3788,6 +3789,7 @@ function renderPreview(main){
     const ov=document.createElement('div');ov.className='realview';
     ov.innerHTML='<div class="rv-root"></div><button class="rv-exit">Quitter la vue réelle</button>';
     document.body.appendChild(ov);document.body.style.overflow='hidden';
+    EJ.resetVisitor();ov.querySelector('.rv-root').scrollTop=0;
     mountPublic(ov.querySelector('.rv-root'),{days,settings:{info:settings().info,periods:settings().periods}},{home:true});
     ov.querySelector('.rv-exit').onclick=()=>{ov.remove();document.body.style.overflow=''};
   };
