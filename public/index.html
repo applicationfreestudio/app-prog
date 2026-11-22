@@ -778,6 +778,8 @@ svg.ar{display:inline-block;width:9px!important;height:7.5px!important;vertical-
 .ishome .pub-foot{padding:16px 16px calc(16px + env(safe-area-inset-bottom))!important}
 .ishome a,.ishome button{touch-action:manipulation}
 html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:none}
+/* programme : pas d'effet élastique en haut ou en bas de page (le bandeau du haut ne doit pas bouger avec la page) */
+html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:none}
 .ishome .home{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:14px 16px 0}
 .ishome .hgrid{flex:1 1 auto;min-height:0;grid-template-rows:1fr 1fr}
 .ishome .ht{aspect-ratio:auto;min-height:0;height:100%}
@@ -2603,7 +2605,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.154';
+const APP_VERSION='v261120.155';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
