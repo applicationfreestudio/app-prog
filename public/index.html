@@ -916,6 +916,16 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .slot-title.ptxt .fbi{display:none}
 .slot-title.ptxt .fbt{padding:0;display:flex;gap:6px;align-items:baseline}
 .slot-title.ptxt .fbt span{margin:0}
+/* parcours jour par jour : seule la journée choisie est affichée */
+.pub.dayview .days>*:not(section.day.dvon){display:none!important}
+.pub.dayview .days>section.dvon{touch-action:pan-y;margin-top:10px}
+.pub.dayview .days>section.dvon img,.pub.dayview .days>section.dvon a{-webkit-user-drag:none;user-select:none}
+.pub.dayview .days>section.dvon .cal-ico{cursor:pointer;box-shadow:0 0 0 2px var(--caln,#700000)}
+/* bouton lien externe d'une carte */
+.ext{margin:10px 0 0;text-align:right}
+.ext .ext-chip{text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.ext .ext-chip svg{width:12px;height:12px}
+.pdfdoc .ext{display:none}
 /* journée : ajout d'une période horaire ou d'une carte hors période, toujours possible */
 .dr-body>*{flex-shrink:0}
 .add-pair{display:flex;gap:8px;margin:0 0 4px}
@@ -1346,7 +1356,7 @@ textarea.in{min-height:64px;resize:vertical}
 .dupm .mf{flex-wrap:wrap;row-gap:6px}
 .dupm .mf .dupcount{flex:1 0 100%;font-size:13px;font-weight:600;color:#3A5BA8}
 .dupm .mf [data-a=go]{flex:1 1 auto}
-.cform.lnk #pickvis2,.cform.lnk #recrop,.cform.lnk #ftitle,.cform.lnk #fdesc,.cform.lnk #fplace,.cform.lnk #fimp,.cform.lnk #fabout,.cform.lnk #ptext,.cform.lnk #pamount,.cform.lnk #pgridb,.cform.lnk #bopen,.cform.lnk .vis-pick,.cform.lnk select{background:#EEF4FF!important;border-color:#C9DAFF!important}
+.cform.lnk #pickvis2,.cform.lnk #recrop,.cform.lnk #ftitle,.cform.lnk #fdesc,.cform.lnk #fplace,.cform.lnk #fimp,.cform.lnk #fabout,.cform.lnk #flink,.cform.lnk #flinkl,.cform.lnk #ptext,.cform.lnk #pamount,.cform.lnk #pgridb,.cform.lnk #bopen,.cform.lnk .vis-pick,.cform.lnk select{background:#EEF4FF!important;border-color:#C9DAFF!important}
 .cform.lnk .tg2.shr span{background:#EEF4FF;border-color:#C9DAFF}
 .cform.lnk .tg2.shr input:checked+span{background:linear-gradient(#DCE7FF,#DCE7FF) padding-box,linear-gradient(#8DB0FF,#8DB0FF) border-box}
 .tplleg{display:inline-block;width:12px;height:12px;border-radius:3px;background:#EEF4FF;border:1px solid #C9DAFF;vertical-align:-1px;margin-right:4px}
@@ -1803,6 +1813,8 @@ window.BUS_SVG=BUS_SVG;
 const ARR_SVG='<svg class="ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
+// lien externe d'une carte : http(s) uniquement, « https:// » ajouté s'il manque
+function extUrl(v){v=String(v||'').trim();if(!v)return '';if(!/^[a-z][a-z0-9+.-]*:/i.test(v))v='https://'+v.replace(/^\/+/,'');return /^https?:\/\/[^\s]+$/i.test(v)?v:''}
 function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
 // date adaptative : niveau 0 « mercredi 23 décembre 2026 », 1 sans l'année, 2 « mercredi 23.12 », 3 « mer. 23.12 »
 // o : même mois que la date de référence (mois omis en chiffres) ; ny : même année (année omise)
@@ -1847,7 +1859,8 @@ function cardHTML(a,opts){
       return `<p class="bring${jc(t)}"><span class="em">${it.length?'📣':'✍️'}</span><span><b>${esc(LBL.bring)} :</b> ${btn?esc(t.replace(/\s+\S+$/,''))+` <span class="nw">${esc(t.match(/\S+$/)[0])}<button type="button" class="pdf-chip" data-auth="${esc(a.id||'')}" title="Télécharger l'autorisation parentale">PDF</button></span>`:esc(t)}</span></p>`})()
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
     +(a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
-    +((a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'');
+    +((a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'')
+    +(()=>{const u=extUrl(a.link);return u?`<p class="ext"><a class="pdf-chip ext-chip" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc((a.linkLabel||'').trim()||'Lien externe')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a></p>`:''})();
   const noBadges=!badgesHTML(a), busMode=a.transport&&!stay?(noBadges?(a.place&&!pj?'place':'cal'):'when'):'';
   const bus=busMode==='when'?'<span class="bus">'+BUS_SVG+'</span>':'';
   const full='';
@@ -2130,7 +2143,7 @@ function mountPublic(root,data,opts){
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}${info.fixFoot?' fixfoot':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plfn:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))/100};--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
       <main class="days">${pinnedHTML(ks,true)}${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
-    markWraps();wmClip();fitStay();
+    markWraps();wmClip();fitStay();dvApply();
     {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
       if(pf)pf.querySelectorAll('.card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;requestAnimationFrame(()=>pinScroll())}
   }
@@ -2270,10 +2283,12 @@ function mountPublic(root,data,opts){
     (window.visualViewport||window).addEventListener('resize',sv);window.addEventListener('resize',sv);document.addEventListener('fullscreenchange',()=>setTimeout(sv,60))}
   root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
   root.addEventListener('click',e=>{
+    if(e.target.closest('.ext-chip'))return;
     const go=e.target.closest('[data-go],[data-home]');
     if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
     if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;return}
     const ci=e.target.closest('.days .cal-ico');
+    if(ci&&((st.settings||{}).info||{}).dayByDay&&ci.closest('section.day[id^="j-"]')){dvToggle(ci.closest('section.day'));return}
     if(ci){const sec=ci.closest('section.day');if(sec){const cs=[...sec.querySelectorAll('.card:not(.nofold)')];const anyF=cs.some(c=>c.classList.contains('fold'));cs.filter(c=>c.classList.contains('fold')===anyF).forEach(toggleFold)}return}
     const ab=e.target.closest('[data-auth]');if(ab){e.stopPropagation();authPDF(ab.dataset.auth,ab);return}
     const t=e.target.closest('[data-info],[data-close],[data-past]');
@@ -2355,7 +2370,7 @@ function mountPublic(root,data,opts){
   // ligne de référence mesurée en direct : bas de la bande des cartes à la une figées, sinon bas du bandeau
   const refBase=()=>{const hd=root.querySelector('.pub-head');if(!hd)return null;const pf=root.querySelector('.pinfix'),hb=hd.getBoundingClientRect().bottom;
     const base=pf?Math.max(hb,pf.getBoundingClientRect().bottom):hb,pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.max(0,Math.round(base-hb))+'px');return base};
-  const autoUnfold=()=>{if(!root.isConnected||!root.offsetParent||st.view==='home'||glued)return;const all=!!((st.settings||{}).info||{}).autoUnfold;
+  const autoUnfold=()=>{if(!root.isConnected||!root.offsetParent||st.view==='home'||glued||dv||performance.now()<auHold)return;const all=!!((st.settings||{}).info||{}).autoUnfold;
     const base=refBase();if(base==null)return;const stop=base+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{if(glued)return;const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
       const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:c.getBoundingClientRect().top<=stop;
@@ -2399,6 +2414,36 @@ function mountPublic(root,data,opts){
   const noteHi=()=>{if(!root.isConnected||st.view==='home')return;const vh=window.innerHeight;
     root.querySelectorAll('.days .dnote:not(.hi-done)').forEach(n=>{const r=n.getBoundingClientRect();if(r.top>0&&r.top<=vh*2/3){n.classList.add('hi-done','hi-go');setTimeout(()=>n.classList.remove('hi-go'),1300)}})};
   document.addEventListener('scroll',noteHi,{capture:true,passive:true});
+  // ---------- parcours jour par jour : une seule journée affichée, cartes déployées, glisser à l'horizontale pour changer de jour ----------
+  let dv=null,auHold=0;const dvOpened=new Set();
+  const dvSecs=()=>[...root.querySelectorAll('.days>section.day[id^="j-"]')];
+  const dvScTop=()=>{const sc=root.closest('.realview')||document.scrollingElement;sc.scrollTop=0};
+  function dvOpen(sec){sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(c.dataset.fk)dvOpened.add(c.dataset.fk);toggleFold(c)})}
+  function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);
+    if(!sec){if(dv){dv=null}pb.classList.remove('dayview');return}
+    pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec))}
+  function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;
+    if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
+      dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');auHold=performance.now()+900;
+      root.querySelectorAll('.days .card:not(.fold)').forEach(c=>{if(dvOpened.has(c.dataset.fk))toggleFold(c)});dvOpened.clear();
+      const base=refBase()||0;const sc=root.closest('.realview')||document.scrollingElement;sc.scrollTop+=sec.getBoundingClientRect().top-base-6;return}
+    dv=sec.id.slice(2);dvApply();dvScTop();dvOpen(sec)}
+  function dvGo(dir){const ss=dvSecs(),i=ss.findIndex(x=>x.id==='j-'+dv),nx=ss[i+dir],cur=ss[i];if(!nx||!cur)return false;
+    const W=cur.offsetWidth||360,ez='cubic-bezier(.25,.8,.25,1)';
+    const out=cur.animate([{transform:cur.style.transform||'none',opacity:1},{transform:`translateX(${-dir*W}px)`,opacity:0}],{duration:180,easing:'ease-in'});
+    out.onfinish=()=>{cur.style.transform='';dv=nx.id.slice(2);dvApply();dvScTop();dvOpen(nx);
+      nx.animate([{transform:`translateX(${dir*W*.6}px)`,opacity:0},{transform:'none',opacity:1}],{duration:260,easing:ez})};return true}
+  {let x0=null,y0=0,dx=0,drag=false,pid=null,sec=null,eat=false;
+    root.addEventListener('pointerdown',e=>{if(!dv||e.button>0)return;sec=root.querySelector('.days>section.dvon');if(!sec||!sec.contains(e.target))return;x0=e.clientX;y0=e.clientY;dx=0;drag=false;pid=e.pointerId});
+    root.addEventListener('pointermove',e=>{if(x0==null||e.pointerId!==pid)return;dx=e.clientX-x0;const dy=e.clientY-y0;
+      if(!drag){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.3){drag=true;try{sec.setPointerCapture(pid)}catch(_){}}else if(Math.abs(dy)>10){x0=null;return}else return}
+      const ss=dvSecs(),i=ss.indexOf(sec),edge=(dx>0&&i<=0)||(dx<0&&i>=ss.length-1);sec.style.transform=`translateX(${edge?dx/4:dx}px)`;sec.style.opacity=String(Math.max(.4,1-Math.abs(dx)/(sec.offsetWidth*1.5)))});
+    const end=e=>{if(x0==null||e.pointerId!==pid)return;x0=null;if(!drag)return;eat=true;setTimeout(()=>eat=false,60);
+      const w=sec.offsetWidth||360;if(Math.abs(dx)>Math.min(80,w*.22)&&dvGo(dx<0?1:-1)){sec.style.opacity='';return}
+      sec.animate([{transform:sec.style.transform,opacity:sec.style.opacity||1},{transform:'none',opacity:1}],{duration:200,easing:'ease-out'});sec.style.transform='';sec.style.opacity=''};
+    root.addEventListener('pointerup',end);root.addEventListener('pointercancel',e=>{if(x0==null||e.pointerId!==pid)return;if(drag)end(e);else x0=null});
+    root.addEventListener('click',e=>{if(eat){e.stopPropagation();e.preventDefault();eat=false}},true);
+    document.addEventListener('keydown',e=>{if(!dv||!root.isConnected||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;if(e.key==='ArrowRight')dvGo(1);else if(e.key==='ArrowLeft')dvGo(-1)})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
   return {update};
@@ -2652,7 +2697,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.159';
+const APP_VERSION='v261120.160';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3338,6 +3383,8 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       <div class="c-sec"><h4>💥 Information importante</h4><input class="in red" id="fimp" value="${esc(f.important)}" placeholder="en rouge, ex. attestation de nage obligatoire"></div>
       <div class="c-sec"><h4>Bas de carte</h4>
         <textarea class="in" id="fabout" style="min-height:70px" placeholder="Texte descriptif (facultatif)">${esc(f.about||'')}</textarea>
+        <input class="in" id="flink" type="url" inputmode="url" value="${esc(f.link||'')}" placeholder="🔗 Lien externe : adresse du site (facultatif)">
+        <input class="in" id="flinkl" value="${esc(f.linkLabel||'')}" placeholder="Texte du bouton (par défaut : Lien externe)">
         <div class="galed">${(f.gallery||[]).map((id,i)=>`<span class="gi"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt=""><button type="button" data-rmg="${i}" aria-label="Retirer">✕</button></span>`).join('')}
         ${S.assets?`<label class="gadd"><input type="file" accept="image/*" id="galup" multiple hidden>＋ Photos</label>`:''}</div>
       </div>
@@ -3352,7 +3399,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const bl=$('[data-blank]');if(bl)bl.onclick=()=>{f=blankActivity(cat);step=3;draw()};
     if(step!==3)return;
     const inp=(id,fn)=>{const e=$(id);if(e)e.oninput=()=>fn(e.value)};
-    inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
+    inp('#flink',v=>f.link=v.trim());inp('#flinkl',v=>f.linkLabel=v);inp('#ftitle',v=>f.title=v);inp('#fabout',v=>f.about=v);inp('#fdesc',v=>f.desc=v);inp('#fplace',v=>f.place=v);inp('#fstay',v=>f.stayLabel=v);inp('#fimp',v=>f.important=v);
     inp('#tstart',v=>f.timing.start=v);inp('#tend',v=>f.timing.end=v);inp('#fplaces',v=>f.booking.places=v);
     const pgb=$('#pgridb');if(pgb)pgb.onclick=()=>{document.querySelectorAll('.pvpop').forEach(x=>x.remove());
       const r=pgb.getBoundingClientRect(),pop=document.createElement('div');pop.className='pvpop tpop';const cur=f.price.mode==='grid'?f.price.gid:'free';
@@ -3684,6 +3731,7 @@ function renderSettings(main){
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('programme','Paramétrage du programme',`<label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
+      <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Parcourir le calendrier jour par jour (un appui sur le calendrier d'une journée l'affiche seule, cartes déployées ; glisser à l'horizontale pour changer de jour ; nouvel appui pour revenir à la vue continue)</label>
       <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
     ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
       ${(st.info.ages||[]).map((g,i)=>`<div class="row" data-agi="${i}"><input class="in" data-agf="${i}" value="${esc(g.label)}" placeholder="ex. 11-14 ans"><button class="ico" data-agdel="${i}" aria-label="Supprimer">✕</button></div>`).join('')}
@@ -3768,6 +3816,7 @@ function renderSettings(main){
   if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
   const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  {const db=main.querySelector('#daybyday');if(db)db.onchange=()=>saveInfo(i=>{i.dayByDay=db.checked},db.checked?'Parcours jour par jour activé ✓':'Parcours jour par jour désactivé ✓')}
   {const au=main.querySelector('#autounf');if(au)au.onchange=()=>saveInfo(i=>{i.autoUnfold=au.checked},au.checked?'Déploiement automatique activé ✓':'Déploiement automatique désactivé ✓')}
   {const ff=main.querySelector('#fixfoot');if(ff)ff.onchange=()=>saveInfo(i=>{i.fixFoot=ff.checked},ff.checked?'Pied de page figé ✓':'Pied de page libre ✓')}
   {const ua=main.querySelector('#unfoldall');if(ua)ua.onchange=()=>saveInfo(i=>{i.unfoldAll=ua.checked},ua.checked?'Cartes déployées à l\'ouverture ✓':'Cartes repliées à l\'ouverture ✓')}
