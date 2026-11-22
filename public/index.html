@@ -957,7 +957,12 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 @media (min-width:821px){.cr-main{padding:18px}}
 .h-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .h-row h1{font-size:24px;font-weight:700;margin:0;letter-spacing:-.02em;line-height:1.1}
-.cal-bar{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.cal-bar{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.cal-bar{position:sticky;top:var(--crh,96px);z-index:15;background:var(--cream);margin-left:-12px;margin-right:-12px;padding:6px 12px 8px;box-shadow:0 6px 10px -8px rgba(20,19,23,.25)}
+.cal-bar .l2 .btn{min-height:34px;padding-top:4px;padding-bottom:4px;font-size:14px}
+.cal-bar .l2 #pubmonth{font-size:13px!important;line-height:1.05!important}
+.cal-bar .l2 #pubmonth small{font-size:10.5px!important}
+.cal-bar .l1 .btn{min-height:36px;padding-top:4px;padding-bottom:4px}
 .cal-bar .l1,.cal-bar .l2{display:flex;align-items:center;gap:8px}
 .cal-bar .l1 h1{flex:1;text-align:center;font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0;line-height:1.15}
 .cal-bar .l2 select{flex:1;min-width:0}
@@ -1308,10 +1313,10 @@ textarea.in{min-height:64px;resize:vertical}
 .dupm .mf{flex-wrap:wrap;row-gap:6px}
 .dupm .mf .dupcount{flex:1 0 100%;font-size:13px;font-weight:600;color:#3A5BA8}
 .dupm .mf [data-a=go]{flex:1 1 auto}
-.cform.lnk #pickvis2,.cform.lnk #recrop,.cform.lnk #ftitle,.cform.lnk #fdesc,.cform.lnk #fplace,.cform.lnk #fimp,.cform.lnk #fabout,.cform.lnk #ptext,.cform.lnk #pamount,.cform.lnk #pgridb,.cform.lnk #bopen,.cform.lnk .vis-pick,.cform.lnk select{background:#DCE8FF!important;border-color:#9DBBFF!important}
-.cform.lnk .tg2.shr span{background:#DCE8FF;border-color:#9DBBFF}
-.cform.lnk .tg2.shr input:checked+span{background:linear-gradient(#BFD4FF,#BFD4FF) padding-box,linear-gradient(#3A7BFF,#3A7BFF) border-box}
-.tplleg{display:inline-block;width:12px;height:12px;border-radius:3px;background:#DCE8FF;border:1px solid #9DBBFF;vertical-align:-1px;margin-right:4px}
+.cform.lnk #pickvis2,.cform.lnk #recrop,.cform.lnk #ftitle,.cform.lnk #fdesc,.cform.lnk #fplace,.cform.lnk #fimp,.cform.lnk #fabout,.cform.lnk #ptext,.cform.lnk #pamount,.cform.lnk #pgridb,.cform.lnk #bopen,.cform.lnk .vis-pick,.cform.lnk select{background:#EEF4FF!important;border-color:#C9DAFF!important}
+.cform.lnk .tg2.shr span{background:#EEF4FF;border-color:#C9DAFF}
+.cform.lnk .tg2.shr input:checked+span{background:linear-gradient(#DCE7FF,#DCE7FF) padding-box,linear-gradient(#8DB0FF,#8DB0FF) border-box}
+.tplleg{display:inline-block;width:12px;height:12px;border-radius:3px;background:#EEF4FF;border:1px solid #C9DAFF;vertical-align:-1px;margin-right:4px}
 .tplrib{position:sticky;top:0;z-index:3;display:inline-block;margin:-4px 0 8px;background:#3A7BFF;color:#fff;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:0 0 8px 0;box-shadow:2px 2px 0 rgba(20,19,23,.15)}
 .tplnote{margin:0 0 8px;font-size:12px;color:#3A5BA8;line-height:1.35}
 .tplacts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;width:100%}
@@ -2288,7 +2293,9 @@ function mountPublic(root,data,opts){
     const line=hd.getBoundingClientRect().bottom+ph+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
       const dc=c.closest('section.day')&&c.closest('section.day').querySelector('.dcol'),sc=scrollerOf(c),stop=dc?parseFloat(getComputedStyle(dc).top)+(sc===(document.scrollingElement||document.documentElement)?0:sc.getBoundingClientRect().top):line;
-      if(!glued&&c.getBoundingClientRect().top<=stop+28){autoDone.add(k);glue(c,stop,sc)}})};
+      const pv=prevCardOf(c),gone=!pv||pv.getBoundingClientRect().bottom<=hd.getBoundingClientRect().bottom+ph+1;
+      if(!glued&&gone&&c.getBoundingClientRect().top<=stop+6){autoDone.add(k);glue(c,stop,sc)}})};
+  const prevCardOf=c=>{const all=[...root.querySelectorAll('.days .card')].filter(x=>!x.closest('.pinned'));const i=all.indexOf(c);return i>0?all[i-1]:null};
   // « collage » : la carte se cale au niveau du haut du calendrier et le défilement est bloqué le temps du dépliage
   let glued=null;
   const scrollerOf=el=>{let p=el.parentElement;while(p&&p!==document.body){const o=getComputedStyle(p).overflowY;if(/(auto|scroll)/.test(o)&&p.scrollHeight>p.clientHeight)return p;p=p.parentElement}return document.scrollingElement||document.documentElement};
@@ -2296,12 +2303,19 @@ function mountPublic(root,data,opts){
   window.addEventListener('wheel',stopEv,{passive:false,capture:true});window.addEventListener('touchmove',stopEv,{passive:false,capture:true});
   // on anticipe : dès que la carte approche, le défilement de l'utilisateur est coupé (élan compris), la carte glisse
   // en douceur jusqu'au niveau du calendrier, se déplie, puis le blocage dure encore 0,1 s
+  // le défilement ne reprend qu'après le dépliage (+ marge de sécurité) ET une fois le doigt complètement relevé
+  let touchN=0;
+  window.addEventListener('touchstart',e=>{touchN=e.touches.length},{capture:true,passive:true});
+  const tEnd=e=>{touchN=e.touches.length;if(!touchN&&glued&&glued.waitLift)glued.release()};
+  window.addEventListener('touchend',tEnd,{capture:true,passive:true});window.addEventListener('touchcancel',tEnd,{capture:true,passive:true});
   function glue(c,line,sc){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
-    glued={sc};const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
+    const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
     el.style.overflow='hidden';if(doc)bd.style.overflow='hidden';bd.style.touchAction='none';sc.scrollTop=y0;
-    const d=c.getBoundingClientRect().top-line,y1=y0+d,T=140,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
+    const release=()=>{if(!glued)return;el.style.overflow=o0;if(doc)bd.style.overflow='';bd.style.touchAction=t0;glued=null};
+    glued={sc,release,waitLift:false};
+    const d=Math.max(0,c.getBoundingClientRect().top-line),y1=y0+d,T=120,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
     const step=now=>{const k=Math.min(1,(now-s0)/T);sc.scrollTop=y0+d*ez(k);if(k<1)requestAnimationFrame(step);else{sc.scrollTop=y1;toggleFold(c);
-      setTimeout(()=>{el.style.overflow=o0;if(doc)bd.style.overflow='';bd.style.touchAction=t0;glued=null},460+100)}};
+      setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},440+80)}};
     requestAnimationFrame(step)}
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
@@ -2557,7 +2571,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.147';
+const APP_VERSION='v261120.148';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2724,7 +2738,7 @@ function renderCalendar(main){ensureKitDefs();
    }}
   main.innerHTML=`
     ${!st.periods||!st.periods.length?`<div class="note">👉 Commence par les <b>Paramètres</b> : périodes scolaires et de vacances, puis les semaines types avec les horaires d'ouverture. Le calendrier se pré-remplit ensuite tout seul.</div>`:''}
-    <div class="cal-bar">
+    <div class="cal-bar" ${(()=>{requestAnimationFrame(()=>{const h=document.querySelector('.cr-top');if(h)document.documentElement.style.setProperty('--crh',h.offsetHeight+'px')});return ''})()}>
       <div class="l1"><button class="btn" data-mv="-1" aria-label="Mois précédent">‹</button><h1>${cap(MONTHS[m-1])} ${y}</h1><button class="btn" data-mv="1" aria-label="Mois suivant">›</button><button class="btn" data-mv="0" title="Aujourd'hui">Auj.</button></div>
       <div class="l2"><button class="btn" id="legend" title="Légende" aria-label="Légende">Lg</button><button class="btn" id="raz" title="Réinitialiser le mois sur les semaines types" aria-label="Réinitialiser le mois">Raz</button><button class="btn${fOn?' fon':''}" id="filt">Filtre${fOn?' ('+flt.length+')':''} ▾</button>
       <button class="btn go" id="pubmonth" ${draftsInMonth.length?'':'disabled'} title="Mettre en ligne les brouillons du mois">${draftsInMonth.length?'Publier '+MONTHS[m-1]+'<small>'+draftsInMonth.length+' jour'+(draftsInMonth.length>1?'s':'')+'</small>':'Rien à publier'}</button></div>
