@@ -924,6 +924,13 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .phone .pub:not(.ishome){min-height:100%}
 .pub-head .brand small .dvsub,.pub-head .brand small .dvb{display:inline!important;font:inherit;color:inherit;margin:0;white-space:nowrap}
 .pub-head .brand small .dvb{font-weight:700!important}
+/* second chevron (vue jour par jour), tout contre le premier */
+.back-btn.dvback{margin-left:-17px;margin-right:-6px}
+.back-btn.dvback.solo{margin-left:-8px}
+.back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
+.back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
+@keyframes dvin{from{width:0;margin-left:-6px;opacity:0}to{width:26px;margin-left:-17px;opacity:1}}
+@keyframes dvout{from{width:26px;margin-left:-17px;opacity:1}to{width:0;margin-left:-6px;opacity:0}}
 /* aide visuelle : calendrier du jour « bouton enfoncé » avec halo ; chevrons de la vue jour par jour */
 .onb-halo{position:absolute;z-index:3;border-radius:17px;pointer-events:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--hc) 60%,transparent),0 0 12px 2px color-mix(in srgb,var(--hc) 45%,transparent)}
 .dvh{position:fixed;left:0;right:0;top:50%;height:0;z-index:30;pointer-events:none;max-width:680px;margin:0 auto}
@@ -2487,18 +2494,13 @@ function mountPublic(root,data,opts){
   function dvPinOut(){if(!dvMv)return;const m=dvMv;dvMv=null;if(m.own)m.pn.classList.remove('pinfix');else{const box=m.pn.querySelector('.cards');m.nodes.forEach(n=>box.appendChild(n));m.pn.style.display=''}
     root.querySelectorAll('.pinned:not(.pinfix) .card').forEach(c=>delete c.dataset.demi);pinMini=false;pinScroll();refBase()}
   // sous-titre du bandeau en vue jour par jour : « le Programme, jour par jour »
-  // chevron de retour en haut à gauche en vue jour par jour (remplace le retour au menu, le titre glisse)
+  // second chevron en vue jour par jour, collé au chevron du menu : le logo et le titre glissent à droite pour lui faire place
   const BACK_SVG='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
   let dvHeadOn=false;
   function dvHead(on){const br=root.querySelector('.pub-head .brand');if(!br)return;const hb=br.querySelector('.back-btn[data-home]');let db=br.querySelector('.dvback');
     const anim=(on!==dvHeadOn);dvHeadOn=on;
-    const show=()=>{if(br.querySelector('.dvback'))return;db=document.createElement('button');db.className='back-btn dvback'+(anim?' anim':'');if(anim)db.style.animationDelay='0s';db.dataset.dvback='1';db.setAttribute('aria-label','Revenir au programme complet');db.innerHTML=BACK_SVG;br.insertBefore(db,br.firstChild)};
-    if(on){if(db)return;if(hb&&anim){hb.classList.remove('anim');hb.removeAttribute('style');void hb.offsetWidth;hb.classList.add('out');let ok=false;const go=()=>{if(ok)return;ok=true;hb.style.display='none';show()};hb.addEventListener('animationend',go,{once:true});setTimeout(go,560)}
-      else{if(hb)hb.style.display='none';show()}}
-    else{if(!db){if(hb){hb.classList.remove('out');hb.style.display=''}return}
-      if(!anim){db.remove();if(hb){hb.classList.remove('out');hb.style.display=''}return}
-      db.classList.remove('anim');db.removeAttribute('style');void db.offsetWidth;db.classList.add('out');let ok=false;
-      const go=()=>{if(ok)return;ok=true;db.remove();if(hb){hb.classList.remove('out');hb.style.display='';hb.classList.add('anim');hb.style.animationDelay='0s'}};db.addEventListener('animationend',go,{once:true});setTimeout(go,560)}}
+    if(on){if(db)return;db=document.createElement('button');db.className='back-btn dvback'+(anim?' anim':'')+(hb?'':' solo');db.dataset.dvback='1';db.setAttribute('aria-label','Revenir au programme complet');db.innerHTML=BACK_SVG;br.insertBefore(db,hb?hb.nextSibling:br.firstChild)}
+    else{if(!db)return;if(!anim){db.remove();return}db.classList.remove('anim');void db.offsetWidth;db.classList.add('out');let ok=false;const go=()=>{if(ok)return;ok=true;db.remove()};db.addEventListener('animationend',go,{once:true});setTimeout(go,560)}}
   function dvSub(on){const sm=root.querySelector('.pub-head .brand small');if(!sm)return;let x=sm.querySelector('.dvsub');if(on&&!x){x=document.createElement('span');x.className='dvsub';x.innerHTML=', <span class="dvb">jour par jour</span>';sm.appendChild(x)}else if(!on&&x)x.remove()}
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);dvSub(!!sec);if(sec&&!root.querySelector('.dvback'))dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();return}
@@ -2812,7 +2814,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.175';
+const APP_VERSION='v261120.176';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
