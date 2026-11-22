@@ -911,6 +911,9 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dnote span,.dnote{font-variant:small-caps;letter-spacing:.02em}
 .dnote .warn{width:19px!important;height:19px!important;flex-basis:19px!important}
 .pub-foot>div{font-family:inherit;font-size:13px!important;font-weight:400!important;color:var(--ink2)!important;line-height:1.35}
+/* pied de page : même écriture que l'adresse du contact, en noir */
+.pub-foot>div{font-family:var(--pf)!important;font-size:14.5px!important;font-weight:400!important;line-height:1.35!important;letter-spacing:normal;color:#000!important}
+.ishome .pub-foot>div{font-size:clamp(12.5px,1.9vh,14.5px)!important}
 /* photos du bas de carte : jamais rognées, ratio d'origine */
 .gal img,.card:not(.fold) .gal img,.card.zoomed .gal img,.card.zoomed .card-info .gal img{aspect-ratio:auto!important;height:auto!important;object-fit:contain!important}
 .card:not(.fold) .gal,.card.zoomed .gal{align-items:start}
@@ -2605,7 +2608,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.155';
+const APP_VERSION='v261120.156';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
