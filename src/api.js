@@ -59,9 +59,12 @@ export async function handleApi(request, env) {
 
   // ----- Public -----
   if (route === 'public' && m === 'GET') {
-    const d = await allDocs(env, ['settings', 'public']);
+    const d = await allDocs(env, ['settings', 'public', 'library']);
     const s = d.settings || {};
-    return json({ days: d.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'public, max-age=30' });
+    // cartes types utilisées par les journées en ligne (le site les affiche à jour, sans republier)
+    const used = new Set(JSON.stringify(d.public).match(/"templateId":"[^"]+"/g) || []);
+    const lib = ((d.library || {}).items || []).filter(x => used.has('"templateId":"' + x.id + '"'));
+    return json({ library: lib, days: d.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'public, max-age=30' });
   }
   if (route === 'img' && m === 'GET' && seg[1]) {
     const r = await env.DB.prepare('SELECT type, data FROM images WHERE id = ?1').bind(seg[1]).first();
@@ -83,9 +86,9 @@ export async function handleApi(request, env) {
       const d = await delegue(request, env);
       if (!d || d.status !== 'active' || !d.droits.includes('brouillons')) return bad('Accès non autorisé.', 403);
       await env.DB.prepare('UPDATE acces SET last = ?2 WHERE id = ?1').bind(d.id, new Date().toISOString()).run();
-      const a = await allDocs(env, ['settings', 'drafts', 'public']);
+      const a = await allDocs(env, ['settings', 'drafts', 'public', 'library']);
       const s = a.settings || {};
-      return json({ drafts: a.drafts, public: a.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'no-store' });
+      return json({ library: (a.library || {}).items || [], drafts: a.drafts, public: a.public, settings: { info: s.info || {}, periods: s.periods || [], tarifs: s.tarifs || [] } }, 200, { 'cache-control': 'no-store' });
     }
   }
 

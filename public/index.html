@@ -1292,6 +1292,10 @@ textarea.in{min-height:64px;resize:vertical}
 .cform .seg{min-height:38px}.cform .seg button{min-height:32px;font-size:12.5px;padding:0 9px}
 .cform .sugg{display:flex;flex-wrap:wrap;gap:4px}
 .cform .sugg:empty{display:none}
+.tplrib{position:sticky;top:0;z-index:3;display:inline-block;margin:-4px 0 8px;background:#3A7BFF;color:#fff;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:0 0 8px 0;box-shadow:2px 2px 0 rgba(20,19,23,.15)}
+.tplnote{margin:0 0 8px;font-size:12px;color:#3A5BA8;line-height:1.35}
+.tplacts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;width:100%}
+.tplacts .btn{flex:1 1 auto;font-size:13px;white-space:nowrap}
 .mf .tplsw{font-size:13px;min-height:28px;width:100%}
 .mf .fbar{display:flex;gap:8px;align-items:center;width:100%}
 .cform .c-row .in{flex:1 1 auto;width:auto;min-width:0}
@@ -1924,6 +1928,16 @@ function themeVars(t,p){p=p||'cal';if(!t||!t.color)return '';const c=hexHsl(t.co
   return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh}`+(p==='cal'?`;--caln:${f}`:'')}
 /* Monte la page publique dans un conteneur. data = {days:{date:day}, settings}
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
+/* ---------- Cartes types liées : la carte d'une journée affiche la carte type, sauf ce qui est propre au jour ---------- */
+const OWN_KEYS=['id','templateId','linked','timing','endDate','span','transport','full','pinned','pinFix','highlight'];
+const libItems=()=>{try{return (typeof window.EJ_LIB==='function'?window.EJ_LIB():window.EJ_LIBDATA)||[]}catch(e){return []}};
+function tplOf(a,lib){if(!a||!a.templateId)return null;const t=(lib||libItems()).find(x=>x.id===a.templateId);return t&&(a.linked||t.title===a.title)?t:null}
+function linkAct(a,lib){const t=tplOf(a,lib);if(!t)return a;
+  const o=JSON.parse(JSON.stringify(t));OWN_KEYS.forEach(k=>{if(a[k]!==undefined)o[k]=JSON.parse(JSON.stringify(a[k]));else delete o[k]});
+  o.booking=Object.assign({},t.booking||{});if(a.booking&&a.booking.places!==undefined)o.booking.places=a.booking.places;
+  o.id=a.id;o.templateId=t.id;o.linked=true;return o}
+function linkDays(days,lib){lib=lib||libItems();if(!lib.length||!days)return days;const out={};
+  Object.keys(days).forEach(k=>{const d=days[k];out[k]=d&&d.slots?Object.assign({},d,{slots:d.slots.map(sl=>Object.assign({},sl,{acts:(sl.acts||[]).map(a=>linkAct(a,lib))}))}):d});return out}
 function mountPublic(root,data,opts){
   opts=opts||{};{const ag=data&&data.settings&&data.settings.info&&data.settings.info.ages;if(Array.isArray(ag)&&ag.length)AGES=ag}if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
   const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
@@ -2230,11 +2244,11 @@ function mountPublic(root,data,opts){
     }catch(e){console.error('PDF',e&&e.message,e&&e.stack);alert('Création du PDF impossible pour le moment.')}
     finally{box.remove();btn.textContent=old}
   }
-  function update(d){if(d.days)st.days=d.days;if(d.settings)st.settings=d.settings;render()}
+  function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
   return {update};
 }
-window.EJ={themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -2261,7 +2275,7 @@ window.EJ={themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:(
       if(!r.ok)throw err('unavailable','API '+r.status);
       const d=await r.json();
       if(canEdit)Object.assign(store,{settings:d.settings,library:d.library,drafts:d.drafts||{},public:d.public||{}});
-      else{store.public=d.days||{};store.settings=d.settings||null}
+      else{store.public=d.days||{};store.settings=d.settings||null;window.EJ_LIBDATA=d.library||[]}
     })();
     return loaded;
   }
@@ -2465,6 +2479,7 @@ window.EJ={themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:(
     const st=k=>{const dr=d.drafts[k],p=d.public[k];if(p&&(!dr||dr.rev===dr.pubRev))return['p-pub','En ligne'];if(p)return['p-mod','Modifié, pas encore en ligne'];return['p-draft','Non publié']};
     app.innerHTML=`<div class="cr-top" style="position:sticky;top:0;z-index:6"><div class="r1"><span class="app">AppProg<span class="ver">${window.EJ_VERSION||''}</span></span><button class="ico" id="dgref" title="Actualiser" style="color:#fff;font-size:18px">↻</button><span class="role ed">Éditeur</span>${window.EJ.fsBtn('dark')}</div><div style="color:#C9C2D1;font-size:14px;font-weight:500;margin-top:6px">Calendrier de travail, non publié · ${hello}</div></div><div id="dgpub"></div>`;
     bind();
+    window.EJ_LIBDATA=d.library||[];
     window.EJ.mountPublic(app.querySelector('#dgpub'),{days,settings:d.settings},{allDays:true,statusOf:k=>{const [c,l]=st(k);return `<span class="pill ${c}" style="margin-left:6px">${l}</span>`}});
     {const hb=app.querySelector('.cr-top'),pb=app.querySelector('#dgpub .pub');if(hb&&pb)pb.style.setProperty('--top',hb.offsetHeight+'px')}
   }
@@ -2482,7 +2497,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.137';
+const APP_VERSION='v261120.138';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2497,6 +2512,7 @@ function emptySettings(){
 }
 const settings=()=>S.settings||emptySettings();
 const library=()=>(S.library&&S.library.items)||[];
+window.EJ_LIB=()=>S.library?library():(window.EJ_LIBDATA||[]);
 
 /* ---------- Écritures : une à la fois par document ---------- */
 const queues={};
@@ -2936,6 +2952,7 @@ function slotHTML(s,i){
     </div></section>`;
 }
 function actRowHTML(a,i,j,n){
+  a=EJ.linkAct(a);
   const sp=spanOf(a), L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'';
   const when=sp==='multi'?'du '+L(UI.drawer&&UI.drawer.date)+' au '+L(a.endDate):sp==='open'?'à partir du '+L(UI.drawer&&UI.drawer.date):sp==='until'?'jusqu\'au '+L(a.endDate):whenText(a);
   const meta=[a.transport?'[[bus]]':'',a.booking&&a.booking.on?'📋'+(a.booking.places?' '+a.booking.places+' pl.':''):'',(a.price||{}).mode&&a.price.mode!=='free'?'🤑 '+priceText(a.price):''].filter(Boolean).join(' · ');
@@ -3071,7 +3088,8 @@ function tplMeta(a){
 function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   syncAges();
   // mode : 'day' (dans une journée) ou 'template' (bibliothèque)
-  let step=initial?3:2, cat=initial?initial.cat:'jeux', f=initial?normalize(initial):null, q='';
+  let lt=mode==='day'&&initial?EJ.tplOf(initial,library()):null;
+  let step=initial?3:2, cat=initial?initial.cat:'jeux', f=initial?normalize(lt?EJ.linkAct(initial,library()):initial):null, q='';
   let saveAsTpl=false, keepB=null;
   const m=openModal('',{onClose:()=>{onClose&&setTimeout(onClose,0)}});
   function title(){return step===2?'Partir d\'une carte type':(initial?'Modifier la carte':mode==='template'?'Nouvelle carte type':'Nouvelle carte')}
@@ -3090,10 +3108,13 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       foot=`<span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
-      foot=`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme carte type</label>`:''}
+      foot=lt?`<p class="tplnote">Modifier cette carte change toutes les journées qui l'utilisent (sauf horaires, dates, complet / places, à la une et mise en évidence, propres à ce jour).</p>
+        <div class="tplacts">${onDelete?'<button class="btn sm warn" data-a="delete">Retirer de ce jour</button>':''}<button class="btn sm" data-a="tdup">Dupliquer</button><button class="btn sm warn" data-a="tdel">Supprimer partout</button></div>
+        <div class="fbar"><button class="btn" data-a="cancel">Annuler</button><span style="flex:1"></span><button class="btn pri" data-a="save">Enregistrer la carte type</button></div>`
+      :`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme carte type</label>`:''}
         <div class="fbar">${onDelete?'<button class="btn warn" data-a="delete">Supprimer</button>':!initial&&mode==='day'?'<button class="btn" data-a="back">‹ Retour</button>':''}
         <span style="flex:1"></span>
-        <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${initial?'Enregistrer':'Ajouter'}</button></div>`;
+        <button class="btn" data-a="cancel">Annuler</button><button class="btn pri" data-a="save">${mode==='template'?'Enregistrer la carte type':initial?'Enregistrer':'Ajouter'}</button></div>`;
     }
     const prevMb=m.el.querySelector('.mb'), keepY=prevMb&&prevStep===step?prevMb.scrollTop:0;prevStep=step;
     m.el.innerHTML=`${step===3?'':`<div class="mh"><h3>${esc(title())}</h3><button class="ico" data-a="cancel" title="Fermer">✕</button></div>`}<div class="mb">${body}</div><div class="mf">${foot}</div>`;
@@ -3115,7 +3136,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const spPreview=k=>{const D=DD,e=f.endDate;const L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'…';
       return 'À l\'écran : '+({day:'sur la journée (pas de mention de date)',multi:'« du '+L(D)+' au '+L(e)+' »',open:'« à partir du '+L(D)+' »',until:'« jusqu\'au '+L(e)+' »'})[k]};
     const chip=(id,on,l)=>`<label class="tg2"><input type="checkbox" id="${id}" ${on?'checked':''}><span>${l}</span></label>`;
-    return `<div class="cform">
+    return `${lt||mode==='template'?`<div class="tplrib" title="Les modifications s'appliquent à toutes les journées qui utilisent cette carte type">carte type</div>`:''}<div class="cform">
       <div class="c-head">
         <div class="c-img"><button class="vis-pick sm" id="pickvis" type="button">${actImage(f)}</button>
           <div class="c-imgb"><button type="button" class="btn sm" id="pickvis2">Changer</button>${f.asset?'<button type="button" class="btn sm" id="recrop">Recadrer</button>':''}</div></div>
@@ -3216,13 +3237,16 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
   function bindTpl(){
     m.el.querySelectorAll('[data-tpl]').forEach(b=>b.onclick=()=>{
       const t=library().find(x=>x.id===b.dataset.tpl);if(!t)return;
-      f=normalize(t);f.templateId=t.id;f.id=uid();cat=f.cat;step=3;draw();
+      f=normalize(t);f.templateId=t.id;f.linked=true;f.id=uid();cat=f.cat;if(mode==='day')lt=t;step=3;draw();
     });
   }
   async function action(a){
     if(a==='cancel')return m.close();
     if(a==='back'){step=2;draw();return}
-    if(a==='delete'){if(await confirmBox('Supprimer « '+(f.title||'cette carte')+' » ?',{ok:'Supprimer',danger:true})){m.close();onDelete()}return}
+    if(a==='delete'){if(await confirmBox((lt?'Retirer « '+(f.title||'cette carte')+' » de cette journée ? La carte type reste disponible.':'Supprimer « '+(f.title||'cette carte')+' » ?'),{ok:lt?'Retirer':'Supprimer',danger:true})){m.close();onDelete()}return}
+    if(a==='tdel'&&lt){const n=countTplUses(lt.id);if(!await confirmBox(`Supprimer la carte type « ${lt.title} » ? Elle sera retirée des ${n} journée${n>1?'s':''} qui l'utilisent, y compris en ligne.`,{ok:'Supprimer partout',danger:true}))return;
+      m.close();await removeTemplate(lt.id,true);if(UI.drawer){const dd=S.drafts[UI.drawer.date];if(dd){UI.drawer.day=clone(dd)}renderDrawer&&renderDrawer()}render();toast('Carte type supprimée partout');return}
+    if(a==='tdup'&&lt){const nt=clone(lt);nt.id=uid();nt.title=(f.title||lt.title)+' (copie)';await saveTemplate(nt);lt=nt;f.templateId=nt.id;f.linked=true;f.title=nt.title;draw();toast('Copie créée : cette journée utilise la nouvelle carte type ✓');return}
     if(a==='save'){
       if(!f.title.trim()){toast('Donne un titre à la carte',true);m.el.querySelector('#ftitle').focus();return}
       f.title=f.title.trim();
@@ -3230,8 +3254,12 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       f.timing.mode=(f.timing.start||f.timing.end)?(f.transport?'depart':'range'):'none';
 
       const out=clone(f);delete out._prevCat;
+      if(lt){const nt=clone(out);EJ.OWN_KEYS.forEach(k=>delete nt[k]);nt.id=lt.id;nt.booking=Object.assign({},out.booking||{});
+        if(lt.booking&&lt.booking.places!==undefined)nt.booking.places=lt.booking.places;else delete nt.booking.places;
+        await saveTemplate(nt);out.templateId=lt.id;out.linked=true;m.close();onSave(out);toast('Carte type enregistrée : tout le calendrier est à jour ✓');render();return}
+      if(saveAsTpl){out.templateId=uid();out.linked=true}
       m.close();onSave(out);
-      if(saveAsTpl){const tpl=clone(out);tpl.id=uid();delete tpl.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajoutée aux cartes types ✓')}
+      if(saveAsTpl){const tpl=clone(out);EJ.OWN_KEYS.forEach(k=>delete tpl[k]);tpl.id=out.templateId;tpl.full=false;await saveTemplate(tpl);toast('Ajoutée aux cartes types ✓')}
     }
   }
   draw();
@@ -3394,6 +3422,15 @@ async function saveLibrary(items){
   S.library={items};
   await docSet('config/library',{items,updatedAt:new Date().toISOString()});
 }
+function countTplUses(id){const ks=new Set();[S.drafts,S.pub].forEach(src=>Object.keys(src||{}).forEach(k=>((src[k]||{}).slots||[]).forEach(sl=>(sl.acts||[]).forEach(a=>{if(a.templateId===id)ks.add(k)}))));return ks.size}
+// supprime une carte type : remove=true la retire des journées, sinon les journées gardent une copie indépendante
+async function removeTemplate(id,remove){
+  const lib=library(),t=lib.find(x=>x.id===id);
+  for(const [col,src] of [['drafts',S.drafts],['public',S.pub]])for(const k of Object.keys(src||{})){const d=src[k];let ch=false;
+    const nd=clone(d);(nd.slots||[]).forEach(sl=>{sl.acts=(sl.acts||[]).flatMap(a=>{if(a.templateId!==id)return [a];ch=true;if(remove)return [];const o=t?EJ.linkAct(a,lib):a;delete o.templateId;delete o.linked;return [o]})});
+    if(ch){try{await docSet(col+'/'+k,nd);src[k]=nd}catch(e){}}}
+  await saveLibrary(lib.filter(x=>x.id!==id));
+}
 async function saveTemplate(t){
   const items=library().slice();const i=items.findIndex(x=>x.id===t.id);
   if(i>=0)items[i]=t;else items.push(t);
@@ -3436,7 +3473,7 @@ function renderLibrary(main){
     const t=library().find(x=>x.id===b.dataset.id);
     openComposer({mode:'template',initial:t,
       onSave:n=>{n.id=t.id;saveTemplate(n).then(()=>{toast('Carte type mise à jour ✓');render()})},
-      onDelete:()=>{saveLibrary(library().filter(x=>x.id!==t.id)).then(()=>{toast('Carte type supprimée');render()}).catch(()=>{})}});
+      onDelete:()=>{const n=countTplUses(t.id);removeTemplate(t.id,false).then(()=>{toast(n?`Carte type supprimée (les ${n} journées gardent leur copie)`:'Carte type supprimée');render()}).catch(()=>{})}});
   });
 }
 
