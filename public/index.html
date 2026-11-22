@@ -1816,7 +1816,7 @@ function cardHTML(a,opts){
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}" class="card${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -2283,9 +2283,11 @@ function mountPublic(root,data,opts){
   document.addEventListener('scroll',pinScroll,{capture:true,passive:true});
   // option : quand le calendrier d'une journée arrive en butée en haut, ses cartes se déploient (une seule fois par journée)
   const autoDone=new Set();
-  const autoUnfold=()=>{if(!((st.settings||{}).info||{}).autoUnfold||st.view==='home')return;
-    root.querySelectorAll('.days section.day').forEach(sec=>{const k=sec.id||((sec.querySelector('.card')||{}).dataset||{}).fk||'';if(!k||autoDone.has(k))return;const dc=sec.querySelector('.dcol');if(!dc)return;
-      if(dc.getBoundingClientRect().top-sec.getBoundingClientRect().top>1){autoDone.add(k);sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(!c.closest('.pinned'))toggleFold(c)})}})};
+  const autoUnfold=()=>{if(st.view==='home')return;const all=!!((st.settings||{}).info||{}).autoUnfold;
+    const hd=root.querySelector('.pub-head');if(!hd)return;const pb=root.querySelector('.pub'),ph=pb?parseFloat(getComputedStyle(pb).getPropertyValue('--pinh'))||0:0;
+    const line=hd.getBoundingClientRect().bottom+ph+12;
+    root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
+      if(c.getBoundingClientRect().top<=line){autoDone.add(k);toggleFold(c)}})};
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
@@ -2540,7 +2542,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.144';
+const APP_VERSION='v261120.145';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3188,7 +3190,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
           <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2 shr"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
         </div>
       </div>
-      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
+      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fauto',f.autoUnfold,'↕ Déploiement automatique')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
       <div class="c-sec"><h4>Dates et horaires</h4>
         ${DD?`<div class="g4"><span>Début</span><span class="dwrap"><button type="button" class="dx${sp==='until'?' on':''}" id="xstart" title="Pas de date de début">✕</button><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
         <span>Fin</span><span class="dwrap"><button type="button" class="dx${sp==='open'?' on':''}" id="xend" title="Pas de date de fin">✕</button><input class="in${sp==='open'?' off':''}" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}" ${sp==='open'?'disabled':''}></span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
@@ -3244,7 +3246,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     $$('[data-pam]').forEach(e=>e.oninput=()=>{const i=+e.dataset.pam;f.price.rows=f.price.rows||[];while(f.price.rows.length<=i)f.price.rows.push({amount:''});f.price.rows[i].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
-    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>{f.pinned=v;if(!v)f.pinFix=false});chk('#fpinfix',v=>f.pinFix=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fauto',v=>f.autoUnfold=v);chk('#fpin',v=>{f.pinned=v;if(!v)f.pinFix=false});chk('#fpinfix',v=>f.pinFix=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     $$('[data-age]').forEach(e=>e.onchange=()=>{f.ages=[...m.el.querySelectorAll('[data-age]:checked')].map(x=>x.dataset.age);f.publics='tous'});
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     const spRecalc=()=>{const sd=($('#fsd')||{}).value, ed=($('#fed')||{}).value, D=mode==='day'&&UI.drawer?UI.drawer.date:null;if(!D)return;
@@ -3560,7 +3562,7 @@ function renderSettings(main){
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
-    ${fold('programme','Paramétrage du programme',`<label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déployer automatiquement les cartes d'une journée quand son calendrier arrive en haut de l'écran</label>
+    ${fold('programme','Paramétrage du programme',`<label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
       <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
     ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
       ${(st.info.ages||[]).map((g,i)=>`<div class="row" data-agi="${i}"><input class="in" data-agf="${i}" value="${esc(g.label)}" placeholder="ex. 11-14 ans"><button class="ico" data-agdel="${i}" aria-label="Supprimer">✕</button></div>`).join('')}
