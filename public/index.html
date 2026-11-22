@@ -1297,6 +1297,14 @@ textarea.in{min-height:64px;resize:vertical}
 .cform .seg{min-height:38px}.cform .seg button{min-height:32px;font-size:12.5px;padding:0 9px}
 .cform .sugg{display:flex;flex-wrap:wrap;gap:4px}
 .cform .sugg:empty{display:none}
+.dupcal .cell.dsel{outline:3px solid #3A7BFF;outline-offset:-1px;background:#E8F0FF!important}
+.dupm .mf{flex-wrap:wrap;row-gap:6px}
+.dupm .mf .dupcount{flex:1 0 100%;font-size:13px;font-weight:600;color:#3A5BA8}
+.dupm .mf [data-a=go]{flex:1 1 auto}
+.cform.lnk #pickvis2,.cform.lnk #recrop,.cform.lnk #ftitle,.cform.lnk #fdesc,.cform.lnk #fplace,.cform.lnk #fimp,.cform.lnk #fabout,.cform.lnk #ptext,.cform.lnk #pamount,.cform.lnk #pgridb,.cform.lnk #bopen,.cform.lnk .vis-pick,.cform.lnk select{background:#DCE8FF!important;border-color:#9DBBFF!important}
+.cform.lnk .tg2.shr span{background:#DCE8FF;border-color:#9DBBFF}
+.cform.lnk .tg2.shr input:checked+span{background:linear-gradient(#BFD4FF,#BFD4FF) padding-box,linear-gradient(#3A7BFF,#3A7BFF) border-box}
+.tplleg{display:inline-block;width:12px;height:12px;border-radius:3px;background:#DCE8FF;border:1px solid #9DBBFF;vertical-align:-1px;margin-right:4px}
 .tplrib{position:sticky;top:0;z-index:3;display:inline-block;margin:-4px 0 8px;background:#3A7BFF;color:#fff;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:0 0 8px 0;box-shadow:2px 2px 0 rgba(20,19,23,.15)}
 .tplnote{margin:0 0 8px;font-size:12px;color:#3A5BA8;line-height:1.35}
 .tplacts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;width:100%}
@@ -2511,7 +2519,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.139';
+const APP_VERSION='v261120.140';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -2868,40 +2876,38 @@ function copyDayTo(src,target){
 }
 async function duplicateDay(){
   const src=UI.drawer.day;flushSave();
-  let picked=null;
-  const target=await new Promise(res=>{
-    let mo=TODAY.slice(0,7);
-    const m=openModal(`<div class="mh"><h3>Dupliquer le ${esc(EJ.fmtShortDate(src.date))} vers…</h3><button class="ico" data-a="x">✕</button></div><div class="mb dupcal"></div>`,{cls:'dupm',onClose:()=>res(picked)});
-    const box=m.el.querySelector('.dupcal');
+  const isFull=k=>!!(S.drafts[k]||S.pub[k]);
+  const targets=await new Promise(res=>{
+    let mo=TODAY.slice(0,7),out=null;const sel=new Set();
+    const m=openModal(`<div class="mh"><h3>Dupliquer le ${esc(EJ.fmtShortDate(src.date))} vers…</h3><button class="ico" data-a="x">✕</button></div><div class="mb dupcal"></div>
+      <div class="mf"><span class="dupcount"></span><button class="btn" data-a="x2">Annuler</button><button class="btn pri" data-a="go" disabled>Choisir des journées</button></div>`,{cls:'dupm',onClose:()=>res(out)});
+    const box=m.el.querySelector('.dupcal'),go=m.el.querySelector('[data-a="go"]'),cnt=m.el.querySelector('.dupcount');
+    const upd=()=>{const n=sel.size,k=[...sel].filter(isFull).length;go.disabled=!n;
+      go.textContent=!n?'Choisir des journées':k?`Écraser ${n} journée${n>1?'s':''}`:`Dupliquer sur ${n} journée${n>1?'s':''}`;
+      go.classList.toggle('warn',k>0);go.classList.toggle('pri',!k);
+      cnt.textContent=n?`${n} sélectionnée${n>1?'s':''}${k?` · ${k} déjà remplie${k>1?'s':''}`:''}`:'Touche les journées à remplir'};
     const draw=()=>{const [y,mm]=mo.split('-').map(Number);const days=[];for(let d=iso(new Date(y,mm-1,1));d.slice(0,7)===mo;d=addDays(d,1))days.push(d);
       let pv;const st0=settings();
       box.innerHTML=`<div class="dup-nav"><button class="btn" data-dm="-1">‹</button><b>${cap(MONTHS[mm-1])} ${y}</b><button class="btn" data-dm="1">›</button></div><div class="cal">${days.map(d=>{const p=periodOf(d,st0.periods),k=p?p.name:'';let h='';if(k!==pv){h=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(EJ.sepLabel(p))}</span></div>`;pv=k}return h+cellHTML(d,false)}).join('')}</div>`;
       box.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{mo=iso(new Date(y,mm-1+(+b.dataset.dm),1)).slice(0,7);draw();box.scrollTop=0});
-      box.querySelectorAll('.cell').forEach(c=>{if(c.dataset.date===src.date)c.classList.add('src');c.onclick=()=>{if(c.dataset.date===src.date){toast('C\'est la journée d\'origine',true);return}picked=c.dataset.date;m.close()}});
-      const cur=box.querySelector('.cell[data-date="'+TODAY+'"]');if(cur)setTimeout(()=>{const n=box.querySelector('.dup-nav');box.scrollTop=cur.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-(n?n.offsetHeight:0)-14},0);
+      box.querySelectorAll('.cell').forEach(c=>{const k=c.dataset.date;if(k===src.date)c.classList.add('src');c.classList.toggle('dsel',sel.has(k));
+        c.onclick=()=>{if(k===src.date){toast('C\'est la journée d\'origine',true);return}sel.has(k)?sel.delete(k):sel.add(k);c.classList.toggle('dsel',sel.has(k));upd()}});
+      upd();
     };
     draw();
+    {const cur=box.querySelector('.cell[data-date="'+TODAY+'"]');if(cur)setTimeout(()=>{const n=box.querySelector('.dup-nav');box.scrollTop=cur.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-(n?n.offsetHeight:0)-14},0)}
     let x0=null,y0=0;box.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY},{passive:true});
     box.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>70&&Math.abs(dy)<Math.abs(dx)*.6){const [y,mm]=mo.split('-').map(Number);mo=iso(new Date(y,mm-1+(dx<0?1:-1),1)).slice(0,7);draw()}},{passive:true});
-    m.el.querySelector('[data-a="x"]').onclick=()=>m.close();
+    m.el.querySelector('[data-a="x"]').onclick=()=>m.close();m.el.querySelector('[data-a="x2"]').onclick=()=>m.close();
+    go.onclick=async()=>{const ks=[...sel].sort(),full=ks.filter(isFull);
+      if(full.length&&!await confirmBox(`${full.length} journée${full.length>1?'s':''} déjà remplie${full.length>1?'s':''} ${full.length>1?'seront écrasées':'sera écrasée'} : ${full.map(k=>EJ.fmtShortDate(k)).join(', ')}. Continuer ?`,{ok:`Écraser ${ks.length} journée${ks.length>1?'s':''}`,danger:true}))return;
+      out=ks;m.close()};
   });
-  if(!target)return;
-  const cur=clone(getDay(target)), st=status(target);
-  const empty=!S.drafts[target]&&!S.pub[target];
-  if(empty){const d=copyDayTo(src,target);d.rev=1;d.pubRev=-1;
-    try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}return}
-  (cur.slots||[]).forEach(x=>(x.acts||[]).forEach(a=>{a.pinned=false}));
-  const ok=await new Promise(res=>{let done=false;
-    const m=openModal(`<div class="mh"><h3>Écraser le ${esc(EJ.fmtShortDate(target))} ?</h3></div>
-      <div class="mb"><p class="hint" style="margin:0 0 8px">Voici la journée actuelle${st==='pub'||st==='mod'?' (en ligne)':st==='draft'?' (brouillon)':' (semaine type)'} qui sera remplacée par celle du ${esc(EJ.fmtShortDate(src.date))} :</p><div class="dup-pv"></div></div>
-      <div class="mf"><button class="btn" data-a="no">Annuler</button><button class="btn warn" data-a="ok">Écraser</button></div>`,{onClose:()=>{if(!done)res(false)}});
-    mountPublic(m.el.querySelector('.dup-pv'),{days:{[target]:cur},settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
-    m.el.querySelector('[data-a="no"]').onclick=()=>m.close();
-    m.el.querySelector('[data-a="ok"]').onclick=()=>{done=true;res(true);m.close()};
-  });
-  if(!ok)return;
-  const d=copyDayTo(src,target);d.rev=((S.drafts[target]||{}).rev||0)+1;d.pubRev=(S.drafts[target]||{}).pubRev??-1;
-  try{await docSet('drafts/'+target,d);S.drafts[target]=d;toast('Journée dupliquée en brouillon le '+EJ.fmtShortDate(target)+' ✓');render()}catch(e){toast('Duplication impossible',true)}
+  if(!targets||!targets.length)return;
+  let n=0;
+  for(const target of targets){const d=copyDayTo(src,target);d.rev=((S.drafts[target]||{}).rev||0)+1;d.pubRev=(S.drafts[target]||{}).pubRev??-1;
+    try{await docSet('drafts/'+target,d);S.drafts[target]=d;n++}catch(e){}}
+  render();toast(n===targets.length?`Journée dupliquée en brouillon sur ${n} journée${n>1?'s':''} ✓`:`Duplication partielle : ${n} / ${targets.length}`,n!==targets.length);
 }
 async function resetTemplate(){
   const day=UI.drawer.day, n=day.slots.reduce((k,s)=>k+(s.acts||[]).length,0);
@@ -3122,7 +3128,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
       foot=`<span style="flex:1"></span><button class="btn" data-a="cancel">Annuler</button>`;
     } else {
       body=formHTML();
-      foot=lt?`<p class="tplnote">Modifier cette carte change toutes les journées qui l'utilisent (sauf horaires, dates, complet / places, à la une et mise en évidence, propres à ce jour).</p>
+      foot=lt?`<p class="tplnote"><i class="tplleg"></i>En bleu : ce qui sera modifié dans tout le calendrier. Le reste (horaires, dates, transport, complet / places, à la une, mise en évidence) ne concerne que cette journée.</p>
         <div class="tplacts">${onDelete?'<button class="btn sm warn" data-a="delete">Retirer de ce jour</button>':''}<button class="btn sm" data-a="tdup">Dupliquer</button><button class="btn sm warn" data-a="tdel">Supprimer partout</button></div>
         <div class="fbar"><button class="btn" data-a="cancel">Annuler</button><span style="flex:1"></span><button class="btn pri" data-a="save">Enregistrer la carte type</button></div>`
       :`${mode==='day'?`<label class="sw tplsw"><input type="checkbox" id="astpl" ${saveAsTpl?'checked':''}> Enregistrer aussi comme carte type</label>`:''}
@@ -3149,15 +3155,16 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     const DD=mode==='day'&&UI.drawer?UI.drawer.date:null, sp=spanOf(f);
     const spPreview=k=>{const D=DD,e=f.endDate;const L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'…';
       return 'À l\'écran : '+({day:'sur la journée (pas de mention de date)',multi:'« du '+L(D)+' au '+L(e)+' »',open:'« à partir du '+L(D)+' »',until:'« jusqu\'au '+L(e)+' »'})[k]};
-    const chip=(id,on,l)=>`<label class="tg2"><input type="checkbox" id="${id}" ${on?'checked':''}><span>${l}</span></label>`;
-    return `${lt||mode==='template'?`<div class="tplrib" title="Les modifications s'appliquent à toutes les journées qui utilisent cette carte type">carte type</div>`:''}<div class="cform">
+    const OWNC=['ffull','fhl','fpin','fpinfix','ftransport'];
+    const chip=(id,on,l)=>`<label class="tg2${OWNC.includes(id)?'':' shr'}"><input type="checkbox" id="${id}" ${on?'checked':''}><span>${l}</span></label>`;
+    return `${lt||mode==='template'?`<div class="tplrib" title="Les modifications s'appliquent à toutes les journées qui utilisent cette carte type">carte type</div>`:''}<div class="cform${lt?' lnk':''}">
       <div class="c-head">
         <div class="c-img"><button class="vis-pick sm" id="pickvis" type="button">${actImage(f)}</button>
           <div class="c-imgb"><button type="button" class="btn sm" id="pickvis2">Changer</button>${f.asset?'<button type="button" class="btn sm" id="recrop">Recadrer</button>':''}</div></div>
         <div class="c-tt">
           <input class="in" id="ftitle" value="${esc(f.title)}" placeholder="Titre" style="font-weight:800;font-size:16.5px">
           <input class="in" id="fdesc" value="${esc(f.desc)}" placeholder="Sous-titre (facultatif)">
-          <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
+          <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2 shr"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
         </div>
       </div>
       <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
