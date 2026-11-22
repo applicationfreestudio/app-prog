@@ -928,6 +928,8 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .ext-chip{text-decoration:none;float:right;margin:0 0 0 10px!important;position:relative;top:1px}
 .ext .ext-chip{float:none}
 .pdfdoc .ext,.pdfdoc .ext-chip{display:none}
+.card-info{position:relative}
+.card-info>.ext.abs{position:absolute;margin:0;z-index:1}
 /* journée : ajout d'une période horaire ou d'une carte hors période, toujours possible */
 .dr-body>*{flex-shrink:0}
 .add-pair{display:flex;gap:8px;margin:0 0 4px}
@@ -2187,7 +2189,16 @@ function mountPublic(root,data,opts){
   function placeArrow(c){const a=c.querySelector('.fold-ar'),h=c.querySelector('h3');if(!a||!h)return;
     if(c.classList.contains('fold')&&!c.classList.contains('demi')){c.style.removeProperty('--art');return}
     let t=h.offsetHeight/2-15,e=h;while(e&&e!==c){t+=e.offsetTop;e=e.offsetParent}c.style.setProperty('--art',Math.round(t)+'px')}
-  function fitCard(c){fitTitles(c);fitDesc(c);placeArrow(c)}
+  // bouton « Lien » sur sa propre ligne : remonté sur la dernière ligne de la carte s'il y a la place à droite
+  function placeExt(c){const x=c.querySelector('.card-info>.ext');if(!x)return;x.classList.remove('abs');x.style.top=x.style.right='';
+    if(c.classList.contains('fold'))return;const ch=x.firstElementChild,pv=x.previousElementSibling;if(!ch||!pv)return;
+    const fx=/flex|grid/.test(getComputedStyle(pv).display)&&pv.children.length;let rs;if(fx)rs=[...pv.children].map(e=>e.getBoundingClientRect());else{const rg=document.createRange();rg.selectNodeContents(pv);rs=[...rg.getClientRects()]}rs=rs.filter(r=>r.width>0&&r.height>0);if(!rs.length)return;
+    const bot=Math.max(...rs.map(r=>r.bottom)),line=rs.filter(r=>r.bottom>bot-4),right=Math.max(...line.map(r=>r.right)),top=Math.min(...line.map(r=>r.top));
+    const cr=ch.getBoundingClientRect(),ir=x.parentElement.getBoundingClientRect(),k=x.parentElement.offsetWidth?ir.width/x.parentElement.offsetWidth:1;
+    if(right+10>cr.left)return;
+    const xr=x.getBoundingClientRect(),off=cr.top-xr.top;x.classList.add('abs');x.style.right=((ir.right-cr.right)/(k||1)).toFixed(1)+'px';x.style.top=(((top+bot)/2-ir.top-cr.height/2-off)/(k||1)).toFixed(1)+'px'}
+  // une carte masquée (vue jour par jour) n'est pas mesurée : elle le sera quand elle redeviendra visible
+  function fitCard(c){if(!c.getClientRects().length)return;fitTitles(c);fitDesc(c);placeArrow(c);placeExt(c)}
   const fitFold=()=>{markFoldable();root.querySelectorAll('.card').forEach(fitCard)};
   function fitStay(){fitFold();fitPlaces();fitPrices();
     requestAnimationFrame(()=>root.querySelectorAll('.sj-when,.card:not(.fold) .card-head .when,.card.fold.demi .card-head .when,.card-head .pj-from').forEach(w=>{
@@ -2424,7 +2435,7 @@ function mountPublic(root,data,opts){
   let dv=null,auHold=0;const dvOpened=new Set();
   const dvSecs=()=>[...root.querySelectorAll('.days>section.day[id^="j-"]')];
   // la journée se place juste sous le bandeau (et la bande des cartes à la une figées) si la page est déjà descendue plus bas ; sinon les cartes à la une restent visibles au-dessus
-  const dvScTop=sec=>{const sc=root.closest('.realview')||document.scrollingElement;if(!sec){sc.scrollTop=0;return}const base=refBase()||0,d=sec.getBoundingClientRect().top-base-8;if(d<0)sc.scrollTop+=d}
+  const dvScTop=sec=>{const sc=scrollerOf(sec||root);if(!sec){sc.scrollTop=0;return}const base=refBase()||0,d=sec.getBoundingClientRect().top-base-8;if(d<0)sc.scrollTop+=d}
   function dvOpen(sec){sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(c.dataset.fk)dvOpened.add(c.dataset.fk);toggleFold(c)})}
   // en vue jour par jour, les cartes à la une non figées rejoignent la bande figée (et y retournent ensuite)
   let dvMv=null;
@@ -2442,12 +2453,14 @@ function mountPublic(root,data,opts){
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
       dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       root.querySelectorAll('.days .card:not(.fold)').forEach(c=>{if(dvOpened.has(c.dataset.fk))toggleFold(c)});dvOpened.clear();
-      const base=refBase()||0;const sc=root.closest('.realview')||document.scrollingElement;sc.scrollTop+=sec.getBoundingClientRect().top-base-6;return}
-    dv=sec.id.slice(2);dvApply();dvScTop(sec);dvOpen(sec)}
+      // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
+      fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
+      const hold=()=>{if(stop||!sec.isConnected)return;const base=refBase()||0,d=sec.getBoundingClientRect().top-base-6;if(Math.abs(d)>.5)sc.scrollTop+=d;if(performance.now()-t0<900)requestAnimationFrame(hold)};hold();return}
+    dv=sec.id.slice(2);dvApply();fitStay();dvScTop(sec);dvOpen(sec)}
   function dvGo(dir){const ss=dvSecs(),i=ss.findIndex(x=>x.id==='j-'+dv),nx=ss[i+dir],cur=ss[i];if(!nx||!cur)return false;
     const W=cur.offsetWidth||360,ez='cubic-bezier(.25,.8,.25,1)';
     const out=cur.animate([{transform:cur.style.transform||'none',opacity:1},{transform:`translateX(${-dir*W}px)`,opacity:0}],{duration:180,easing:'ease-in'});
-    out.onfinish=()=>{cur.style.transform='';dv=nx.id.slice(2);dvApply();dvScTop(nx);dvOpen(nx);
+    out.onfinish=()=>{cur.style.transform='';dv=nx.id.slice(2);dvApply();fitStay();dvScTop(nx);dvOpen(nx);
       nx.animate([{transform:`translateX(${dir*W*.6}px)`,opacity:0},{transform:'none',opacity:1}],{duration:260,easing:ez})};return true}
   {let x0=null,y0=0,dx=0,drag=false,pid=null,sec=null,eat=false;
     root.addEventListener('pointerdown',e=>{if(!dv||e.button>0||e.target.closest('input,textarea,select,.pub-head button'))return;sec=root.querySelector('.days>section.dvon');if(!sec)return;x0=e.clientX;y0=e.clientY;dx=0;drag=false;pid=e.pointerId});
@@ -2713,7 +2726,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.162';
+const APP_VERSION='v261120.163';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
