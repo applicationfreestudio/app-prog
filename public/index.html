@@ -2401,7 +2401,13 @@ function mountPublic(root,data,opts){
     const base=refBase();if(base==null)return;const stop=base+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{if(glued)return;const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
       const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:c.getBoundingClientRect().top<=stop;
-      if(gone&&c.getBoundingClientRect().top<=stop+80){autoDone.add(k);glue(c,stop,scrollerOf(c))}})};
+      if(gone&&c.getBoundingClientRect().top<=stop+80){autoDone.add(k);glue(c,stop,scrollerOf(c))}});
+    // cartes mises en évidence : petit effet « collant » au passage de la ligne du haut, qu'elles soient dépliées ou non (sans changer leur état)
+    if(glued)return;
+    root.querySelectorAll('.days .card.hl').forEach(c=>{if(glued)return;const k=c.dataset.fk;if(!k||autoDone.has(k)||hlDone.has(k)||c.closest('.pinned'))return;
+      const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:c.getBoundingClientRect().top<=stop;
+      if(gone&&c.getBoundingClientRect().top<=stop+80){hlDone.add(k);glue(c,stop,scrollerOf(c),true)}})};
+  const hlDone=new Set();
   const prevCardOf=c=>{const all=[...root.querySelectorAll('.days .card')].filter(x=>!x.closest('.pinned'));const i=all.indexOf(c);return i>0?all[i-1]:null};
   // « collage » : la carte se cale au niveau du haut du calendrier et le défilement est bloqué le temps du dépliage
   let glued=null;
@@ -2422,7 +2428,7 @@ function mountPublic(root,data,opts){
   window.addEventListener('touchstart',e=>{touchN=e.touches.length;gY=e.touches.length?e.touches[0].clientY:null;gBlock=false},{capture:true,passive:true});
   const tEnd=e=>{touchN=e.touches.length;if(!touchN&&gBlock){gBlock=false;upOnly=false}if(!touchN&&glued&&glued.waitLift)glued.release()};
   window.addEventListener('touchend',tEnd,{capture:true,passive:true});window.addEventListener('touchcancel',tEnd,{capture:true,passive:true});
-  function glue(c,line,sc){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
+  function glue(c,line,sc,stick){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
     const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
     const a0=el.style.overflowAnchor;// l'ancrage de défilement du navigateur est coupé : sinon, quand la carte grandit, il peut faire sauter la page
     el.style.overflow='hidden';el.style.overflowAnchor='none';bd.style.touchAction='none';sc.scrollTop=y0;
@@ -2430,9 +2436,9 @@ function mountPublic(root,data,opts){
     glued={sc,release,waitLift:false,want:y0};
     const d=c.getBoundingClientRect().top-line,y1=y0+d,T=120,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
     // le dépliage démarre avec le glissement : la journée grandit et son calendrier vient se caler sans à-coup
-    toggleFold(c);
+    if(!stick)toggleFold(c);
     const step=now=>{if(!glued)return;const k=Math.min(1,(now-s0)/T);glued.want=y0+d*ez(k);sc.scrollTop=glued.want;if(k<1)requestAnimationFrame(step);else{sc.scrollTop=glued.want=y1;
-      setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},440+80-T)}};
+      setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},stick?260:440+80-T)}};
     requestAnimationFrame(step)}
   // pendant le collage, toute position imposée par le navigateur (reste du geste, inertie) est corrigée avant l'affichage
   document.addEventListener('scroll',e=>{if(!glued)return;const sc=glued.sc;if(Math.abs(sc.scrollTop-glued.want)>.5)sc.scrollTop=glued.want},{capture:true,passive:true});
@@ -2744,7 +2750,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.166';
+const APP_VERSION='v261120.167';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
