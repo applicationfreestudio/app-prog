@@ -2412,9 +2412,9 @@ function mountPublic(root,data,opts){
       if(gone&&c.getBoundingClientRect().top<=stop+80&&scDown){autoDone.add(k);stickDone.add(k);glue(c,stop,scrollerOf(c))}});
     // effet « collant » (sans changer l'état de la carte) : cartes mises en évidence, cartes à déploiement automatique
     // (après leur premier déploiement) et cartes toujours déployées ; il rejoue à chaque passage en descendant (réarmé quand la carte repasse en dessous)
-    if(glued)return;
+    if(glued)return;const stickAlways=((st.settings||{}).info||{}).stickAlways!==false;
     root.querySelectorAll('.days .card.hl,.days .card[data-au],.days .card.aopen'+(all?',.days .card:not(.nofold)':'')).forEach(c=>{const k=c.dataset.fk;if(!k||c.closest('.pinned'))return;
-      const top=c.getBoundingClientRect().top;if(top>stop+160){stickDone.delete(k);return}
+      const top=c.getBoundingClientRect().top;if(top>stop+160){if(stickAlways||c.classList.contains('hl'))stickDone.delete(k);return}
       if(glued||stickDone.has(k)||!scDown)return;
       const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:top<=stop;
       if(gone&&top<=stop+80&&top>stop-40){stickDone.add(k);glue(c,stop,scrollerOf(c),true)}})};
@@ -2799,7 +2799,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.173';
+const APP_VERSION='v261120.174';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3832,6 +3832,7 @@ function renderSettings(main){
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('programme','Paramétrage du programme',`<label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
+      <label class="sw"><input type="checkbox" id="stickall" ${st.info.stickAlways!==false?'checked':''}> Effet collant à chaque passage pour les cartes à déploiement automatique et toujours déployées (sinon, seulement la première fois de la session)</label>
       <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Parcourir le calendrier jour par jour (un appui sur le calendrier d'une journée l'affiche seule, cartes déployées ; glisser à l'horizontale pour changer de jour ; nouvel appui pour revenir à la vue continue)</label>
       <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
     ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
@@ -3917,6 +3918,7 @@ function renderSettings(main){
   if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
   const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  {const sk=main.querySelector('#stickall');if(sk)sk.onchange=()=>saveInfo(i=>{i.stickAlways=sk.checked},sk.checked?'Effet collant à chaque passage ✓':'Effet collant la première fois seulement ✓')}
   {const db=main.querySelector('#daybyday');if(db)db.onchange=()=>saveInfo(i=>{i.dayByDay=db.checked},db.checked?'Parcours jour par jour activé ✓':'Parcours jour par jour désactivé ✓')}
   {const au=main.querySelector('#autounf');if(au)au.onchange=()=>saveInfo(i=>{i.autoUnfold=au.checked},au.checked?'Déploiement automatique activé ✓':'Déploiement automatique désactivé ✓')}
   {const ff=main.querySelector('#fixfoot');if(ff)ff.onchange=()=>saveInfo(i=>{i.fixFoot=ff.checked},ff.checked?'Pied de page figé ✓':'Pied de page libre ✓')}
