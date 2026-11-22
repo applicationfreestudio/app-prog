@@ -933,8 +933,8 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .pinned.pinfix{background:rgba(245,244,241,.72)!important;-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px);padding-top:14px!important;padding-bottom:14px!important;margin-top:-22px!important;margin-bottom:-26px}
 /* informations importantes de la journée */
 .dnote{font-size:14px!important}
-.dnote .warn{width:20px!important;height:20px!important;flex-basis:20px!important}
-.dnote+.slot,.dnote+.cards,.dnote+*{margin-top:-2px}
+.dnote .warn{width:21px!important;height:21px!important;flex-basis:21px!important}
+.dnote+.slot,.dnote+.cards,.dnote+*{margin-top:-3px}
 </style>
 
 <style>
@@ -2037,7 +2037,7 @@ function mountPublic(root,data,opts){
       const sp=split(st.days[k]), sg=sp.skip?null:sig(sp.d);
       if(g&&id===prev&&!sp.stays.length&&sg&&sg===g.sig&&addDays(g.end,1)===k){g.end=k;return}
       flush();
-      if(id!==prev){h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
+      if(id!==prev){if(!(p&&p.type!=='vacances'))h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
       sp.stays.forEach(a=>{h+=stayHTML(a,k)});
       if(!sp.skip)g={d:sp.d,sig:sg,end:k};
     });
@@ -2534,7 +2534,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.142';
+const APP_VERSION='v261120.143';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
