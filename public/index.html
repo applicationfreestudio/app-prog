@@ -2287,7 +2287,16 @@ function mountPublic(root,data,opts){
     const hd=root.querySelector('.pub-head');if(!hd)return;const pb=root.querySelector('.pub'),ph=pb?parseFloat(getComputedStyle(pb).getPropertyValue('--pinh'))||0:0;
     const line=hd.getBoundingClientRect().bottom+ph+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
-      if(c.getBoundingClientRect().top<=line){autoDone.add(k);toggleFold(c)}})};
+      const dc=c.closest('section.day')&&c.closest('section.day').querySelector('.dcol'),sc=scrollerOf(c),stop=dc?parseFloat(getComputedStyle(dc).top)+(sc===(document.scrollingElement||document.documentElement)?0:sc.getBoundingClientRect().top):line;
+      if(c.getBoundingClientRect().top<=stop){autoDone.add(k);glue(c,stop,sc);toggleFold(c)}})};
+  // « collage » : la carte se cale au niveau du haut du calendrier et le défilement est bloqué le temps du dépliage
+  let glued=null;
+  const scrollerOf=el=>{let p=el.parentElement;while(p&&p!==document.body){const o=getComputedStyle(p).overflowY;if(/(auto|scroll)/.test(o)&&p.scrollHeight>p.clientHeight)return p;p=p.parentElement}return document.scrollingElement||document.documentElement};
+  const stopEv=e=>{if(glued)e.preventDefault()};
+  window.addEventListener('wheel',stopEv,{passive:false,capture:true});window.addEventListener('touchmove',stopEv,{passive:false,capture:true});
+  function glue(c,line,sc){const snap=()=>{const d=c.getBoundingClientRect().top-line;if(Math.abs(d)>.5)sc.scrollTop+=d;return sc.scrollTop};let y=snap();
+    const hold=()=>{if(glued&&Math.abs(sc.scrollTop-y)>.5)sc.scrollTop=y};requestAnimationFrame(()=>{y=snap()});sc.addEventListener('scroll',hold,{passive:true});if(sc===document.scrollingElement)window.addEventListener('scroll',hold,{passive:true});
+    glued={sc};clearTimeout(glue.t);glue.t=setTimeout(()=>{glued=null;sc.removeEventListener('scroll',hold);window.removeEventListener('scroll',hold)},380)}
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
@@ -2542,7 +2551,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.145';
+const APP_VERSION='v261120.146';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
