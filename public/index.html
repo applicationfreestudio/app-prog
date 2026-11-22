@@ -922,6 +922,8 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub:not(.ishome){min-height:100vh;min-height:100svh}
 .cr-main.full .pub:not(.ishome){min-height:auto}
 .phone .pub:not(.ishome){min-height:100%}
+.pub-head .brand small .dvsub,.pub-head .brand small .dvb{display:inline!important;font:inherit;color:inherit;margin:0;white-space:nowrap}
+.pub-head .brand small .dvb{font-weight:700!important}
 /* aide visuelle : calendrier du jour « bouton enfoncé » avec halo ; chevrons de la vue jour par jour */
 .onb-halo{position:absolute;z-index:3;border-radius:17px;pointer-events:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--hc) 60%,transparent),0 0 12px 2px color-mix(in srgb,var(--hc) 45%,transparent)}
 .dvh{position:fixed;left:0;right:0;top:50%;height:0;z-index:30;pointer-events:none;max-width:680px;margin:0 auto}
@@ -2483,13 +2485,15 @@ function mountPublic(root,data,opts){
     root.querySelectorAll('.pinfix .card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;pinScroll();refBase()}
   function dvPinOut(){if(!dvMv)return;const m=dvMv;dvMv=null;if(m.own)m.pn.classList.remove('pinfix');else{const box=m.pn.querySelector('.cards');m.nodes.forEach(n=>box.appendChild(n));m.pn.style.display=''}
     root.querySelectorAll('.pinned:not(.pinfix) .card').forEach(c=>delete c.dataset.demi);pinMini=false;pinScroll();refBase()}
-  function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);
+  // sous-titre du bandeau en vue jour par jour : « le Programme, jour par jour »
+  function dvSub(on){const sm=root.querySelector('.pub-head .brand small');if(!sm)return;let x=sm.querySelector('.dvsub');if(on&&!x){x=document.createElement('span');x.className='dvsub';x.innerHTML=', <span class="dvb">jour par jour</span>';sm.appendChild(x)}else if(!on&&x)x.remove()}
+  function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);dvSub(!!sec);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();return}
     if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
     pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn()}
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;if(glued)glued.release();
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
-      dv=null;dvHintHide();pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
+      dv=null;dvHintHide();dvSub(false);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       
       // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
       fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
@@ -2795,7 +2799,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.172';
+const APP_VERSION='v261120.173';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
