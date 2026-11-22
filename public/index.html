@@ -904,6 +904,25 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .day{scroll-margin-top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + 10px)!important}
 .dcol{top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + 12px)!important}
 .pub>.wm{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important}
+
+/* --- v137 --- */
+.dnote span,.dnote{font-variant:small-caps;letter-spacing:.02em}
+.dnote .warn{width:19px!important;height:19px!important;flex-basis:19px!important}
+.pub-foot>div{font-family:inherit;font-size:13px!important;font-weight:400!important;color:var(--ink2)!important;line-height:1.35}
+/* photos du bas de carte : jamais rognées, ratio d'origine */
+.gal img,.card:not(.fold) .gal img,.card.zoomed .gal img,.card.zoomed .card-info .gal img{aspect-ratio:auto!important;height:auto!important;object-fit:contain!important}
+.card:not(.fold) .gal,.card.zoomed .gal{align-items:start}
+.card:not(.fold) .gal img:last-child:nth-child(odd){aspect-ratio:auto!important}
+/* cartes à la une figées en haut */
+.pinned.pinfix{position:sticky;z-index:6;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));margin:0 -16px;padding:12px 16px 14px;
+  background:linear-gradient(var(--cream,#F5F4F1) 82%,color-mix(in srgb,var(--cream,#F5F4F1) 0%,transparent))}
+/* pied de page et logos figés */
+.pub.fixfoot:not(.ishome) .pub-foot{position:sticky;bottom:0;z-index:11;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(color-mix(in srgb,var(--cream,#F5F4F1) 0%,transparent) 0,var(--cream,#F5F4F1) calc(18px + var(--plh,84px) * var(--plfn,.7)))}
+.pub.fixfoot:not(.ishome) .pub-foot::before{display:none}
+
+.dcol{top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + var(--pinh,0px) + 12px)!important}
+.day{scroll-margin-top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + var(--pinh,0px) + 10px)!important}
 </style>
 
 <style>
@@ -1991,13 +2010,13 @@ function mountPublic(root,data,opts){
     flush();
     return h;
   }
-  function pinnedHTML(shown){
+  function pinnedHTML(shown,fixed){
     const today=iso(new Date()), items=[], vis=new Set(shown||[]);
     Object.keys(st.days).sort().forEach(k=>(st.days[k].slots||[]).forEach(s=>(s.acts||[]).forEach(a=>{
-      if(a.pinned&&(a.endDate||k)>=today)items.push([k,a]);
+      if(a.pinned&&(a.endDate||k)>=today&&!!a.pinFix===!!fixed)items.push([k,a]);
     })));
     if(!items.length)return '';
-    return `<section class="pinned"><div class="cards">${items.map(([k,a])=>{
+    return `<section class="pinned${fixed?' pinfix':''}"><div class="cards">${items.map(([k,a])=>{
       const d=parse(k), e=a.endDate&&a.endDate>k?parse(a.endDate):null;
       const dl=DAYS_S[dow(k)]+'. '+d.getDate()+' '+MONTHS_S[d.getMonth()]+(e?' → '+DAYS_S[(e.getDay()+6)%7]+'. '+e.getDate()+' '+MONTHS_S[e.getMonth()]:'');
       const sp=spanOf(a);
@@ -2021,10 +2040,11 @@ function mountPublic(root,data,opts){
     const kbg=`linear-gradient(color-mix(in srgb,var(--cream) ${info.homeBg&&!opts.noAssets?Math.round((1-hop)*100):100}%,transparent),color-mix(in srgb,var(--cream) ${info.homeBg&&!opts.noAssets?Math.round((1-hop)*100):100}%,transparent))${info.homeBg&&!opts.noAssets?`,url('${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}')`:''}`;
     requestAnimationFrame(knock);
     root.innerHTML=`<div class="pub ishome${info.tileBold?' tbold':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--tbl:${Math.max(0,Math.min(12,info.tileBlur==null?1.5:+info.tileBlur))}px;--t1:${tcol(TA)};--t2:${tcol(TA*.62)};--t3:${tcol(TA*.5)};--t4:${tcol(TA*.25)};--kbg:${kbg.replace(/"/g,"'")};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
-    root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
-      <main class="days">${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
+    root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}${info.fixFoot?' fixfoot':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plfn:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))/100};--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
+      <main class="days">${pinnedHTML(ks,true)}${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();
+    {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)}
   }
   // horaires de séjour : une seule ligne, police réduite si besoin
   function fitPrices(){
@@ -2462,7 +2482,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.136';
+const APP_VERSION='v261120.137';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3105,7 +3125,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
           <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
         </div>
       </div>
-      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}</div>
+      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
       <div class="c-sec"><h4>Dates et horaires</h4>
         ${DD?`<div class="g4"><span>Début</span><span class="dwrap"><button type="button" class="dx${sp==='until'?' on':''}" id="xstart" title="Pas de date de début">✕</button><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
         <span>Fin</span><span class="dwrap"><button type="button" class="dx${sp==='open'?' on':''}" id="xend" title="Pas de date de fin">✕</button><input class="in${sp==='open'?' off':''}" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}" ${sp==='open'?'disabled':''}></span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
@@ -3161,7 +3181,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     $$('[data-pam]').forEach(e=>e.oninput=()=>{const i=+e.dataset.pam;f.price.rows=f.price.rows||[];while(f.price.rows.length<=i)f.price.rows.push({amount:''});f.price.rows[i].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
-    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>f.pinned=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fpin',v=>{f.pinned=v;if(!v)f.pinFix=false});chk('#fpinfix',v=>f.pinFix=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     $$('[data-age]').forEach(e=>e.onchange=()=>{f.ages=[...m.el.querySelectorAll('[data-age]:checked')].map(x=>x.dataset.age);f.publics='tous'});
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     const spRecalc=()=>{const sd=($('#fsd')||{}).value, ed=($('#fed')||{}).value, D=mode==='day'&&UI.drawer?UI.drawer.date:null;if(!D)return;
@@ -3497,6 +3517,7 @@ function renderSettings(main){
       <label class="fld"><span>Fondu : opaque à partir de <b id="plfv">${st.info.partFade==null?70:st.info.partFade} %</b> de la hauteur (0 % = pas de fondu)</span><input type="range" id="plf" min="0" max="100" step="5" value="${st.info.partFade==null?70:st.info.partFade}"></label></div></details>
       <details class="tsub" data-fold="th-cartes" ${UI.open['th-cartes']?'open':''}><summary>Cartes du programme</summary><div class="tsb"><p class="hint">Format des cartes à l'arrivée sur la page du programme.</p>
       <div class="cmodes">${[['petite','Petite carte','image + titre'],['demi','Demi-carte','titre, sous-titre et horaires']].map(([k,l,h])=>`<button type="button" class="btn cmode${(st.info.cardMode||'petite')===k?' on':''}" data-cmode="${k}"><b>${l}</b><small>${h}</small></button>`).join('')}</div>
+      <label class="sw"><input type="checkbox" id="fixfoot" ${st.info.fixFoot?'checked':''}> Figer le pied de page et les logos (toujours visibles en bas du programme)</label>
       <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Déployer les cartes à l'ouverture de la page programme</label></div></details>
       <details class="tsub" data-fold="th-intitules" ${UI.open['th-intitules']?'open':''}><summary>Intitulés des cartes</summary><div class="tsb"><p class="hint">Mots affichés sur les cartes. Laisser vide pour revenir au texte par défaut.</p>
       ${Object.keys(EJ.LBL_DEF).map(k=>`<label class="fld"><span>${esc(EJ.LBL_NAMES[k])}</span><input class="in" data-lbl="${k}" value="${esc((st.info.labels||{})[k]||'')}" placeholder="${esc(EJ.LBL_DEF[k])}"></label>`).join('')}</div></details>
@@ -3544,6 +3565,7 @@ function renderSettings(main){
   if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
   const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  {const ff=main.querySelector('#fixfoot');if(ff)ff.onchange=()=>saveInfo(i=>{i.fixFoot=ff.checked},ff.checked?'Pied de page figé ✓':'Pied de page libre ✓')}
   {const ua=main.querySelector('#unfoldall');if(ua)ua.onchange=()=>saveInfo(i=>{i.unfoldAll=ua.checked},ua.checked?'Cartes déployées à l\'ouverture ✓':'Cartes repliées à l\'ouverture ✓')}
   main.querySelectorAll('[data-cmode]').forEach(b=>b.onclick=()=>saveInfo(i=>{i.cardMode=b.dataset.cmode},b.dataset.cmode==='demi'?'Format demi-carte ✓':'Format petite carte ✓'));
   main.querySelectorAll('[data-tile]').forEach(e=>e.oninput=()=>{st.info.homeTiles=Object.assign({},st.info.homeTiles,{[e.dataset.tile]:e.value});changedBtn()});
