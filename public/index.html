@@ -923,7 +923,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .cr-main.full .pub:not(.ishome){min-height:auto}
 .phone .pub:not(.ishome){min-height:100%}
 /* aide visuelle : calendrier du jour « bouton enfoncé » avec halo ; chevrons de la vue jour par jour */
-.onb-halo{position:absolute;z-index:3;border-radius:20px;pointer-events:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--caln,#700000) 55%,transparent),0 0 22px 4px color-mix(in srgb,var(--caln,#700000) 40%,transparent)}
+.onb-halo{position:absolute;z-index:3;border-radius:17px;pointer-events:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--hc) 60%,transparent),0 0 12px 2px color-mix(in srgb,var(--hc) 45%,transparent)}
 .dvh{position:fixed;left:0;right:0;top:50%;height:0;z-index:30;pointer-events:none;max-width:680px;margin:0 auto}
 .dvh b{position:absolute;top:-18px;color:rgba(32,33,36,.62);filter:drop-shadow(0 0 3px rgba(255,255,255,.95))}
 .dvh .l{left:0}.dvh .r{right:0}
@@ -2034,7 +2034,7 @@ function themeVars(t,p){p=p||'cal';if(!t||!t.color)return '';const c=hexHsl(t.co
   const g=`linear-gradient(45deg,${hsl(H-28,S,L+10)} 0%,${hsl(H,S,L)} 50%,${hsl(H+32,S,L-8)} 100%)`,f=hsl(H,S,L);
   const bg=st[0]==='g'?g:f, gm=st[0]==='g'?`linear-gradient(90deg,${hsl(H-28,S,L+10)},${hsl(H,S,L)},${hsl(H+32,S,L-8)})`:f;
   const sh=st.endsWith('r')?'2px 2px 0 rgba(20,19,23,.16)':'none';
-  return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh}`+(p==='cal'?`;--caln:${f}`:'')}
+  return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh};--${p}n:${f}`}
 /* Monte la page publique dans un conteneur. data = {days:{date:day}, settings}
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
 /* ---------- Cartes types liées : la carte d'une journée affiche la carte type, sauf ce qui est propre au jour ---------- */
@@ -2464,7 +2464,9 @@ function mountPublic(root,data,opts){
   const dvScTop=sec=>{const sc=scrollerOf(sec||root);sc.scrollTop=0;pinForce=null;pinMini=false;pinScroll()}
   // vue jour par jour : de haut en bas, une carte repliée se déploie seulement si, une fois déployée, le pied de page reste
   // entièrement visible à l'écran ; sinon elle reste repliée et on teste la suivante. Les cartes déjà déployées le restent.
-  function dvOpen(sec){const ft=root.querySelector('.pub-foot');if(!ft)return;const sc=scrollerOf(sec),doc=sc===(document.scrollingElement||document.documentElement);
+  function dvOpen(sec){const ft=root.querySelector('.pub-foot');if(!ft)return;
+    // mesures faites sur l'état final (bande des cartes à la une et cartes en cours d'animation)
+    root.querySelectorAll('.pinfix,.days>section.dvon').forEach(x=>x.getAnimations({subtree:true}).forEach(a=>{if(a.effect&&a.effect.getComputedTiming().iterations!==Infinity)try{a.finish()}catch(e){}}));const sc=scrollerOf(sec),doc=sc===(document.scrollingElement||document.documentElement);
     const vb=doc?(window.visualViewport?visualViewport.height:innerHeight):sc.getBoundingClientRect().bottom,fixed=getComputedStyle(ft).position==='fixed';
     const fits=()=>fixed?sec.getBoundingClientRect().bottom<=ft.getBoundingClientRect().top+.5:ft.getBoundingClientRect().bottom<=vb+.5;
     // les cartes à déploiement automatique se déploient de toute façon (même repliées entre-temps)
@@ -2525,10 +2527,10 @@ function mountPublic(root,data,opts){
   function onbToday(){const t=iso(new Date());return [...root.querySelectorAll('.days>section.day[id^="j-"]')].find(x=>x.id.slice(2)>=t)||null}
   function onbRun(){const sec=onbToday(),ci=sec&&sec.querySelector('.cal-ico');if(!ci)return;const ez='cubic-bezier(.25,.8,.25,1)';
     const host=ci.offsetParent||ci.parentElement,H=document.createElement('i');H.className='onb-halo';host.appendChild(H);
-    {const hr=host.getBoundingClientRect(),cr=ci.getBoundingClientRect();Object.assign(H.style,{left:(cr.left-hr.left-6)+'px',top:(cr.top-hr.top-6)+'px',width:(cr.width+12)+'px',height:(cr.height+12)+'px'})}
+    {const hr=host.getBoundingClientRect(),cr=ci.getBoundingClientRect();Object.assign(H.style,{left:(cr.left-hr.left-3)+'px',top:(cr.top-hr.top-3)+'px',width:(cr.width+6)+'px',height:(cr.height+6)+'px'});H.style.setProperty('--hc',ci.classList.contains('shut')?'var(--shn,#065e00)':'var(--caln,#700000)')}
     const press=[{transform:'scale(1)',filter:'brightness(1)'},{transform:'scale(.9)',filter:'brightness(.93)',offset:.5},{transform:'scale(1)',filter:'brightness(1)'}];
     ci.animate(press,{duration:380,delay:350,easing:'ease-in-out'});ci.animate(press,{duration:380,delay:900,easing:'ease-in-out'});
-    const a=H.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'scale(1)',offset:.12},{opacity:.55,transform:'scale(1.06)',offset:.28},{opacity:1,transform:'scale(1)',offset:.44},{opacity:.55,transform:'scale(1.06)',offset:.62},{opacity:1,transform:'scale(1)',offset:.78},{opacity:0,transform:'scale(1)'}],{duration:2000,delay:150,easing:ez,fill:'both'});
+    const a=H.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'scale(1)',offset:.12},{opacity:.55,transform:'scale(1.03)',offset:.28},{opacity:1,transform:'scale(1)',offset:.44},{opacity:.55,transform:'scale(1.03)',offset:.62},{opacity:1,transform:'scale(1)',offset:.78},{opacity:0,transform:'scale(1)'}],{duration:2000,delay:150,easing:ez,fill:'both'});
     a.finished.catch(()=>{}).then(()=>H.remove())}
   function onbMaybe(){if(st.view==='home'||!root.isConnected)return;if(!ONB_FORCE&&sessGet('ej-onb'))return;ONB_FORCE=false;sessSet('ej-onb');setTimeout(()=>{if(root.isConnected)onbRun()},500)}
   const CHEV=d=>`<svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="${d<0?'M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z':'M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z'}"/></svg>`;
@@ -2536,6 +2538,7 @@ function mountPublic(root,data,opts){
   function dvHintHide(){const h=dvChev;dvChev=null;if(!h)return;const a=h.animate([{opacity:1},{opacity:0}],{duration:250,fill:'forwards'});a.finished.catch(()=>{}).then(()=>h.remove())}
   function dvHint(){const sec=root.querySelector('.days>section.dvon');if(!sec)return;const ss=dvSecs(),i=ss.indexOf(sec),hasP=i>0||pastHidden(),hasN=i<ss.length-1;if(!hasP&&!hasN)return;
     const H=document.createElement('div');H.className='dvh';H.innerHTML=(hasP?`<b class="l">${CHEV(-1)}</b>`:'')+(hasN?`<b class="r">${CHEV(1)}</b>`:'');root.querySelector('.pub').appendChild(H);dvChev=H;
+    H.querySelectorAll('b').forEach(b=>b.animate([{opacity:1},{opacity:.3}],{duration:1100,delay:500,iterations:Infinity,direction:'alternate',easing:'ease-in-out'}));
     H.animate([{opacity:0},{opacity:1}],{duration:300,delay:200,fill:'backwards'})}
   function dvHintMaybe(){if(!DVH_FORCE&&sessGet('ej-dvh'))return;DVH_FORCE=false;sessSet('ej-dvh');setTimeout(()=>{if(dv)dvHint()},250)}
   const pastHidden=()=>!opts.allDays&&!st.past&&Object.keys(st.days).some(k=>k<iso(new Date()));
@@ -2792,7 +2795,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.171';
+const APP_VERSION='v261120.172';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
