@@ -2167,7 +2167,7 @@ function mountPublic(root,data,opts){
     requestAnimationFrame(knock);
     root.innerHTML=`<div class="pub ishome${info.tileBold?' tbold':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--tbl:${Math.max(0,Math.min(12,info.tileBlur==null?1.5:+info.tileBlur))}px;--t1:${tcol(TA)};--t2:${tcol(TA*.62)};--t3:${tcol(TA*.5)};--t4:${tcol(TA*.25)};--kbg:${kbg.replace(/"/g,"'")};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}${info.fixFoot?' fixfoot':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plfn:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))/100};--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
-      <main class="days">${pinnedHTML(ks,true)}${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
+      <main class="days">${pinnedHTML(ks,true)}${pinnedHTML(ks)}${pastBtn}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();dvApply();
     {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
@@ -2319,6 +2319,7 @@ function mountPublic(root,data,opts){
   root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
   root.addEventListener('click',e=>{
     if(e.target.closest('.ext-chip'))return;
+    if(e.target.closest('[data-dvback]')){const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvToggle(sec);return}
     const go=e.target.closest('[data-go],[data-home]');
     if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
     if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;if(st.view==='prog')onbMaybe();return}
@@ -2486,14 +2487,26 @@ function mountPublic(root,data,opts){
   function dvPinOut(){if(!dvMv)return;const m=dvMv;dvMv=null;if(m.own)m.pn.classList.remove('pinfix');else{const box=m.pn.querySelector('.cards');m.nodes.forEach(n=>box.appendChild(n));m.pn.style.display=''}
     root.querySelectorAll('.pinned:not(.pinfix) .card').forEach(c=>delete c.dataset.demi);pinMini=false;pinScroll();refBase()}
   // sous-titre du bandeau en vue jour par jour : « le Programme, jour par jour »
+  // chevron de retour en haut à gauche en vue jour par jour (remplace le retour au menu, le titre glisse)
+  const BACK_SVG='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  let dvHeadOn=false;
+  function dvHead(on){const br=root.querySelector('.pub-head .brand');if(!br)return;const hb=br.querySelector('.back-btn[data-home]');let db=br.querySelector('.dvback');
+    const anim=(on!==dvHeadOn);dvHeadOn=on;
+    const show=()=>{if(br.querySelector('.dvback'))return;db=document.createElement('button');db.className='back-btn dvback'+(anim?' anim':'');if(anim)db.style.animationDelay='0s';db.dataset.dvback='1';db.setAttribute('aria-label','Revenir au programme complet');db.innerHTML=BACK_SVG;br.insertBefore(db,br.firstChild)};
+    if(on){if(db)return;if(hb&&anim){hb.classList.remove('anim');hb.removeAttribute('style');void hb.offsetWidth;hb.classList.add('out');let ok=false;const go=()=>{if(ok)return;ok=true;hb.style.display='none';show()};hb.addEventListener('animationend',go,{once:true});setTimeout(go,560)}
+      else{if(hb)hb.style.display='none';show()}}
+    else{if(!db){if(hb){hb.classList.remove('out');hb.style.display=''}return}
+      if(!anim){db.remove();if(hb){hb.classList.remove('out');hb.style.display=''}return}
+      db.classList.remove('anim');db.removeAttribute('style');void db.offsetWidth;db.classList.add('out');let ok=false;
+      const go=()=>{if(ok)return;ok=true;db.remove();if(hb){hb.classList.remove('out');hb.style.display='';hb.classList.add('anim');hb.style.animationDelay='0s'}};db.addEventListener('animationend',go,{once:true});setTimeout(go,560)}}
   function dvSub(on){const sm=root.querySelector('.pub-head .brand small');if(!sm)return;let x=sm.querySelector('.dvsub');if(on&&!x){x=document.createElement('span');x.className='dvsub';x.innerHTML=', <span class="dvb">jour par jour</span>';sm.appendChild(x)}else if(!on&&x)x.remove()}
-  function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);dvSub(!!sec);
+  function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);dvSub(!!sec);if(sec&&!root.querySelector('.dvback'))dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();return}
     if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
     pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn()}
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;if(glued)glued.release();
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
-      dv=null;dvHintHide();dvSub(false);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
+      dv=null;dvHintHide();dvSub(false);dvHead(false);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       
       // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
       fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
@@ -2799,7 +2812,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.174';
+const APP_VERSION='v261120.175';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
