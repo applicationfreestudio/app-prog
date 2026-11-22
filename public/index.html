@@ -2281,6 +2281,12 @@ function mountPublic(root,data,opts){
       if(!under)c.querySelectorAll('.card-head>:not(h3)').forEach((e,n)=>e.animate([{opacity:0},{opacity:1}],{duration:220,delay:120+n*30,easing:'ease-out',fill:'backwards'}))});
     const pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.round(pf.offsetHeight)+'px')};
   document.addEventListener('scroll',pinScroll,{capture:true,passive:true});
+  // option : quand le calendrier d'une journée arrive en butée en haut, ses cartes se déploient (une seule fois par journée)
+  const autoDone=new Set();
+  const autoUnfold=()=>{if(!((st.settings||{}).info||{}).autoUnfold||st.view==='home')return;
+    root.querySelectorAll('.days section.day').forEach(sec=>{const k=sec.id||((sec.querySelector('.card')||{}).dataset||{}).fk||'';if(!k||autoDone.has(k))return;const dc=sec.querySelector('.dcol');if(!dc)return;
+      if(dc.getBoundingClientRect().top-sec.getBoundingClientRect().top>1){autoDone.add(k);sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(!c.closest('.pinned'))toggleFold(c)})}})};
+  document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
   return {update};
@@ -2534,7 +2540,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.143';
+const APP_VERSION='v261120.144';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3554,7 +3560,8 @@ function renderSettings(main){
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
-    ${fold('programme','Paramétrage du programme',`<label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
+    ${fold('programme','Paramétrage du programme',`<label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déployer automatiquement les cartes d'une journée quand son calendrier arrive en haut de l'écran</label>
+      <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
     ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
       ${(st.info.ages||[]).map((g,i)=>`<div class="row" data-agi="${i}"><input class="in" data-agf="${i}" value="${esc(g.label)}" placeholder="ex. 11-14 ans"><button class="ico" data-agdel="${i}" aria-label="Supprimer">✕</button></div>`).join('')}
       <button class="btn sm" id="agadd">＋ Tranche d'âge</button>`,(st.info.ages||[]).length+' tranche(s)')}
@@ -3638,6 +3645,7 @@ function renderSettings(main){
   if(wu)wu.onchange=async()=>{const f=wu.files[0];wu.value='';if(!f)return;toast('Envoi…');
     try{const r=await S.assets.upload(f,{logo:true});await saveInfo(i=>{i.watermark=r.id},'Filigrane enregistré ✓')}catch(e){toast('Envoi impossible',true)}};
   const wd=main.querySelector('#wmdel');if(wd)wd.onclick=()=>saveInfo(i=>{delete i.watermark},'Filigrane retiré');
+  {const au=main.querySelector('#autounf');if(au)au.onchange=()=>saveInfo(i=>{i.autoUnfold=au.checked},au.checked?'Déploiement automatique activé ✓':'Déploiement automatique désactivé ✓')}
   {const ff=main.querySelector('#fixfoot');if(ff)ff.onchange=()=>saveInfo(i=>{i.fixFoot=ff.checked},ff.checked?'Pied de page figé ✓':'Pied de page libre ✓')}
   {const ua=main.querySelector('#unfoldall');if(ua)ua.onchange=()=>saveInfo(i=>{i.unfoldAll=ua.checked},ua.checked?'Cartes déployées à l\'ouverture ✓':'Cartes repliées à l\'ouverture ✓')}
   main.querySelectorAll('[data-cmode]').forEach(b=>b.onclick=()=>saveInfo(i=>{i.cardMode=b.dataset.cmode},b.dataset.cmode==='demi'?'Format demi-carte ✓':'Format petite carte ✓'));
