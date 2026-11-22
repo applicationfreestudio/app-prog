@@ -923,6 +923,11 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 
 .dcol{top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + var(--pinh,0px) + 12px)!important}
 .day{scroll-margin-top:calc(var(--top) + env(safe-area-inset-top,0px) + var(--hh) + var(--pinh,0px) + 10px)!important}
+
+/* carte à la une figée : collée au bandeau dès le départ (pas de déplacement), phrase d'en-tête juste dessous */
+.pinned.pinfix{margin-top:-18px!important;padding-top:10px!important;padding-bottom:10px!important;margin-bottom:-22px}
+.pinned.pinfix~.act-foot,.pinned.pinfix~.past-btn{margin-top:0!important}
+.pinfix .card{transition:height .25s ease}
 </style>
 
 <style>
@@ -2058,7 +2063,8 @@ function mountPublic(root,data,opts){
       <main class="days">${pinnedHTML(ks,true)}${pastBtn}${pinnedHTML(ks)}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();
-    {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)}
+    {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
+      if(pf)pf.querySelectorAll('.card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;requestAnimationFrame(()=>pinScroll())}
   }
   // horaires de séjour : une seule ligne, police réduite si besoin
   function fitPrices(){
@@ -2244,6 +2250,14 @@ function mountPublic(root,data,opts){
     }catch(e){console.error('PDF',e&&e.message,e&&e.stack);alert('Création du PDF impossible pour le moment.')}
     finally{box.remove();btn.textContent=old}
   }
+  // carte à la une figée : demi-carte en haut de page, petite carte dès qu'on fait défiler
+  let pinMini=false;
+  const pinScroll=()=>{const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
+    // distance parcourue sous la carte (avec seuils différents pour éviter tout va-et-vient)
+    const amt=8-(nx.getBoundingClientRect().top-pf.getBoundingClientRect().bottom),under=pinMini?amt>8:amt>110;if(under===pinMini)return;pinMini=under;
+    pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;c.classList.toggle('demi',!under);fitTitles(c);placeArrow&&placeArrow(c)});
+    const pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.round(pf.offsetHeight)+'px')};
+  document.addEventListener('scroll',pinScroll,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
   return {update};
@@ -2497,7 +2511,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.138';
+const APP_VERSION='v261120.139';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3517,8 +3531,8 @@ function renderSettings(main){
       <label class="fld"><span>Infos pratiques (tranches d'âge, inscription, règlement…)</span><textarea class="in" data-if="text" style="min-height:150px">${esc(st.info.text)}</textarea></label>
       <div class="row"><label class="fld" style="flex:1"><span>Téléphone</span><input class="in" data-if="phone" value="${esc(st.info.phone)}"></label><label class="fld" style="flex:1"><span>E-mail</span><input class="in" data-if="email" value="${esc(st.info.email)}"></label></div>
       <label class="fld"><span>Adresse (plusieurs lignes possibles, ex. nom de la structure puis adresse)</span><textarea class="in" data-if="address" style="min-height:70px">${esc(st.info.address)}</textarea></label>
-      <label class="fld"><span>Pied de page des cartes (sous la dernière)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
+    ${fold('programme','Paramétrage du programme',`<label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>`)}
     ${fold('ages','Tranches d\'âge',`<p class="hint">Affichées en ruban bleu sur les cartes concernées. Aucune cochée sur une carte = tout public.</p>
       ${(st.info.ages||[]).map((g,i)=>`<div class="row" data-agi="${i}"><input class="in" data-agf="${i}" value="${esc(g.label)}" placeholder="ex. 11-14 ans"><button class="ico" data-agdel="${i}" aria-label="Supprimer">✕</button></div>`).join('')}
       <button class="btn sm" id="agadd">＋ Tranche d'âge</button>`,(st.info.ages||[]).length+' tranche(s)')}
