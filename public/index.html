@@ -2280,7 +2280,7 @@ function mountPublic(root,data,opts){
       c.classList.toggle('demi',!under);fitTitles(c);placeArrow&&placeArrow(c);const h1=c.offsetHeight,r1=els.map(e=>e.getBoundingClientRect());
       // transition douce : la carte se réduit (ou s'agrandit), titre et image glissent à leur nouvelle place
       const ez='cubic-bezier(.25,.8,.25,1)',D=320;c.style.overflow='hidden';
-      const an=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:D,easing:ez});an.onfinish=an.oncancel=()=>{c.style.overflow=''};
+      const an=c.animate([{height:h0+'px'},{height:h1+'px'}],{duration:D,easing:ez});an.onfinish=an.oncancel=()=>{c.style.overflow='';refBase()};
       els.forEach((e,n)=>{const a=r0[n],b=r1[n];if(!b.width||!b.height)return;const k=e.tagName==='H3'?a.height/b.height:null;
         e.animate([{transformOrigin:'0 0',transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${k||a.width/b.width},${k||a.height/b.height})`},{transformOrigin:'0 0',transform:'none'}],{duration:D,easing:ez})});
       if(!under)c.querySelectorAll('.card-head>:not(h3)').forEach((e,n)=>e.animate([{opacity:0},{opacity:1}],{duration:220,delay:120+n*30,easing:'ease-out',fill:'backwards'}))});
@@ -2288,13 +2288,14 @@ function mountPublic(root,data,opts){
   document.addEventListener('scroll',pinScroll,{capture:true,passive:true});
   // option : quand le calendrier d'une journée arrive en butée en haut, ses cartes se déploient (une seule fois par journée)
   const autoDone=new Set();
-  const autoUnfold=()=>{if(st.view==='home')return;const all=!!((st.settings||{}).info||{}).autoUnfold;
-    const hd=root.querySelector('.pub-head');if(!hd)return;const pb=root.querySelector('.pub'),ph=pb?parseFloat(getComputedStyle(pb).getPropertyValue('--pinh'))||0:0;
-    const line=hd.getBoundingClientRect().bottom+ph+12;
-    root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
-      const dc=c.closest('section.day')&&c.closest('section.day').querySelector('.dcol'),sc=scrollerOf(c),stop=dc?parseFloat(getComputedStyle(dc).top)+(sc===(document.scrollingElement||document.documentElement)?0:sc.getBoundingClientRect().top):line;
-      const pv=prevCardOf(c),gone=!pv||pv.getBoundingClientRect().bottom<=hd.getBoundingClientRect().bottom+ph+1;
-      if(!glued&&gone&&c.getBoundingClientRect().top<=stop+6){autoDone.add(k);glue(c,stop,sc)}})};
+  // ligne de référence mesurée en direct : bas de la bande des cartes à la une figées, sinon bas du bandeau
+  const refBase=()=>{const hd=root.querySelector('.pub-head');if(!hd)return null;const pf=root.querySelector('.pinfix'),hb=hd.getBoundingClientRect().bottom;
+    const base=pf?Math.max(hb,pf.getBoundingClientRect().bottom):hb,pb=root.querySelector('.pub');if(pb)pb.style.setProperty('--pinh',Math.max(0,Math.round(base-hb))+'px');return base};
+  const autoUnfold=()=>{if(st.view==='home'||glued)return;const all=!!((st.settings||{}).info||{}).autoUnfold;
+    const base=refBase();if(base==null)return;const stop=base+12;
+    root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{if(glued)return;const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
+      const pv=prevCardOf(c),gone=pv?pv.getBoundingClientRect().bottom<=base+.5:c.getBoundingClientRect().top<=stop;
+      if(gone&&c.getBoundingClientRect().top<=stop+80){autoDone.add(k);glue(c,stop,scrollerOf(c))}})};
   const prevCardOf=c=>{const all=[...root.querySelectorAll('.days .card')].filter(x=>!x.closest('.pinned'));const i=all.indexOf(c);return i>0?all[i-1]:null};
   // « collage » : la carte se cale au niveau du haut du calendrier et le défilement est bloqué le temps du dépliage
   let glued=null;
@@ -2310,12 +2311,14 @@ function mountPublic(root,data,opts){
   window.addEventListener('touchend',tEnd,{capture:true,passive:true});window.addEventListener('touchcancel',tEnd,{capture:true,passive:true});
   function glue(c,line,sc){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
     const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
-    el.style.overflow='hidden';if(doc)bd.style.overflow='hidden';bd.style.touchAction='none';sc.scrollTop=y0;
-    const release=()=>{if(!glued)return;el.style.overflow=o0;if(doc)bd.style.overflow='';bd.style.touchAction=t0;glued=null};
+    el.style.overflow='hidden';bd.style.touchAction='none';sc.scrollTop=y0;
+    const release=()=>{if(!glued)return;el.style.overflow=o0;bd.style.touchAction=t0;glued=null};
     glued={sc,release,waitLift:false};
-    const d=Math.max(0,c.getBoundingClientRect().top-line),y1=y0+d,T=120,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
-    const step=now=>{const k=Math.min(1,(now-s0)/T);sc.scrollTop=y0+d*ez(k);if(k<1)requestAnimationFrame(step);else{sc.scrollTop=y1;toggleFold(c);
-      setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},440+80)}};
+    const d=c.getBoundingClientRect().top-line,y1=y0+d,T=120,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
+    // le dépliage démarre avec le glissement : la journée grandit et son calendrier vient se caler sans à-coup
+    toggleFold(c);
+    const step=now=>{const k=Math.min(1,(now-s0)/T);sc.scrollTop=y0+d*ez(k);if(k<1)requestAnimationFrame(step);else{sc.scrollTop=y1;
+      setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},440+80-T)}};
     requestAnimationFrame(step)}
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
@@ -2571,7 +2574,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.148';
+const APP_VERSION='v261120.149';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
