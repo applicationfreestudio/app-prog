@@ -911,6 +911,11 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dnote span,.dnote{font-variant:small-caps;letter-spacing:.02em}
 .dnote .warn{width:19px!important;height:19px!important;flex-basis:19px!important}
 .pub-foot>div{font-family:inherit;font-size:13px!important;font-weight:400!important;color:var(--ink2)!important;line-height:1.35}
+/* intitulé de période (aperçu éditeur) : simple texte aligné à gauche, sans cartouche */
+.slot-title.ptxt{display:flex;align-items:baseline;gap:6px;height:auto;margin:2px 0 -2px;padding:0 2px;background:none;border:0;box-shadow:none;font-size:13.5px;color:var(--ink2);text-align:left;justify-content:flex-start}
+.slot-title.ptxt .fbi{display:none}
+.slot-title.ptxt .fbt{padding:0;display:flex;gap:6px;align-items:baseline}
+.slot-title.ptxt .fbt span{margin:0}
 /* journée : ajout d'une période horaire ou d'une carte hors période, toujours possible */
 .dr-body>*{flex-shrink:0}
 .add-pair{display:flex;gap:8px;margin:0 0 4px}
@@ -1912,7 +1917,8 @@ function slotRanges(day){
 function dayRanges(day){
   if(day.closed)return [];
   const r=[];
-  (day.slots||[]).forEach(s=>{
+  // les cartes hors période horaire ne comptent pas dans les heures d'ouverture
+  (day.slots||[]).forEach(s=>{if(s.free)return;
     let a=tm(s.start),b=tm(s.end);
     (s.acts||[]).forEach(x=>{const t=x.timing||{};if(t.mode!=='none'&&spanOf(x)==='day'){const e=tm(t.end),st=tm(t.start);if(e!=null&&(b==null||e>b))b=e;if(st!=null&&a==null)a=st}});
     if(a!=null||b!=null)r.push([a,b]);
@@ -1975,7 +1981,8 @@ function dayHTML(day,settings,opts){
     if(lblSlot(s)){r+=`<div class="lblcard fbar">${s.visual||s.asset?`<span class="fbi">${actImage({visual:s.visual,asset:s.asset},opts)}</span>`:''}<span class="fbt"><b>${esc(cap(lc1(s.label)))}</b></span></div>`;return}
     if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Établissement ouvert',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
     if(!(s.acts||[]).length)return;
-    if(multi)r+=`<div class="slot-title fbar">${s.visual||s.asset?`<span class="fbi">${actImage({visual:s.visual,asset:s.asset},opts)}</span>`:''}<span class="fbt"><b>${esc(cap(s.label||'Ouverture'))}</b><span>${rng(s.start,s.end)}</span></span></div>`;
+    // intitulé de période : uniquement dans l'aperçu de l'éditeur (pas en vue réelle ni sur la page publique), sans cartouche
+    if(multi&&opts.periodTitles)r+=`<div class="slot-title ptxt">${s.visual||s.asset?`<span class="fbi">${actImage({visual:s.visual,asset:s.asset},opts)}</span>`:''}<span class="fbt"><b>${esc(cap(s.label||'Ouverture'))}</b><span>${rng(s.start,s.end)}</span></span></div>`;
     r+=`<div class="cards">${srt(s.acts,s.start||'').map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
   });
   flush();
@@ -2645,7 +2652,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.158';
+const APP_VERSION='v261120.159';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3864,7 +3871,7 @@ function renderPreview(main){
       <button class="btn sm pri" id="realview">Vue réelle</button>
       ${S.downloads?'<button class="btn sm" id="export">Exporter (HTML)</button>':''}
     </div><div id="pvroot"></div>`;
-  mountPublic(main.querySelector('#pvroot'),{days,settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true});
+  mountPublic(main.querySelector('#pvroot'),{days,settings:{info:settings().info,periods:settings().periods}},{allDays:true,noFs:true,periodTitles:true});
   syncBars();
   main.querySelector('#realview').onclick=()=>{
     const ov=document.createElement('div');ov.className='realview';
