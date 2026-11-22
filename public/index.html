@@ -918,6 +918,10 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .slot-title.ptxt .fbt span{margin:0}
 .pgap{display:block;height:.7em}
 .sheet .txt p.gap{height:.7em;margin:0}
+/* page programme : hauteur minimale = écran visible avec la barre d'adresse affichée (sinon le pied de page déborde sous l'écran hors plein écran) */
+.pub:not(.ishome){min-height:100vh;min-height:100svh}
+.cr-main.full .pub:not(.ishome){min-height:auto}
+.phone .pub:not(.ishome){min-height:100%}
 /* parcours jour par jour : seule la journée choisie est affichée */
 /* les cartes à la une restent en haut, toutes figées ; la journée glisse dessous ; pas de mention en tête */
 .pub.dayview .days>*:not(section.day.dvon):not(.pinned){display:none!important}
@@ -2740,7 +2744,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.165';
+const APP_VERSION='v261120.166';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
