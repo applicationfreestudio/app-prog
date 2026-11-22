@@ -911,6 +911,8 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dnote span,.dnote{font-variant:small-caps;letter-spacing:.02em}
 .dnote .warn{width:19px!important;height:19px!important;flex-basis:19px!important}
 .pub-foot>div{font-family:inherit;font-size:13px!important;font-weight:400!important;color:var(--ink2)!important;line-height:1.35}
+/* copie du filigrane dans la bande des cartes à la une figées */
+.pinned.pinfix>.wm-pf{position:absolute;z-index:-1;width:200px;height:200px;object-fit:contain;pointer-events:none;margin:0;max-width:none}
 /* pied de page : même écriture que l'adresse du contact, en noir */
 .pub-foot>div{font-family:var(--pf)!important;font-size:14.5px!important;font-weight:400!important;line-height:1.35!important;letter-spacing:normal;color:#000!important}
 .ishome .pub-foot>div{font-size:clamp(12.5px,1.9vh,14.5px)!important}
@@ -2185,6 +2187,22 @@ function mountPublic(root,data,opts){
       d+=`M${(b.left-r.left).toFixed(1)} ${(b.top-r.top).toFixed(1)}h${b.width.toFixed(1)}v${b.height.toFixed(1)}h${(-b.width).toFixed(1)}Z`;
     });
     c.style.clipPath=`path(evenodd,"${d}")`;
+    // bande des cartes à la une figées : elle recouvre le filigrane de la page, on y place une copie alignée au pixel près
+    // (au-dessus du fond translucide de la bande, sous ses cartes), effacée là où une carte du programme passe dessous
+    const pf=root.querySelector('.pinned.pinfix'),g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf)');
+    if(!pf||!g)return;
+    let im=pf.querySelector(':scope>.wm-pf');
+    if(!im){im=document.createElement('img');im.alt='';im.setAttribute('aria-hidden','true');pf.prepend(im)}
+    const cl='wm-pf '+[...g.classList].filter(x=>x!=='wm').join(' ');if(im.className!==cl)im.className=cl;if(im.src!==g.src)im.src=g.src;
+    const gr=g.getBoundingClientRect(),pr=pf.getBoundingClientRect();
+    im.style.left=(gr.left-pr.left).toFixed(1)+'px';im.style.top=(gr.top-pr.top).toFixed(1)+'px';
+    let q=`M${(pr.left-gr.left).toFixed(1)} ${(pr.top-gr.top).toFixed(1)}h${pr.width.toFixed(1)}v${pr.height.toFixed(1)}h${(-pr.width).toFixed(1)}Z`;
+    root.querySelectorAll('.days .card,.days .dnote,.days .cal-ico,.days .stay-tag,.days .night,.days .act-foot,.days .psep>span,.days .past-btn,.days .empty-day,.days .slot-title').forEach(e=>{
+      if(pf.contains(e))return;const b=e.getBoundingClientRect();
+      if(b.bottom<=pr.top||b.top>=pr.bottom||b.right<=gr.left||b.left>=gr.right)return;
+      q+=`M${(b.left-gr.left).toFixed(1)} ${(b.top-gr.top).toFixed(1)}h${b.width.toFixed(1)}v${b.height.toFixed(1)}h${(-b.width).toFixed(1)}Z`;
+    });
+    im.style.clipPath=`path(evenodd,"${q}")`;
   }
   const wmTick=()=>{if(!wmRaf)wmRaf=requestAnimationFrame(()=>{wmRaf=0;wmClip()})};
   document.addEventListener('scroll',wmTick,{passive:true,capture:true});window.addEventListener('resize',wmTick);
@@ -2608,7 +2626,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.156';
+const APP_VERSION='v261120.157';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
