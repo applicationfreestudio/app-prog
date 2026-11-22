@@ -911,6 +911,13 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dnote span,.dnote{font-variant:small-caps;letter-spacing:.02em}
 .dnote .warn{width:19px!important;height:19px!important;flex-basis:19px!important}
 .pub-foot>div{font-family:inherit;font-size:13px!important;font-weight:400!important;color:var(--ink2)!important;line-height:1.35}
+/* journée : ajout d'une période horaire ou d'une carte hors période, toujours possible */
+.dr-body>*{flex-shrink:0}
+.add-pair{display:flex;gap:8px;margin:0 0 4px}
+.add-pair .add-slot{flex:1 1 0;min-width:0}
+.slot.free .slot-head{display:block!important}
+.slot.free .fh{display:block;font-size:14px;color:#3E3B44}
+.slot.free .sh-hint{text-align:left;margin:2px 0 0}
 /* copie du filigrane dans la bande des cartes à la une figées */
 .pinned.pinfix>.wm-pf{position:absolute;z-index:-1;width:200px;height:200px;object-fit:contain;pointer-events:none;margin:0;max-width:none}
 /* pied de page : même écriture que l'adresse du contact, en noir */
@@ -1896,7 +1903,7 @@ const tm=t=>{if(!t)return null;const [h,m]=t.split(':').map(Number);let v=h*60+(
 const tt=v=>{v=v%(24*60);return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0')};
 // horaires par période, avec leur intitulé (sans fusion)
 function slotRanges(day){
-  return (day.slots||[]).filter(s=>s.start||s.end).map(s=>{
+  return perSort((day.slots||[]).filter(s=>s.start||s.end)).map(s=>{
     let a=tm(s.start),b=tm(s.end);
     (s.acts||[]).forEach(x=>{const t=x.timing||{};if(t.mode!=='none'&&spanOf(x)==='day'){const e=tm(t.end);if(e!=null&&(b==null||e>b))b=e}});
     return [a==null?'':tt(a),b==null?'':tt(b),s];
@@ -1922,14 +1929,16 @@ function isNight(day){
 function periodOf(date,periods){
   return (periods||[]).find(p=>p.start&&p.end&&date>=p.start&&date<=p.end)||null;
 }
+// périodes horaires dans l'ordre de la journée
+const perSort=a=>a.slice().sort((x,y)=>{const p=x.start||'00:00',q=y.start||'00:00';return p<q?-1:p>q?1:0});
 function hoursText(day){
   if(day.closed)return 'Établissement fermé';
-  const s=(day.slots||[]).filter(x=>x.start||x.end);
+  const s=perSort((day.slots||[]).filter(x=>x.start||x.end));
   return s.map(x=>(x.label?x.label+' ':'')+rng(x.start,x.end)).join(' · ');
 }
 function dayHTML(day,settings,opts){
   const d=parse(day.date);
-  const sl=day.closed?[]:(day.slots||[]).filter(x=>x.start||x.end);
+  const sl=day.closed?[]:perSort((day.slots||[]).filter(x=>x.start||x.end));
   const U=opts&&opts.until, d2=U?parse(U):null, sameM=!U||(d.getMonth()===d2.getMonth());
   const head=U?`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}${sameM?'':' – '+MONTHS_S[d2.getMonth()].replace('.','')}</div><div class="rng2"><span><small>du</small> ${sameM?DAYS_S[dow(day.date)]+'. '+d.getDate():d.getDate()+' '+MONTHS_S[d.getMonth()]}</span><span><small>au</small> ${sameM?DAYS_S[dow(U)]+'. '+d2.getDate():d2.getDate()+' '+MONTHS_S[d2.getMonth()]}</span></div>`
     :`<div class="m">${MONTHS_S[d.getMonth()].replace('.','')}</div><div class="d">${d.getDate()}</div><div class="w">${DAYS_S[dow(day.date)]}.</div>`;
@@ -1952,14 +1961,24 @@ function dayHTML(day,settings,opts){
   const imgSlot=x=>!dayHasActs&&(x.visual||x.asset)&&(x.start||x.end)&&!day.closed;
   const lblSlot=x=>!dayHasActs&&!(x.visual||x.asset)&&(x.start||x.end)&&(x.label||'').trim()&&!day.closed;
   if(!total&&!day.closed&&!slots.some(x=>imgSlot(x)||lblSlot(x)))r+=`<div class="empty-day">Pas d'activité programmée. L'établissement est ouvert : passe nous voir.</div>`;
-  const multi=slots.filter(x=>(x.acts||[]).length||imgSlot(x)||lblSlot(x)).length>1;
-  slots.forEach(s=>{
+  // ordre chronologique : dans une période horaire, les cartes suivent leur heure de début (à défaut celle de la période) ;
+  // les cartes hors période horaire s'intercalent entre les périodes selon leur propre heure (sans heure : en fin de journée)
+  const aKey=(a,dflt)=>{const t=a.timing||{};return ((t.mode==='range'||t.mode==='depart')&&(t.start||t.end))||(a.morning?'08:00':'')||dflt};
+  const srt=(arr,dflt)=>arr.map((a,n)=>({a,n,k:aKey(a,dflt)})).sort((x,y)=>x.k<y.k?-1:x.k>y.k?1:x.n-y.n).map(x=>x.a);
+  const blocks=[];
+  slots.forEach((s,n)=>{if(s.free)(s.acts||[]).forEach((a,m)=>blocks.push({free:a,k:aKey(a,'99:99'),n:n+m/1000}));else blocks.push({s,k:s.start||(s.end?'00:00':'99:98'),n})});
+  blocks.sort((x,y)=>x.k<y.k?-1:x.k>y.k?1:x.n-y.n);
+  const hasFree=blocks.some(b=>b.free);
+  const multi=slots.filter(x=>!x.free&&((x.acts||[]).length||imgSlot(x)||lblSlot(x))).length+(hasFree?1:0)>1;
+  let freeRun=[];const flush=()=>{if(freeRun.length)r+=`<div class="cards">${freeRun.map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;freeRun=[]};
+  blocks.forEach(b=>{if(b.free){freeRun.push(b.free);return}flush();const s=b.s;
     if(lblSlot(s)){r+=`<div class="lblcard fbar">${s.visual||s.asset?`<span class="fbi">${actImage({visual:s.visual,asset:s.asset},opts)}</span>`:''}<span class="fbt"><b>${esc(cap(lc1(s.label)))}</b></span></div>`;return}
     if(imgSlot(s)){r+=`<div class="cards">${cardHTML({id:'sl-'+(s.id||''),title:s.label||'Établissement ouvert',cat:'',visual:s.visual,asset:s.asset,timing:{mode:'none'},bring:[]},Object.assign({},opts,{date:day.date}))}</div>`;return}
     if(!(s.acts||[]).length)return;
     if(multi)r+=`<div class="slot-title fbar">${s.visual||s.asset?`<span class="fbi">${actImage({visual:s.visual,asset:s.asset},opts)}</span>`:''}<span class="fbt"><b>${esc(cap(s.label||'Ouverture'))}</b><span>${rng(s.start,s.end)}</span></span></div>`;
-    r+=`<div class="cards">${s.acts.map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
+    r+=`<div class="cards">${srt(s.acts,s.start||'').map(a=>cardHTML(a,Object.assign({},opts,{date:day.date}))).join('')}</div>`;
   });
+  flush();
   return `<section class="day" id="j-${day.date}"><div class="dgrid">${left}<div class="acts">${r}</div></div></section>`;
 }
 
@@ -2377,7 +2396,7 @@ function mountPublic(root,data,opts){
   update(data||{});
   return {update};
 }
-window.EJ={resetVisitor,linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
+window.EJ={perSort,resetVisitor,linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
 })();
 </script>
 
@@ -2626,7 +2645,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.157';
+const APP_VERSION='v261120.158';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3031,7 +3050,7 @@ async function deleteDraft(){
   try{if(S.pub[day.date])await unpublishDay(day.date);await docDel('drafts/'+day.date);delete S.drafts[day.date];openDrawer(day.date);render()}catch(e){}
 }
 function renderDrawer(){ensureKitDefs();
-  const {date,day}=UI.drawer;
+  const {date,day}=UI.drawer;sortDayActs(day);
   const t=dayType(date);
   let scrim=document.querySelector('.scrim'),dr=document.querySelector('.drawer');
   if(!scrim){scrim=document.createElement('div');scrim.className='scrim';scrim.onclick=()=>closeDrawer();document.body.appendChild(scrim)}
@@ -3045,9 +3064,9 @@ function renderDrawer(){ensureKitDefs();
       <label class="sw"><input type="checkbox" id="dclosed" ${day.closed?'checked':''}> Établissement fermé ce jour</label>
       ${day.closed?`<label class="fld"><span>Raison affichée (facultatif)</span><input class="in" id="dreason" value="${esc(day.closedReason)}" placeholder="ex. Jour férié, formation de l'équipe…"></label>`:''}
       <label class="dnote-in"><svg class="warn" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10.3 3.6a2 2 0 0 1 3.4 0l8 13.6a2 2 0 0 1-1.7 3H4a2 2 0 0 1-1.7-3z" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/><rect x="11" y="8.6" width="2" height="5.8" rx="1" fill="#5A3A00"/><circle cx="12" cy="17.1" r="1.2" fill="#5A3A00"/></svg><input id="dnote" value="${esc(day.note)}" placeholder="information importante" aria-label="Information importante du jour"></label>
-      <button class="add-act add-slot top" id="addslot">＋ Ajouter un créneau horaire</button>
-      ${day.slots.map((s,i)=>slotHTML(s,i)).join('')}
-      ${day.closed||!day.slots.length||day.slots.some(x=>x.free)?'<button class="add-act add-slot" id="addfree">＋ Carte hors créneau (séjour, info…)</button>':''}
+      <div class="add-pair"><button class="add-act add-slot" id="addslot">＋ Période horaire</button><button class="add-act add-slot" id="addfree">＋ Carte hors période</button></div>
+      ${day.slots.map((s,i)=>s.free?'':slotHTML(s,i)).join('')}
+      ${day.slots.map((s,i)=>s.free&&(s.acts||[]).length?freeHTML(s,i):'').join('')}
     </div>
     <div class="dr-foot" id="drfoot">${footHTML(date)}</div>`;
   dr.querySelector('.dr-body').scrollTop=keepScroll;
@@ -3067,7 +3086,7 @@ function slotHTML(s,i){
         <span class="dwrap"><button type="button" class="dx${nos?' on':''}" data-sx="start" title="Pas d'heure de début">✕</button><input class="in t${nos?' off':''}" type="time" data-sf="start" value="${esc(s.start)}" ${nos?'disabled':''} aria-label="Début"></span>
         <span class="dwrap"><button type="button" class="dx${noe?' on':''}" data-sx="end" title="Pas d'heure de fin">✕</button><input class="in t${noe?' off':''}" type="time" data-sf="end" value="${esc(s.end)}" ${noe?'disabled':''} aria-label="Fin"></span>
         ${s.free?'':`<button class="slot-img sq${s.visual||s.asset?' on':''}" data-simg="${i}" title="Image affichée quand il n'y a pas de carte">${s.visual||s.asset?actImage({visual:s.visual,asset:s.asset}):'🖼️'}</button>`}
-        <button class="rx" data-sdel="${i}" title="Supprimer ce créneau" aria-label="Supprimer ce créneau">✕</button>
+        <button class="rx" data-sdel="${i}" title="Supprimer cette période horaire" aria-label="Supprimer cette période horaire">✕</button>
       </div>
       <div class="sh-hint">${esc(slotHint(s))}</div>
       <div class="combo"><input class="in" data-sf="label" value="${esc(s.label)}" placeholder="Intitulé (ex. Temps libre, Soirée)" autocomplete="off"><button type="button" class="cdd" data-ldd="${i}" aria-label="Intitulés déjà utilisés">▾</button></div>
@@ -3075,9 +3094,20 @@ function slotHTML(s,i){
     </div>
     <div class="slot-acts">
       ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
-      <button class="add-act" data-add="${i}">＋ Ajouter une carte dans ce créneau</button>
+      <button class="add-act" data-add="${i}">＋ Ajouter une carte dans cette période</button>
     </div></section>`;
 }
+function freeHTML(s,i){
+  return `<section class="slot free" data-si="${i}">
+    <div class="slot-head"><b class="fh">Hors période horaire</b><div class="sh-hint">rangées par heure avec les périodes, sans compter dans les heures d'ouverture</div></div>
+    <div class="slot-acts">
+      ${(s.acts||[]).map((a,j)=>actRowHTML(a,i,j,s.acts.length)).join('')}
+      <button class="add-act" data-add="${i}">＋ Ajouter une carte hors période</button>
+    </div></section>`;
+}
+// ordre chronologique des cartes (même règle que la page publique) : heure de début de la carte, sinon celle de la période
+function sortDayActs(day){if(day.slots&&day.slots.length>1){const fr=day.slots.filter(x=>x.free);day.slots=EJ.perSort(day.slots.filter(x=>!x.free)).concat(fr)}const k=(a,d)=>{const t=a.timing||{};return ((t.mode==='range'||t.mode==='depart')&&(t.start||t.end))||(a.morning?'08:00':'')||d};
+  (day.slots||[]).forEach(s=>{if(!(s.acts||[]).length)return;const d=s.free?'99:99':(s.start||'');s.acts=s.acts.map((a,n)=>({a,n,k:k(a,d)})).sort((x,y)=>x.k<y.k?-1:x.k>y.k?1:x.n-y.n).map(x=>x.a)})}
 function actRowHTML(a,i,j,n){
   a=EJ.linkAct(a);
   const sp=spanOf(a), L=d=>d?EJ.fmtShortDate(d).replace(/\.\d\d$/,''):'';
@@ -3153,12 +3183,12 @@ function bindDrawer(dr){
   });
   dr.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{
     const s=day.slots[+b.dataset.sdel];
-    if((s.acts||[]).length&&!await confirmBox('Supprimer ce créneau horaire et ses '+s.acts.length+' cartes ?',{ok:'Supprimer',danger:true}))return;
+    if((s.acts||[]).length&&!await confirmBox('Supprimer cette période horaire et ses '+s.acts.length+' cartes ?',{ok:'Supprimer',danger:true}))return;
     day.slots.splice(+b.dataset.sdel,1);scheduleSave();renderDrawer();
   });
   const af=dr.querySelector('#addfree');
-  if(af)af.onclick=()=>openComposer({mode:'day',onSave:a=>{let fs=day.slots.find(x=>x.free);if(!fs){fs={id:uid(),start:'',end:'',label:'Sans horaire',free:true,acts:[]};day.slots.push(fs)}fs.acts.push(a);scheduleSave();renderDrawer()}});
-  dr.querySelector('#addslot').onclick=()=>{const last=day.slots[day.slots.length-1];day.slots.push({id:uid(),start:last?last.end:'14:00',end:'',label:'',acts:[]});day.closed=false;scheduleSave();renderDrawer()};
+  if(af)af.onclick=()=>openComposer({mode:'day',onSave:a=>{let fs=day.slots.find(x=>x.free);if(!fs){fs={id:uid(),start:'',end:'',label:'',free:true,acts:[]};day.slots.push(fs)}fs.acts.push(a);scheduleSave();renderDrawer()}});
+  dr.querySelector('#addslot').onclick=()=>{const per=day.slots.filter(x=>!x.free),last=per[per.length-1],fi=day.slots.findIndex(x=>x.free);day.slots.splice(fi<0?day.slots.length:fi,0,{id:uid(),start:last?last.end:'14:00',end:'',label:'',acts:[]});day.closed=false;scheduleSave();renderDrawer()};
   dr.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
     const si=+b.dataset.add;
     openComposer({mode:'day',onSave:a=>{day.slots[si].acts.push(a);scheduleSave();renderDrawer()}});
