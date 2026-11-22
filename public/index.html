@@ -2267,7 +2267,7 @@ function mountPublic(root,data,opts){
   }
   // carte à la une figée : demi-carte en haut de page, petite carte dès qu'on fait défiler
   let pinMini=false;
-  const pinScroll=()=>{const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
+  const pinScroll=()=>{if(glued)return;const pf=root.querySelector('.pinfix');if(!pf)return;const nx=pf.nextElementSibling;if(!nx)return;
     // distance parcourue sous la carte (avec seuils différents pour éviter tout va-et-vient)
     const amt=8-(nx.getBoundingClientRect().top-pf.getBoundingClientRect().bottom),under=pinMini?amt>8:amt>110;if(under===pinMini)return;pinMini=under;
     pf.querySelectorAll('.card[data-demi]').forEach(c=>{if(!c.classList.contains('fold'))return;
@@ -2288,15 +2288,21 @@ function mountPublic(root,data,opts){
     const line=hd.getBoundingClientRect().bottom+ph+12;
     root.querySelectorAll(all?'.days .card.fold:not(.nofold)':'.days .card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;
       const dc=c.closest('section.day')&&c.closest('section.day').querySelector('.dcol'),sc=scrollerOf(c),stop=dc?parseFloat(getComputedStyle(dc).top)+(sc===(document.scrollingElement||document.documentElement)?0:sc.getBoundingClientRect().top):line;
-      if(c.getBoundingClientRect().top<=stop){autoDone.add(k);glue(c,stop,sc);toggleFold(c)}})};
+      if(!glued&&c.getBoundingClientRect().top<=stop+28){autoDone.add(k);glue(c,stop,sc)}})};
   // « collage » : la carte se cale au niveau du haut du calendrier et le défilement est bloqué le temps du dépliage
   let glued=null;
   const scrollerOf=el=>{let p=el.parentElement;while(p&&p!==document.body){const o=getComputedStyle(p).overflowY;if(/(auto|scroll)/.test(o)&&p.scrollHeight>p.clientHeight)return p;p=p.parentElement}return document.scrollingElement||document.documentElement};
   const stopEv=e=>{if(glued)e.preventDefault()};
   window.addEventListener('wheel',stopEv,{passive:false,capture:true});window.addEventListener('touchmove',stopEv,{passive:false,capture:true});
-  function glue(c,line,sc){const snap=()=>{const d=c.getBoundingClientRect().top-line;if(Math.abs(d)>.5)sc.scrollTop+=d;return sc.scrollTop};let y=snap();
-    const hold=()=>{if(glued&&Math.abs(sc.scrollTop-y)>.5)sc.scrollTop=y};requestAnimationFrame(()=>{y=snap()});sc.addEventListener('scroll',hold,{passive:true});if(sc===document.scrollingElement)window.addEventListener('scroll',hold,{passive:true});
-    glued={sc};clearTimeout(glue.t);glue.t=setTimeout(()=>{glued=null;sc.removeEventListener('scroll',hold);window.removeEventListener('scroll',hold)},380)}
+  // on anticipe : dès que la carte approche, le défilement de l'utilisateur est coupé (élan compris), la carte glisse
+  // en douceur jusqu'au niveau du calendrier, se déplie, puis le blocage dure encore 0,1 s
+  function glue(c,line,sc){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
+    glued={sc};const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
+    el.style.overflow='hidden';if(doc)bd.style.overflow='hidden';bd.style.touchAction='none';sc.scrollTop=y0;
+    const d=c.getBoundingClientRect().top-line,y1=y0+d,T=140,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
+    const step=now=>{const k=Math.min(1,(now-s0)/T);sc.scrollTop=y0+d*ez(k);if(k<1)requestAnimationFrame(step);else{sc.scrollTop=y1;toggleFold(c);
+      setTimeout(()=>{el.style.overflow=o0;if(doc)bd.style.overflow='';bd.style.touchAction=t0;glued=null},460+100)}};
+    requestAnimationFrame(step)}
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});
@@ -2551,7 +2557,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.146';
+const APP_VERSION='v261120.147';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
