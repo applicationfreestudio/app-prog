@@ -2333,15 +2333,18 @@ function mountPublic(root,data,opts){
   window.addEventListener('touchend',tEnd,{capture:true,passive:true});window.addEventListener('touchcancel',tEnd,{capture:true,passive:true});
   function glue(c,line,sc){const doc=sc===(document.scrollingElement||document.documentElement),el=doc?document.documentElement:sc,bd=document.body;
     const y0=sc.scrollTop,o0=el.style.overflow,t0=bd.style.touchAction;
-    el.style.overflow='hidden';bd.style.touchAction='none';sc.scrollTop=y0;
-    const release=()=>{if(!glued)return;el.style.overflow=o0;bd.style.touchAction=t0;glued=null;upOnly=true;gBlock=false};
-    glued={sc,release,waitLift:false};
+    const a0=el.style.overflowAnchor;// l'ancrage de défilement du navigateur est coupé : sinon, quand la carte grandit, il peut faire sauter la page
+    el.style.overflow='hidden';el.style.overflowAnchor='none';bd.style.touchAction='none';sc.scrollTop=y0;
+    const release=()=>{if(!glued)return;el.style.overflow=o0;el.style.overflowAnchor=a0;bd.style.touchAction=t0;glued=null;upOnly=true;gBlock=false};
+    glued={sc,release,waitLift:false,want:y0};
     const d=c.getBoundingClientRect().top-line,y1=y0+d,T=120,s0=performance.now(),ez=x=>1-Math.pow(1-x,3);
     // le dépliage démarre avec le glissement : la journée grandit et son calendrier vient se caler sans à-coup
     toggleFold(c);
-    const step=now=>{const k=Math.min(1,(now-s0)/T);sc.scrollTop=y0+d*ez(k);if(k<1)requestAnimationFrame(step);else{sc.scrollTop=y1;
+    const step=now=>{if(!glued)return;const k=Math.min(1,(now-s0)/T);glued.want=y0+d*ez(k);sc.scrollTop=glued.want;if(k<1)requestAnimationFrame(step);else{sc.scrollTop=glued.want=y1;
       setTimeout(()=>{if(!glued)return;if(touchN>0)glued.waitLift=true;else release()},440+80-T)}};
     requestAnimationFrame(step)}
+  // pendant le collage, toute position imposée par le navigateur (reste du geste, inertie) est corrigée avant l'affichage
+  document.addEventListener('scroll',e=>{if(!glued)return;const sc=glued.sc;if(Math.abs(sc.scrollTop-glued.want)>.5)sc.scrollTop=glued.want},{capture:true,passive:true});
   document.addEventListener('scroll',autoUnfold,{capture:true,passive:true});
   // info importante du jour : petite animation de mise en évidence quand elle arrive aux 2/3 de l'écran (une fois)
   const noteHi=()=>{if(!root.isConnected||st.view==='home')return;const vh=window.innerHeight;
@@ -2600,7 +2603,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.153';
+const APP_VERSION='v261120.154';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
