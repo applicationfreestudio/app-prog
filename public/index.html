@@ -1850,7 +1850,7 @@ function stayWhen(a,date){
 }
 const ACTS_REG={};
 const OPEN_CARDS=new Set(),CLOSED_CARDS=new Set();
-let ONB_FORCE=false;function resetVisitor(){OPEN_CARDS.clear();CLOSED_CARDS.clear();ONB_FORCE=true}let UNFOLD_ALL=false,CARD_MODE='petite'; // cartes dépliées par le visiteur (clé : id|date)
+let ONB_FORCE=false,DVH_FORCE=false;function resetVisitor(){OPEN_CARDS.clear();CLOSED_CARDS.clear();ONB_FORCE=true;DVH_FORCE=true}let UNFOLD_ALL=false,CARD_MODE='petite'; // cartes dépliées par le visiteur (clé : id|date)
 function cardHTML(a,opts){
   opts=opts||{};
   if(opts.date&&a.id)ACTS_REG[a.id]={a,date:opts.date};
@@ -2537,7 +2537,7 @@ function mountPublic(root,data,opts){
   function dvHint(){const sec=root.querySelector('.days>section.dvon');if(!sec)return;const ss=dvSecs(),i=ss.indexOf(sec),hasP=i>0||pastHidden(),hasN=i<ss.length-1;if(!hasP&&!hasN)return;
     const H=document.createElement('div');H.className='dvh';H.innerHTML=(hasP?`<b class="l">${CHEV(-1)}</b>`:'')+(hasN?`<b class="r">${CHEV(1)}</b>`:'');root.querySelector('.pub').appendChild(H);dvChev=H;
     H.animate([{opacity:0},{opacity:1}],{duration:300,delay:200,fill:'backwards'})}
-  function dvHintMaybe(){if(sessGet('ej-dvh'))return;sessSet('ej-dvh');setTimeout(()=>{if(dv)dvHint()},250)}
+  function dvHintMaybe(){if(!DVH_FORCE&&sessGet('ej-dvh'))return;DVH_FORCE=false;sessSet('ej-dvh');setTimeout(()=>{if(dv)dvHint()},250)}
   const pastHidden=()=>!opts.allDays&&!st.past&&Object.keys(st.days).some(k=>k<iso(new Date()));
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});onbMaybe();
@@ -2792,7 +2792,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.170';
+const APP_VERSION='v261120.171';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
