@@ -916,6 +916,8 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .slot-title.ptxt .fbi{display:none}
 .slot-title.ptxt .fbt{padding:0;display:flex;gap:6px;align-items:baseline}
 .slot-title.ptxt .fbt span{margin:0}
+.pgap{display:block;height:.7em}
+.sheet .txt p.gap{height:.7em;margin:0}
 /* parcours jour par jour : seule la journée choisie est affichée */
 /* les cartes à la une restent en haut, toutes figées ; la journée glisse dessous ; pas de mention en tête */
 .pub.dayview .days>*:not(section.day.dvon):not(.pinned){display:none!important}
@@ -1817,6 +1819,8 @@ window.BUS_SVG=BUS_SVG;
 const ARR_SVG='<svg class="ar" viewBox="0 0 12 10" aria-hidden="true"><path d="M1 5h8.6M6.4 1.6 9.8 5 6.4 8.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const lc1=t=>{t=String(t||'').trim();return t.charAt(0).toLowerCase()+t.slice(1)};
 const AUTH_RE=/autorisation\s+parentale/i;
+// texte sur plusieurs lignes : une ligne vide ne compte que pour une demi-ligne
+function nlb(t){return esc(t).replace(/\n[ \t]*(\n[ \t]*)+/g,'<span class="pgap"></span>').replace(/\n/g,'<br>')}
 // lien externe d'une carte : http(s) uniquement, « https:// » ajouté s'il manque
 function extUrl(v){v=String(v||'').trim();if(!v)return '';if(!/^[a-z][a-z0-9+.-]*:/i.test(v))v='https://'+v.replace(/^\/+/,'');return /^https?:\/\/[^\s]+$/i.test(v)?v:''}
 function needsAuth(a){return !!(a.auth||(a.bring||[]).some(x=>AUTH_RE.test(x)))}
@@ -1862,7 +1866,7 @@ function cardHTML(a,opts){
       const t=it.length?it.join(', ')+(au?' et '+A2:''):A2;
       return `<p class="bring${jc(t)}"><span class="em">${it.length?'📣':'✍️'}</span><span><b>${esc(LBL.bring)} :</b> ${btn?esc(t.replace(/\s+\S+$/,''))+` <span class="nw">${esc(t.match(/\S+$/)[0])}<button type="button" class="pdf-chip" data-auth="${esc(a.id||'')}" title="Télécharger l'autorisation parentale">PDF</button></span>`:esc(t)}</span></p>`})()
     +(a.closedDuring||a.important?`<div class="imps">${a.closedDuring?`<p class="imp"><span class="em">💥</span><span>${esc(LBL.closed)}</span></p>`:''}${a.important?`<p class="imp${jc(a.important)}"><span class="em">💥</span><span>${esc(a.important)}</span></p>`:''}</div>`:'')
-    +(a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${esc(String(a.about).trim()).replace(/\n/g,'<br>')}</p>`:'')
+    +(a.about&&String(a.about).trim()?`<p class="about${jc(a.about)}">${nlb(String(a.about).trim())}</p>`:'')
     +((a.gallery||[]).length&&!opts.noAssets&&!opts.noAuthBtn?`<div class="gal">${a.gallery.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:'')
 ;
   // bouton « Lien » (même gabarit que le bouton PDF) : calé à droite sur la dernière ligne de la carte s'il y a la place, sinon juste en dessous
@@ -2047,11 +2051,11 @@ function mountPublic(root,data,opts){
   const hico=(k,z)=>`<svg viewBox="0 0 24 24" width="${z}" height="${z}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${HICO[k]}</svg>`;
   function contactHTML(info){const c=info.contact||{},L=[];
     const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-    if(c.address)L.push(`<li>${ic('<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>')}<span>${esc(c.address).replace(/\n/g,'<br>')}</span></li>`);
+    if(c.address)L.push(`<li>${ic('<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>')}<span>${nlb(c.address)}</span></li>`);
     if(c.phone)L.push(`<li>${ic('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>')}<a href="tel:${esc(String(c.phone).replace(/[^+\d]/g,''))}">${esc(c.phone)}</a></li>`);
     if(c.email)L.push(`<li>${ic('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>')}<a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>`);
     if(c.web)L.push(`<li>${ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>')}<a href="${esc(/^https?:/.test(c.web)?c.web:'https://'+c.web)}" target="_blank" rel="noopener">${esc(String(c.web).replace(/^https?:\/\//,''))}</a></li>`);
-    if(c.text)L.push(`<li class="ctx">${esc(c.text).replace(/\n/g,'<br>')}</li>`);
+    if(c.text)L.push(`<li class="ctx">${nlb(c.text)}</li>`);
     return `<section class="contact"><h2>contact</h2><b class="cn">${esc(c.name||info.name||'Espace jeunes')}</b>${L.length?`<ul>${L.join('')}</ul>`:'<p class="ctx">Coordonnées à compléter dans les paramètres.</p>'}</section>`}
   function homeHTML(info){
     return `<main class="home"><div class="hgrid">${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>[k,((info.homeTiles||{})[k]||'').trim()||l]).map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${kico(k,info)}<span class="ktx">${esc(l)}</span></button>`:`<div class="ht off" aria-disabled="true">${kico(k,info)}<span class="ktx">${esc(l)}</span><small class="ktx">bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
@@ -2065,7 +2069,7 @@ function mountPublic(root,data,opts){
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
-    const logos=(pl.length&&!opts.noAssets)||info.partnersText?`<div class="partners-box">${pl.length&&!opts.noAssets?`<div class="partners">${pl.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:''}${info.partnersText?`<p>${esc(info.partnersText).replace(/\n/g,'<br>')}</p>`:''}</div>`:'';
+    const logos=(pl.length&&!opts.noAssets)||info.partnersText?`<div class="partners-box">${pl.length&&!opts.noAssets?`<div class="partners">${pl.map(id=>`<img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(id)}" alt="" loading="lazy">`).join('')}</div>`:''}${info.partnersText?`<p>${nlb(info.partnersText)}</p>`:''}</div>`:'';
     const af=(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.').trim();
     const ft=(info.footer||'').trim();
     return `<footer class="pub-foot">${logos}${ft&&ft!==af?`<div>${esc(ft)}</div>`:''}</footer>`;
@@ -2078,7 +2082,7 @@ function mountPublic(root,data,opts){
     return `<div class="sheet-bg" data-close="1" style="--pf:'${font}',system-ui,sans-serif"><div class="sheet" role="dialog" aria-modal="true" aria-label="Infos pratiques">
       <div class="sh-head">${logoHTML(info)}<div class="sh-t"><h2>Infos pratiques</h2><small>${esc(info.name||'Espace jeunes')}</small></div><button class="close" data-close="1" aria-label="Fermer">✕</button></div>
       <div class="txt">${richText(info.text)}</div>
-      ${info.phone||info.email||info.address?`<div class="contact">${info.address?`<div class="adr"><span>📍</span><p>${esc(info.address).replace(/\n/g,'<br>')}</p></div>`:''}${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}</div>`:''}
+      ${info.phone||info.email||info.address?`<div class="contact">${info.address?`<div class="adr"><span>📍</span><p>${nlb(info.address)}</p></div>`:''}${info.phone?`<div><span>📞</span>${esc(info.phone)}</div>`:''}${info.email?`<div><span>✉️</span>${esc(info.email)}</div>`:''}</div>`:''}
     </div></div>`;
   }
   function split(day){
@@ -2109,7 +2113,8 @@ function mountPublic(root,data,opts){
     ks.forEach(k=>{
       const p=periodOf(k,st.settings&&st.settings.periods), id=p?p.name:'';
       const sp=split(st.days[k]), sg=sp.skip?null:sig(sp.d);
-      if(g&&id===prev&&!sp.stays.length&&sg&&sg===g.sig&&addDays(g.end,1)===k){g.end=k;return}
+      // deux jours consécutifs identiques sont regroupés, même de part et d'autre d'un changement de période (le séparateur vient après le groupe)
+      if(g&&!sp.stays.length&&sg&&sg===g.sig&&addDays(g.end,1)===k){g.end=k;return}
       flush();
       if(id!==prev){if(!(p&&p.type!=='vacances'))h+=`<div class="psep${p&&p.type==='vacances'?' vac':''}"><span>${esc(sepLabel(p))}</span></div>`;prev=id}
       sp.stays.forEach(a=>{h+=stayHTML(a,k)});
@@ -2349,7 +2354,7 @@ function mountPublic(root,data,opts){
       <h1 class="pd-t">Autorisation parentale</h1>
       <div class="pd-lines"><p>Je soussigné(e), Madame / Monsieur <i></i></p><p>représentant(e) légal(e) de <i></i></p><p>autorise sa participation à l'activité suivante :</p></div>
       <div class="pd-card">${spanOf(a)==='multi'?`${(a.stayLabel||'').trim()?`<span class="stay-tag">${esc(cap(a.stayLabel.trim()))}</span>`:''}`:`<div class="pd-date">${esc(cap(fmtLong(date)))} ${parse(date).getFullYear()}</div>`}${cardHTML(a,{date,noAuthBtn:true})}</div>
-      ${info.authCheck===false||!ctext?'':`<div class="pd-check"><span class="box"></span><p>${esc(ctext).replace(/\n/g,'<br>')}</p></div>`}
+      ${info.authCheck===false||!ctext?'':`<div class="pd-check"><span class="box"></span><p>${nlb(ctext)}</p></div>`}
       <div class="pd-sign"><div>Fait le <i></i> / <i></i> / <i class="y"></i></div><div class="sig"><span>Signature du représentant légal</span></div></div>
       ${pl.length?`<div class="partners-box"><div class="partners">${pl.map(x=>`<img src="${base}${esc(x)}" alt="">`).join('')}</div>${info.partnersText?`<p>${esc(info.partnersText)}</p>`:''}</div>`:''}`;
     document.body.appendChild(box);
@@ -2436,7 +2441,8 @@ function mountPublic(root,data,opts){
   const dvSecs=()=>[...root.querySelectorAll('.days>section.day[id^="j-"]')];
   // la journée se place juste sous le bandeau (et la bande des cartes à la une figées) si la page est déjà descendue plus bas ; sinon les cartes à la une restent visibles au-dessus
   const dvScTop=sec=>{const sc=scrollerOf(sec||root);if(!sec){sc.scrollTop=0;return}const base=refBase()||0,d=sec.getBoundingClientRect().top-base-8;if(d<0)sc.scrollTop+=d}
-  function dvOpen(sec){sec.querySelectorAll('.card.fold:not(.nofold)').forEach(c=>{if(c.dataset.fk)dvOpened.add(c.dataset.fk);toggleFold(c)})}
+  // même règle que la vue continue : seules les cartes à déploiement automatique se déploient (une fois) ; les autres gardent leur état
+  function dvOpen(sec){const all=!!((st.settings||{}).info||{}).autoUnfold;sec.querySelectorAll(all?'.card.fold:not(.nofold)':'.card.fold[data-au]:not(.nofold)').forEach(c=>{const k=c.dataset.fk;if(!k||autoDone.has(k)||c.closest('.pinned'))return;autoDone.add(k);toggleFold(c)})}
   // en vue jour par jour, les cartes à la une non figées rejoignent la bande figée (et y retournent ensuite)
   let dvMv=null;
   function dvPinIn(){if(dvMv)return;const pn=root.querySelector('.days>.pinned:not(.pinfix)');if(!pn)return;const pf=root.querySelector('.days>.pinned.pinfix');
@@ -2452,7 +2458,7 @@ function mountPublic(root,data,opts){
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
       dv=null;pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
-      root.querySelectorAll('.days .card:not(.fold)').forEach(c=>{if(dvOpened.has(c.dataset.fk))toggleFold(c)});dvOpened.clear();
+      
       // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
       fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
       const hold=()=>{if(stop||!sec.isConnected)return;const base=refBase()||0,d=sec.getBoundingClientRect().top-base-6;if(Math.abs(d)>.5)sc.scrollTop+=d;if(performance.now()-t0<900)requestAnimationFrame(hold)};hold();return}
@@ -2726,7 +2732,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.163';
+const APP_VERSION='v261120.164';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
