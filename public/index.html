@@ -933,8 +933,12 @@ html:has(.pub.ishome),body:has(.pub.ishome){overflow:hidden;overscroll-behavior:
 .pinned.pinfix{background:rgba(245,244,241,.72)!important;-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px);padding-top:14px!important;padding-bottom:14px!important;margin-top:-22px!important;margin-bottom:-26px}
 /* informations importantes de la journée */
 .dnote{font-size:14px!important}
-.dnote .warn{width:21px!important;height:21px!important;flex-basis:21px!important}
-.dnote+.slot,.dnote+.cards,.dnote+*{margin-top:-3px}
+.dnote .warn{width:23px!important;height:23px!important;flex-basis:23px!important}
+.dnote+.slot,.dnote+.cards,.dnote+*{margin-top:-5px}
+
+.card.aopen .fold-ar{display:none!important}
+.card.aopen:not(.zoomed) h3{padding-right:0!important}
+.card.aopen:not(.zoomed) .card-head{padding-right:12px!important}
 </style>
 
 <style>
@@ -1820,9 +1824,9 @@ function cardHTML(a,opts){
   const full='';
   const v=VIS[a.visual]||VIS[(CATS[a.cat]||{}).visual]||VIS.etoile;
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
-  const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
+  const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!a.alwaysOpen&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${a.alwaysOpen?' aopen':''}${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -2109,7 +2113,7 @@ function mountPublic(root,data,opts){
     if(!c.classList.contains('fold')||c.classList.contains('demi')){fitH(h);return}
     c.classList.remove('fold');const u=fitH(h);c.classList.add('fold');fitH(h,Math.min(u,Math.round(c.offsetHeight*.4*2)/2||u))})}
   // une carte qui n'a rien d'autre qu'un titre et une image ne se déplie pas
-  function markFoldable(){root.querySelectorAll('.card:not(.zoomed)').forEach(c=>{const hd=c.querySelector('.card-head');
+  function markFoldable(){root.querySelectorAll('.card:not(.zoomed):not(.aopen)').forEach(c=>{const hd=c.querySelector('.card-head');
     const has=e=>!!(e.textContent.trim()||e.querySelector('img,svg'));
     const dm=c.classList.contains('demi'),more=[...c.children].some(e=>!e.matches('.card-img,.card-head,.fold-ar,.rib-w:not(.r)')&&has(e))||(hd&&[...hd.children].some(e=>!e.matches(dm?'h3,.tag-morning,.desc,.when,.pj-from,.sj-when,.pdate':'h3,.tag-morning')&&has(e)));
     c.classList.toggle('nofold',!more);if(!more)c.classList.add('fold')})}
@@ -2188,7 +2192,7 @@ function mountPublic(root,data,opts){
     requestAnimationFrame(()=>ov.classList.add('on'));fitStay();setTimeout(fitStay,260);
     ov.addEventListener('click',()=>{ov.classList.remove('on');setTimeout(()=>ov.remove(),200)});
   }
-  function toggleFold(c){if(c._anim||c.classList.contains('nofold'))return;const op=c.classList.contains('fold');
+  function toggleFold(c){if(c._anim||c.classList.contains('nofold')||c.classList.contains('aopen'))return;const op=c.classList.contains('fold');
         const k=c.dataset.fk;if(k){if(op){OPEN_CARDS.add(k);CLOSED_CARDS.delete(k)}else{OPEN_CARDS.delete(k);CLOSED_CARDS.add(k)}}
         const b=c.querySelector('.fold-ar');if(b){b.setAttribute('aria-expanded',op);b.setAttribute('aria-label',(op?'Replier':'Déplier')+' la carte')}
         const ez='cubic-bezier(.25,.8,.25,1)',D=340,parts=()=>[...c.querySelectorAll(':scope>:not(.card-img):not(.card-head):not(.fold-ar):not(.rib-w), .card-head>:not(h3)')];
@@ -2575,7 +2579,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261120.150';
+const APP_VERSION='v261120.151';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3223,7 +3227,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
           <div class="c-chips ages">${EJ.getAges().map(g=>{const on=(Array.isArray(f.ages)?f.ages:f.publics&&f.publics!=='tous'?[f.publics]:[]).includes(g.id);return `<label class="tg2 shr"><input type="checkbox" data-age="${esc(g.id)}" ${on?'checked':''}><span>${esc(g.label)}</span></label>`}).join('')}</div>
         </div>
       </div>
-      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${chip('fauto',f.autoUnfold,'↕ Déploiement automatique')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
+      <div class="c-chips">${chip('fmorning',f.morning,'☀️ Le matin')}${chip('ffull',f.full,'Complet')}${chip('fhl',f.highlight,'En évidence')}${f.alwaysOpen?'':chip('fauto',f.autoUnfold,'↕ Déploiement automatique')}${chip('faopen',f.alwaysOpen,'▣ Toujours déployée')}${chip('fpin',f.pinned,'À la une')}${f.pinned?chip('fpinfix',f.pinFix,'📌 Figer l\'emplacement'):''}</div>
       <div class="c-sec"><h4>Dates et horaires</h4>
         ${DD?`<div class="g4"><span>Début</span><span class="dwrap"><button type="button" class="dx${sp==='until'?' on':''}" id="xstart" title="Pas de date de début">✕</button><input class="in${sp==='until'?' off':''}" type="date" id="fsd" value="${sp==='until'?'':DD}" ${sp==='until'?'disabled':''}></span><input class="in t" type="time" id="tstart" value="${esc(t.start||'')}">
         <span>Fin</span><span class="dwrap"><button type="button" class="dx${sp==='open'?' on':''}" id="xend" title="Pas de date de fin">✕</button><input class="in${sp==='open'?' off':''}" type="date" id="fed" value="${sp==='day'?DD:sp==='open'?'':esc(f.endDate||'')}" ${sp==='open'?'disabled':''}></span><input class="in t" type="time" id="tend" value="${esc(t.end||'')}"></div>
@@ -3279,7 +3283,7 @@ function openComposer({mode,initial,onSave,onDelete,cats,onClose}){
     $$('[data-pam]').forEach(e=>e.oninput=()=>{const i=+e.dataset.pam;f.price.rows=f.price.rows||[];while(f.price.rows.length<=i)f.price.rows.push({amount:''});f.price.rows[i].amount=e.value});
     inp('#pamount',v=>f.price.amount=v);inp('#pcc',v=>f.price.cc=v);inp('#phc',v=>f.price.hc=v);inp('#ptext',v=>f.price.text=v);
     const chk=(id,fn)=>{const e=$(id);if(e)e.onchange=()=>{fn(e.checked);draw()}};
-    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fauto',v=>f.autoUnfold=v);chk('#fpin',v=>{f.pinned=v;if(!v)f.pinFix=false});chk('#fpinfix',v=>f.pinFix=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
+    chk('#fmorning',v=>f.morning=v);chk('#ffull',v=>f.full=v);chk('#fhl',v=>f.highlight=v);chk('#fauto',v=>f.autoUnfold=v);chk('#faopen',v=>{f.alwaysOpen=v;if(v)f.autoUnfold=false});chk('#fpin',v=>{f.pinned=v;if(!v)f.pinFix=false});chk('#fpinfix',v=>f.pinFix=v);chk('#fauth',v=>f.auth=v);chk('#ftransport',v=>f.transport=v);chk('#fclosed',v=>f.closedDuring=v);chk('#fbook',v=>f.booking.on=v);
     $$('[data-age]').forEach(e=>e.onchange=()=>{f.ages=[...m.el.querySelectorAll('[data-age]:checked')].map(x=>x.dataset.age);f.publics='tous'});
     const at=$('#astpl');if(at)at.onchange=()=>saveAsTpl=at.checked;
     const spRecalc=()=>{const sd=($('#fsd')||{}).value, ed=($('#fed')||{}).value, D=mode==='day'&&UI.drawer?UI.drawer.date:null;if(!D)return;
