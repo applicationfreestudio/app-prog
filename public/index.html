@@ -1031,10 +1031,10 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 /* 8 px : 2 px sur le bandeau, 6 px dessous ; extrémités arrondies */
 .pbar .pbt{position:absolute;top:0;bottom:0;display:flex;border-radius:4px;overflow:hidden}
 .pbar .pbt i{flex:1 1 0;min-width:0;height:100%;position:relative}
-/* couleur la plus claire du dégradé du thème, éclaircie (30 % de la couleur) */
-.pbar .pbt i.op{background:color-mix(in srgb,var(--call,#F9CE34) 30%,#fff)}.pbar .pbt i.sh{background:color-mix(in srgb,var(--shl,#F5B800) 30%,#fff)}
-/* sélecteur : la période affichée en plus foncé, rectangle sur toute la hauteur, traits verticaux aux bords */
-.pbar .pbf{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--pbc,#700000) 30%,transparent);border-left:1px solid var(--pbc,#700000);border-right:1px solid var(--pbc,#700000);box-sizing:border-box;min-width:3px;transition:left .25s,width .25s}
+/* couleur la plus claire du dégradé du thème, en transparence réglable (--pbo) ; période affichée renforcée et opaque (--pbs) */
+.pbar .pbt i{transition:background-color .25s}
+.pbar .pbt i.op{background:color-mix(in srgb,var(--call,#F9CE34) var(--pbo,30%),transparent)}.pbar .pbt i.sh{background:color-mix(in srgb,var(--shl,#F5B800) var(--pbo,30%),transparent)}
+.pbar .pbt i.op.on{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbt i.sh.on{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
 /* nom des vacances écrit en blanc dans la bande */
 .pbar .pbv{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;color:#fff;font-size:7px;line-height:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 2px rgba(20,19,23,.45);z-index:1}
 /* A : segments par jour, séparés d'un fin espace */
@@ -2239,8 +2239,9 @@ function linkDays(days,lib){lib=lib||libItems();if(!lib.length||!days)return day
   Object.keys(days).forEach(k=>{const d=days[k];out[k]=d&&d.slots?Object.assign({},d,{slots:d.slots.map(sl=>Object.assign({},sl,{acts:(sl.acts||[]).map(a=>linkAct(a,lib))}))}):d});return out}
 function mountPublic(root,data,opts){
   opts=opts||{};{const ag=data&&data.settings&&data.settings.info&&data.settings.info.ages;if(Array.isArray(ag)&&ag.length)AGES=ag}if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
-  const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
-  if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;render();window.scrollTo(0,0)}});
+  const DIRECT=opts.hashNav&&(location.hash==='#jour'||location.hash==='#defile')?location.hash.slice(1):'';
+  const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!DIRECT&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
+  if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{if(DIRECT)return;const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;render();window.scrollTo(0,0)}});
   const HICO={horaires:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
   const kico=(k,info)=>{const sv=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="${info.tileBold?3.1:2.6}" stroke-linecap="round" stroke-linejoin="round">${HICO[k]}</svg>`,u=`url('data:image/svg+xml,${encodeURIComponent(sv)}')`;return `<span class="kicw" aria-hidden="true"><i class="kic ktx" style="-webkit-mask-image:${u};mask-image:${u}"></i></span>`};
   // lettrage « découpé » : on y voit le fond (photo ou couleur) exactement aligné
@@ -2266,7 +2267,7 @@ function mountPublic(root,data,opts){
     return `<span class="logo">${esc(ini)}</span>`;
   }
   function headHTML(info,wm){
-    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'?'<button class="back-btn'+(performance.now()-st.animT<950?' anim" style="animation-delay:'+((250-(performance.now()-st.animT))/1000).toFixed(3)+'s':'')+'" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(opts.home&&st.view==='home'?(info.homeSub||'par la communauté de communes Val de Cher Controis'):(info.sub||'le Programme des animations'))}</small></div></div>${opts.home&&st.view==='home'?`<div class="hb">${opts.noFs?'':fsBtn()}</div>`:`<div class="hb">${opts.noFs?'':fsBtn()}</div>`}</header>`;
+    return `<header class="pub-head">${wm?wm.replace('class="wm ','class="wm wm-in '):''}<div class="brand">${opts.home&&st.view!=='home'&&!DIRECT?'<button class="back-btn'+(performance.now()-st.animT<950?' anim" style="animation-delay:'+((250-(performance.now()-st.animT))/1000).toFixed(3)+'s':'')+'" data-home="1" aria-label="Retour au menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>':''}${logoHTML(info)}<div><b>${esc(info.name||'Espace jeunes')}</b><small>${esc(opts.home&&st.view==='home'?(info.homeSub||'par la communauté de communes Val de Cher Controis'):(info.sub||'le Programme des animations'))}</small></div></div>${opts.home&&st.view==='home'?`<div class="hb">${opts.noFs?'':fsBtn()}</div>`:`<div class="hb">${opts.noFs?'':fsBtn()}</div>`}</header>`;
   }
   function footHTML(info){
     const pl=(info.partners||[]).filter(Boolean);
@@ -2793,7 +2794,7 @@ function mountPublic(root,data,opts){
   function dvHintMaybe(){if(!DVH_FORCE&&sessGet('ej-dvh'))return;DVH_FORCE=false;sessSet('ej-dvh');setTimeout(()=>{if(dv)dvHint()},250)}
   const pastHidden=()=>!opts.allDays&&!st.past&&Object.keys(st.days).some(k=>k<iso(new Date()));
   // option : arriver directement sur la vue jour par jour (journée en cours)
-  function startDay(){const I=(st.settings||{}).info||{};if(st.view!=='prog'||dv||!I.dayByDay||I.startView!=='day')return;setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
+  function startDay(){const I=(st.settings||{}).info||{};if(st.view!=='prog'||dv||DIRECT==='defile'||(DIRECT!=='jour'&&(!I.dayByDay||I.startView!=='day')))return;setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
   // ---------- jauge de progression sous le bandeau (propositions) ----------
   function pbUpdate(){const pb=root.querySelector('.pub');if(!pb||st.view==='home'){const x=root.querySelector('.pbar');if(x)x.remove();return}
     const v=String(window.EJ_PBV||(((st.settings||{}).info||{}).progBar===false?'':'b'));let bar=root.querySelector('.pbar');if(!v||!dv){if(bar)bar.remove();return}
@@ -2805,7 +2806,7 @@ function mountPublic(root,data,opts){
     if(!bar||bar.dataset.v!==v||bar.dataset.n!==String(N)+vq.length){if(bar)bar.remove();bar=document.createElement('div');bar.className='pbar pb-'+v;bar.dataset.v=v;bar.dataset.n=String(N)+vq.length;
       const cl=k=>{const d=st.days[k];return !d||d.closed?'sh':'op'};
       const vac=vq.map(q=>({n:q.name||'Vacances',i0:days.indexOf(q.start<t?t:q.start),i1:days.indexOf(q.end)})).filter(q=>q.i0>=0&&q.i1>=q.i0);
-      bar.innerHTML='<div class="pbt">'+days.map(k=>`<i class="${cl(k)}"></i>`).join('')+'</div>'+vac.map(q=>`<b class="pbv" data-i0="${q.i0}" data-i1="${q.i1}"><span>${esc(q.n)}</span></b>`).join('')+'<b class="pbf"></b>';pb.appendChild(bar)}
+      bar.innerHTML='<div class="pbt">'+days.map(k=>`<i class="${cl(k)}"></i>`).join('')+'</div>'+vac.map(q=>`<b class="pbv" data-i0="${q.i0}" data-i1="${q.i1}"><span>${esc(q.n)}</span></b>`).join('');pb.appendChild(bar)}
     // limites de la jauge : marges gauche et droite des cartes
     const W=document.documentElement.clientWidth,cd=[...root.querySelectorAll('.days .card')].map(e=>e.getBoundingClientRect()).find(r=>r.width>0);
     const x0=cd?Math.round(cd.left):26,x1=cd?Math.round(cd.right):W-26,sp=Math.max(1,x1-x0);{const t2=bar.querySelector('.pbt');t2.style.left=x0+'px';t2.style.width=sp+'px'}
@@ -2814,9 +2815,11 @@ function mountPublic(root,data,opts){
     let a=null,b=null;if(dv){const sec=root.querySelector('#j-'+dv);a=dv;const ci=sec&&sec.querySelector('.cal-ico.multi');b=dv;if(ci){const nx=dvSecs()[dvSecs().indexOf(sec)+1];b=nx?addDays(nx.id.slice(2),-1):dv}}
     else{const hd=root.querySelector('.pub-head'),top=hd?hd.getBoundingClientRect().bottom:0,vb=innerHeight;const vis=[...root.querySelectorAll('.days>section.day[id^="j-"]')].filter(x=>{const r=x.getBoundingClientRect();return r.bottom>top+20&&r.top<vb-20});
       if(vis.length){const fx=vis[0];a=fx.id.slice(2);b=a;if(fx.querySelector('.cal-ico.multi')){const all=[...root.querySelectorAll('.days>section.day[id^="j-"]')],nx=all[all.indexOf(fx)+1];b=nx?addDays(nx.id.slice(2),-1):a}}}
-    const f=bar.querySelector('.pbf');if(!a){f.style.display='none';return}f.style.display='';if(a<t)a=t;if(b<a)b=a;
-    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));if(days.indexOf(a)<0){f.style.display='none';return}f.style.left=(x0+i0/N*sp).toFixed(2)+'px';f.style.width=((i1-i0+1)/N*sp).toFixed(2)+'px';
-    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('past',n<i0));{const dd=st.days[a];f.style.setProperty('--pbc',(!dd||dd.closed)?'var(--shn,#065e00)':'var(--caln,#700000)')}}
+    {const I=(st.settings||{}).info||{},cv=n=>Math.max(0,Math.min(100,+n));bar.style.setProperty('--pbo',cv(I.pbCol==null?30:I.pbCol)+'%');bar.style.setProperty('--pbs',cv(I.pbSel==null?40:I.pbSel)+'%')}
+    let i0=-1,i1=-1;if(a){if(a<t)a=t;if(b<a)b=a;i0=days.indexOf(a);i1=i0<0?-1:Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b))}
+    // sur une journée de vacances : toute la période des vacances est mise en évidence
+    if(i0>=0)bar.querySelectorAll('.pbv').forEach(e=>{const v0=+e.dataset.i0,v1=+e.dataset.i1;if(i0<=v1&&i1>=v0){i0=Math.min(i0,v0);i1=Math.max(i1,v1)}});
+    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('on',n>=i0&&n<=i1&&i0>=0))}
   {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true});window.addEventListener('resize',()=>{if(root.isConnected)pbUpdate()})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});onbMaybe();startDay();
@@ -3071,7 +3074,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.195';
+const APP_VERSION='v261123.196';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -4116,7 +4119,12 @@ function renderSettings(main){
       <label class="sw"><input type="checkbox" id="fixfoot" ${st.info.fixFoot?'checked':''}> Figer le pied de page et les logos (toujours visibles en bas du programme)</label>
       <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Déployer les cartes à l'ouverture de la page programme</label>
       <label class="sw"><input type="checkbox" data-ib="pinShrink" data-def="1" ${(st.info.pinShrink==null?true:st.info.pinShrink)?'checked':''}> Réduire les cartes figées à la une en petites cartes pendant le défilement</label>
-      <label class="sw"><input type="checkbox" data-ib="progBar" data-def="1" ${st.info.progBar===false?'':'checked'}> Jauge de progression sous le bandeau (période du calendrier, journée affichée encadrée)</label>
+      <label class="sw"><input type="checkbox" data-ib="progBar" data-def="1" ${st.info.progBar===false?'':'checked'}> Jauge du calendrier sous le bandeau (vue jour par jour)</label>
+      <label class="fld"><span>Jauge : intensité de la couleur : <b data-irv="pbCol">${st.info.pbCol==null?30:st.info.pbCol} %</b></span><input type="range" data-ir="pbCol" min="0" max="100" step="5" value="${st.info.pbCol==null?30:st.info.pbCol}"></label>
+      <label class="fld"><span>Jauge : intensité de la mise en évidence de la période : <b data-irv="pbSel">${st.info.pbSel==null?40:st.info.pbSel} %</b></span><input type="range" data-ir="pbSel" min="0" max="100" step="5" value="${st.info.pbSel==null?40:st.info.pbSel}"></label>
+      <h4 class="tsh">Liens directs vers le programme</h4>
+      <p class="hint">Ouvrent directement le programme, sans bouton de retour vers la page d'accueil.</p>
+      ${[['jour','Programme jour par jour'],['defile','Programme en défilement']].map(([h,l])=>`<div class="fld"><span>${l}</span><div class="row" style="gap:8px;align-items:center"><input class="in" readonly value="${esc(location.origin+'/#'+h)}" style="flex:1"><button type="button" class="btn sm" data-cplink="${esc(location.origin+'/#'+h)}">Copier</button></div></div>`).join('')}
       <h4 class="tsh">Effets au défilement</h4>
       <label class="sw"><input type="checkbox" data-ib="fxAuto" data-def="1" ${(st.info.fxAuto==null?true:st.info.fxAuto)?'checked':''}> Déploiement automatique des cartes au défilement</label>
       <label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
@@ -4208,6 +4216,8 @@ function renderSettings(main){
   {const sk=main.querySelector('#stickall');if(sk)sk.onchange=()=>saveInfo(i=>{i.stickAlways=sk.checked},sk.checked?'Effet collant à chaque passage ✓':'Effet collant la première fois seulement ✓')}
   // options du calendrier (cases à cocher, enregistrées tout de suite)
   main.querySelectorAll('[data-ib]').forEach(e=>e.onchange=()=>saveInfo(i=>{i[e.dataset.ib]=e.checked},'Option enregistrée ✓'));
+  main.querySelectorAll('[data-ir]').forEach(e=>{const lb=main.querySelector(`[data-irv="${e.dataset.ir}"]`);e.oninput=()=>{if(lb)lb.textContent=e.value+' %'};e.onchange=()=>saveInfo(i=>{i[e.dataset.ir]=+e.value},'Réglage enregistré ✓')});
+  main.querySelectorAll('[data-cplink]').forEach(b=>b.onclick=()=>{const u=b.dataset.cplink;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{b.textContent='Copié ✓';setTimeout(()=>b.textContent='Copier',1500)}).catch(()=>{const i=b.previousElementSibling;i.select()})});
   {const sd=main.querySelector('#startday');if(sd)sd.onchange=()=>saveInfo(i=>{i.startView=sd.checked?'day':'list'},'Option enregistrée ✓')}
   {const db=main.querySelector('#daybyday');if(db)db.onchange=()=>saveInfo(i=>{i.dayByDay=db.checked},db.checked?'Parcours jour par jour activé ✓':'Parcours jour par jour désactivé ✓')}
   {const au=main.querySelector('#autounf');if(au)au.onchange=()=>saveInfo(i=>{i.autoUnfold=au.checked},au.checked?'Déploiement automatique activé ✓':'Déploiement automatique désactivé ✓')}
