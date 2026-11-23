@@ -964,7 +964,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 /* vue jour par jour : sous-titre plus lisible ; jour fermé : grand calendrier centré */
 .pub.dvcompact:not(.dvshut) .pub-head .brand>div:not(.dvdate) small{font-size:16px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
 .pub.dvcompact .days>section.dvon.dvclosed .dcol{display:flex!important;justify-content:center;padding:44px 0 60px}
-.pub.dvcompact .days>section.dvon.dvclosed .dcol .cal-ico{zoom:1!important;transform:scale(1.7);transform-origin:top center;margin-bottom:70px}
+.pub.dvcompact .days>section.dvpeek.dvclosedp .dcol .cal-ico,.pub.dvcompact .days>section.dvon.dvclosed .dcol .cal-ico{zoom:1!important;transform:scale(1.7);transition:none!important;animation:none!important;transform-origin:top center;margin-bottom:70px}
 .dvdate .dvhh{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 9px;line-height:1.05}
 .pub-head .dvdate .dvhh b{font-size:22px!important;font-weight:700!important;letter-spacing:-.02em}
 .pub-head .dvdate .dvhh small{font-size:18px!important;font-weight:600!important;color:#3a3740!important;margin-top:2px}
@@ -980,7 +980,18 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 /* vue continue : mêmes marges que la vue jour par jour (28 px), calendrier des journées réduit d'autant */
 .pub:not(.ishome) .days{padding-left:28px!important;padding-right:28px!important}
 .pub:not(.ishome) .days .dgrid{grid-template-columns:66px minmax(0,1fr)!important}
-.pub:not(.ishome) .days .dcol .cal-ico{zoom:.733}
+.pub:not(.ishome) .days .dcol .cal-ico{width:68px!important;margin-left:-4px}
+.pub:not(.ishome) .days .dcol .cal-ico .m{font-size:10.5px;padding:3px 0}
+.pub:not(.ishome) .days .dcol .cal-ico .d{font-size:26px;padding-top:5px}
+.pub:not(.ishome) .days .dcol .cal-ico .w{font-size:13.5px;font-weight:600;padding-bottom:5px}
+.pub:not(.ishome) .days .dcol .cal-ico .h{font-size:12px;padding:5px 1px 6px}
+.pub:not(.ishome) .days .dcol .cal-ico .h small{font-size:10px}
+.pub:not(.ishome) .days .dcol .cal-ico .rng2{font-size:12px}
+/* horaires « 15h–18h » sur une ligne, sans « de / à » */
+.pub:not(.ishome) .days .dcol .cal-ico .h small{display:none}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg{column-gap:0;font-size:13px;font-weight:700}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg>span+span::before{content:"–"}
+.pub:not(.ishome) .days .dcol .cal-ico .w{font-size:14px}
 /* menu d'accueil : boutons plus réactifs, pas de sélection de texte */
 .ht{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .ht.on{transition:transform .12s}
@@ -2454,6 +2465,8 @@ function mountPublic(root,data,opts){
   {const sv=()=>document.documentElement.style.setProperty('--apph',Math.round((window.visualViewport?visualViewport.height:innerHeight))+'px');sv();
     (window.visualViewport||window).addEventListener('resize',sv);window.addEventListener('resize',sv);document.addEventListener('fullscreenchange',()=>setTimeout(sv,60))}
   root.addEventListener('touchmove',e=>{if(root.querySelector('.pub.ishome'))e.preventDefault()},{passive:false});
+  // l'animation d'arrivée du chevron ne doit jouer qu'une fois (sinon le logo / la date rejouent leur glissement à chaque remplacement)
+  root.addEventListener('animationend',e=>{const t=e.target;if(t.classList&&t.classList.contains('back-btn')&&t.classList.contains('anim')){t.classList.remove('anim');t.removeAttribute('style')}});
   root.addEventListener('click',e=>{
     if(e.target.closest('.ext-chip'))return;
     {const g=e.target.closest('[data-dvgo]');if(g&&dv){dvHintHide();dvGo(+g.dataset.dvgo);return}}
@@ -2990,7 +3003,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.184';
+const APP_VERSION='v261123.185';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
