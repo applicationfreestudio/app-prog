@@ -1284,6 +1284,26 @@ textarea.in{min-height:64px;resize:vertical}
 .setx .fld>textarea,.setx textarea{width:100%;min-height:64px}
 .setx input[type=range]{width:100%}
 .setx button.btn:not(.thopt):not(.kitopt):not(.cmode):not(.fp),.setx button.ico{all:revert;font:inherit;font-size:14px;cursor:pointer}
+/* sous-rubriques : petit triangle à gauche du titre ; commandes sobres type système (petits arrondis, hauteur confortable) */
+.setx .fold>summary,.setx .tsub>summary{justify-content:flex-start!important;gap:8px!important}
+.setx .fold>summary::after,.setx .tsub>summary::after{content:none!important;display:none!important}
+.setx .fold>summary::before,.setx .tsub>summary::before{content:''!important;display:block!important;width:0!important;height:0!important;border:0!important;border-left:6px solid #6f6a64!important;border-top:4.5px solid transparent!important;border-bottom:4.5px solid transparent!important;background:none!important;transition:transform .15s;flex:0 0 auto;margin:0 2px 0 1px!important;transform:none!important}
+.setx .fold[open]>summary::before,.setx .tsub[open]>summary::before{transform:rotate(90deg)!important}
+.setx .fold>summary h2{order:1}.setx .fold>summary .fsub{order:2}
+.setx input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),.setx select,.setx textarea{appearance:auto;-webkit-appearance:auto;border:1px solid #C7C2BA!important;border-radius:6px!important;background:#fff!important;padding:9px 10px!important;font:inherit!important;font-size:15px!important;line-height:1.35!important;color:#1d1d1b!important;box-shadow:none!important;min-height:40px;height:auto!important}
+.setx select{padding-right:8px!important}
+.setx textarea{min-height:76px}
+.setx input:focus,.setx select:focus,.setx textarea:focus{outline:2px solid #6aa0f5!important;outline-offset:0;border-color:#6aa0f5!important}
+.setx button.btn:not(.thopt):not(.kitopt):not(.cmode):not(.fp),.setx label.btn,.setx button.ico{all:unset;box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 14px!important;border:1px solid #C7C2BA!important;border-radius:6px!important;background:#fff!important;color:#1d1d1b!important;font:inherit!important;font-size:14.5px!important;font-weight:500!important;cursor:pointer;box-shadow:none!important;-webkit-tap-highlight-color:transparent}
+.setx button.ico{min-width:38px;padding:8px!important}
+.setx button.btn:active,.setx label.btn:active{background:#f0eeea!important}
+.setx .btn.warn,.setx label.btn.warn{color:#b3261e!important}
+.setx .row{gap:10px!important;margin-bottom:8px}
+.setx .fld{margin:0 0 16px!important}
+.setx .fld>span{margin:0 0 6px!important;text-transform:none!important;letter-spacing:0!important;font-size:13.5px!important;color:#5a5650!important;font-weight:500!important}
+.setx .sw{margin:0 0 14px!important}
+.setx .thopt,.setx .kitopt,.setx .cmode,.setx .fp{border-radius:8px!important;background:#fff!important;border:1px solid #C7C2BA!important;box-shadow:none!important}
+.setx .thopt.on,.setx .kitopt.on,.setx .cmode.on,.setx .fp.on{border:2px solid #1d1d1b!important}
 /* style « AppHike » : icônes monocouleurs, tout aligné à gauche sans retrait ; rubriques à chevron, sous-rubriques à « + » */
 .setx .para>summary{padding:18px 0}
 .setx .para>summary .pi{width:22px;height:22px;flex:0 0 auto;color:var(--ink,#141317)}
@@ -2899,7 +2919,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.179';
+const APP_VERSION='v261123.180';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
