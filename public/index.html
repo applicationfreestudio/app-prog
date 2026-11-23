@@ -1038,7 +1038,8 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pbar .pbt i.op.on{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbt i.sh.on{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
 .pbar .pbf{position:absolute;top:0;bottom:0;display:flex;border-radius:3px;overflow:hidden;z-index:0;}
 .pbar .pbf>i{flex:1 1 0;min-width:0;height:100%}
-.pbar .pbf>i.op{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbf>i.sh{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
+/* mise en évidence : de la couleur de la jauge rendue opaque (0 %) à la couleur pleine du thème (100 %) */
+.pbar .pbf>i.op{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),color-mix(in srgb,var(--call,#F9CE34) var(--pbo,30%),#EDEBE8))}.pbar .pbf>i.sh{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),color-mix(in srgb,var(--shl,#F5B800) var(--pbo,30%),#EDEBE8))}
 .pbar .pbv{display:none}
 /* zone tactile de la jauge */
 .pbar .pbhit{position:absolute;top:-6px;height:22px;pointer-events:auto;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -3106,7 +3107,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.201';
+const APP_VERSION='v261123.202';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
