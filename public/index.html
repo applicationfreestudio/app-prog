@@ -1019,7 +1019,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;opacity:1!important;margin-top:env(safe-area-inset-top,0px)!important;top:calc(var(--top,0px) + env(safe-area-inset-top,0px))!important;padding-top:0!important;padding-bottom:0!important;height:var(--hh)!important;box-sizing:border-box;align-items:center!important}
 /* zone de sécurité du haut (plein écran) : transparente, la page défile derrière ; le filigrane y reste visible par-dessus */
 .pub>.wm{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important}
-.pub>.wm-safe{position:fixed!important;z-index:30!important;pointer-events:none;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important;right:calc(max(0px,(100vw - 680px) / 2) - 56px)!important;width:200px;height:200px;object-fit:contain;clip-path:inset(0 0 calc(100% - 40px) 0)!important}
+.pub>.wm-safe{position:fixed!important;z-index:8!important;pointer-events:none;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important;right:calc(max(0px,(100vw - 680px) / 2) - 56px)!important;width:200px;height:200px;object-fit:contain;clip-path:inset(0 0 calc(100% - 40px) 0)!important}
 /* logo et calendrier du bandeau : même taille (marges égales en haut et en bas), même arrondi */
 .pub-head .logo{width:72px!important;height:72px!important;border-radius:12px!important}
 .pub-head .dvdate>.cal-ico{border-radius:12.7px!important}
@@ -1027,11 +1027,13 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 :root:fullscreen,:root:-webkit-full-screen{background:#F5F4F1}
 ::backdrop{background:#F5F4F1}
 /* jauge de progression : sous le bandeau, sans décaler les cartes */
-.pbar{position:fixed;z-index:12;left:calc(max(0px,(100vw - 680px) / 2) + 26px);right:calc(max(0px,(100vw - 680px) / 2) + 26px);top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) + 5px);height:3px;pointer-events:none}
-.pbar .pbt{position:absolute;inset:0;display:flex;border-radius:2px;overflow:hidden}
+.pbar{position:fixed;z-index:12;left:0;right:0;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));height:5px;pointer-events:none}
+.pbar .pbt{position:absolute;top:0;bottom:0;display:flex}
 .pbar .pbt i{flex:1 1 0;min-width:0;height:100%}
-.pbar .pbt i.op{background:var(--caln,#700000)}.pbar .pbt i.sh{background:var(--shn,#065e00)}
-.pbar .pbf{position:absolute;top:-2px;bottom:-2px;border:2px solid #2a2730;border-radius:3px;min-width:7px;box-sizing:border-box;transition:left .25s,width .25s}
+.pbar .pbt i.op,.pbar .pbl.op,.pbar .pbr.op{background:var(--call,#F9CE34)}.pbar .pbt i.sh,.pbar .pbl.sh,.pbar .pbr.sh{background:var(--shl,#F5B800)}
+.pbar .pbl,.pbar .pbr{position:absolute;top:0;bottom:0}.pbar .pbl{left:0}.pbar .pbr{right:0}
+/* sélecteur de la période affichée : couleur du thème à 50 %, débordant d'1 px dessus et dessous */
+.pbar .pbf{position:absolute;top:-1px;bottom:-1px;border-radius:3.5px;background:color-mix(in srgb,var(--pbc,#700000) 50%,transparent);min-width:5px;transition:left .25s,width .25s}
 /* A : segments par jour, séparés d'un fin espace */
 .pb-a .pbt{gap:1px}
 /* B : jauge continue, jours déjà passés pleins, jours à venir atténués */
@@ -2219,7 +2221,7 @@ function themeVars(t,p){p=p||'cal';if(!t||!t.color)return '';const c=hexHsl(t.co
   const g=`linear-gradient(45deg,${hsl(H-28,S,L+10)} 0%,${hsl(H,S,L)} 50%,${hsl(H+32,S,L-8)} 100%)`,f=hsl(H,S,L);
   const bg=st[0]==='g'?g:f, gm=st[0]==='g'?`linear-gradient(90deg,${hsl(H-28,S,L+10)},${hsl(H,S,L)},${hsl(H+32,S,L-8)})`:f;
   const sh=st.endsWith('r')?'2px 2px 0 rgba(20,19,23,.16)':'none';
-  return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh};--${p}n:${f}`}
+  return `--${p}g:${bg};--${p}m:${gm};--${p}s:${sh};--${p}n:${f};--${p}l:${hsl(H-28,S,L+10)}`}
 /* Monte la page publique dans un conteneur. data = {days:{date:day}, settings}
    Les journées s'empilent ; le cartouche calendrier de chaque jour reste collé sous le bandeau puis glisse dessous. */
 /* ---------- Cartes types liées : la carte d'une journée affiche la carte type, sauf ce qui est propre au jour ---------- */
@@ -2796,15 +2798,18 @@ function mountPublic(root,data,opts){
     const t=iso(new Date()),keys=Object.keys(st.days).filter(k=>k>=t&&(st.days[k].slots||[]).some(x=>(x.acts||[]).some(a=>a.timing&&a.timing.end))).sort();if(!keys.length){if(bar)bar.remove();return}
     const last=keys[keys.length-1],days=[];for(let k=t;k<=last;k=addDays(k,1))days.push(k);const N=days.length;
     if(!bar||bar.dataset.v!==v||bar.dataset.n!==String(N)){if(bar)bar.remove();bar=document.createElement('div');bar.className='pbar pb-'+v;bar.dataset.v=v;bar.dataset.n=N;
-      bar.innerHTML='<div class="pbt">'+days.map(k=>{const d=st.days[k];const sh=!d||d.closed;return `<i class="${sh?'sh':'op'}"></i>`}).join('')+'</div><b class="pbf"></b>';pb.appendChild(bar)}
+      const cl=k=>{const d=st.days[k];return !d||d.closed?'sh':'op'};bar.innerHTML=`<i class="pbl ${cl(days[0])}"></i><div class="pbt">`+days.map(k=>`<i class="${cl(k)}"></i>`).join('')+`</div><i class="pbr ${cl(last)}"></i><b class="pbf"></b>`;pb.appendChild(bar)}
+    // aujourd'hui aligné sur la gauche du logo, la dernière journée sur la droite des cartes
+    const W=document.documentElement.clientWidth,lg=[...root.querySelectorAll('.pub-head .logo,.pub-head .dvdate')].map(e=>e.getBoundingClientRect()).find(r=>r.width>0),cd=[...root.querySelectorAll('.days .card')].map(e=>e.getBoundingClientRect()).find(r=>r.width>0);
+    const x0=lg?Math.round(lg.left):26,x1=cd?Math.round(cd.right):W-26,sp=Math.max(1,x1-x0);{const t2=bar.querySelector('.pbt');t2.style.left=x0+'px';t2.style.width=sp+'px';bar.querySelector('.pbl').style.width=x0+'px';bar.querySelector('.pbr').style.width=Math.max(0,W-x1)+'px'}
     // période affichée : la journée en vue jour par jour, sinon les journées visibles à l'écran
     let a=null,b=null;if(dv){const sec=root.querySelector('#j-'+dv);a=dv;const ci=sec&&sec.querySelector('.cal-ico.multi');b=dv;if(ci){const nx=dvSecs()[dvSecs().indexOf(sec)+1];b=nx?addDays(nx.id.slice(2),-1):dv}}
     else{const hd=root.querySelector('.pub-head'),top=hd?hd.getBoundingClientRect().bottom:0,vb=innerHeight;const vis=[...root.querySelectorAll('.days>section.day[id^="j-"]')].filter(x=>{const r=x.getBoundingClientRect();return r.bottom>top+20&&r.top<vb-20});
       if(vis.length){const fx=vis[0];a=fx.id.slice(2);b=a;if(fx.querySelector('.cal-ico.multi')){const all=[...root.querySelectorAll('.days>section.day[id^="j-"]')],nx=all[all.indexOf(fx)+1];b=nx?addDays(nx.id.slice(2),-1):a}}}
     const f=bar.querySelector('.pbf');if(!a){f.style.display='none';return}f.style.display='';if(a<t)a=t;if(b<a)b=a;
-    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));if(days.indexOf(a)<0){f.style.display='none';return}f.style.left=`calc(${(i0/N*100).toFixed(3)}% - 2px)`;f.style.width=`calc(${((i1-i0+1)/N*100).toFixed(3)}% + 4px)`;
-    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('past',n<i0))}
-  {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true})}
+    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));if(days.indexOf(a)<0){f.style.display='none';return}f.style.left=(x0+i0/N*sp).toFixed(2)+'px';f.style.width=((i1-i0+1)/N*sp).toFixed(2)+'px';
+    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('past',n<i0));{const dd=st.days[a];f.style.setProperty('--pbc',(!dd||dd.closed)?'var(--shn,#065e00)':'var(--caln,#700000)')}}
+  {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true});window.addEventListener('resize',()=>{if(root.isConnected)pbUpdate()})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});onbMaybe();startDay();
   return {update};
@@ -3058,7 +3063,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.191';
+const APP_VERSION='v261123.192';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
