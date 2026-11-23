@@ -932,7 +932,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub.dvcompact:not(.dvshut) .pub-head .logo{display:none}
 .dvdate{position:relative;flex:0 0 auto;overflow:visible}
 .dvdate>.cal-ico{position:absolute;left:0;top:0;box-shadow:none}
-.pub.dvcompact{--dvg:28px}
+.pub.dvcompact{--dvg:26px}
 .pub.dvcompact .pub-head{padding-right:var(--dvg)!important}
 .pub.dvcompact .days>section.dvon{margin-left:var(--dvl,0px)!important;margin-right:var(--dvr,0px)!important}
 .pub.dvcompact .days>.pinned{margin-left:calc(var(--dvl,0px) - var(--dvpl,0px))!important;margin-right:calc(var(--dvr,0px) - var(--dvpr,0px))!important}
@@ -978,19 +978,25 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub .days>.pinned.pinfix{padding-bottom:8px!important}
 .days>.pinned.pinfix+.pinned:not(.pinfix){margin-top:10px!important}
 /* vue continue : mêmes marges que la vue jour par jour (28 px), calendrier des journées réduit d'autant */
-.pub:not(.ishome) .days{padding-left:28px!important;padding-right:28px!important}
-.pub:not(.ishome) .days .dgrid{grid-template-columns:66px minmax(0,1fr)!important}
-.pub:not(.ishome) .days .dcol .cal-ico{width:68px!important;margin-left:-4px}
+.pub:not(.ishome) .days{padding-left:26px!important;padding-right:26px!important}
+.pub:not(.ishome) .days .dgrid{grid-template-columns:72px minmax(0,1fr)!important;column-gap:12px!important}
+.pub:not(.ishome) .days .dcol .cal-ico{width:72px!important;margin-left:0}
 .pub:not(.ishome) .days .dcol .cal-ico .m{font-size:10.5px;padding:3px 0}
 .pub:not(.ishome) .days .dcol .cal-ico .d{font-size:26px;padding-top:5px}
 .pub:not(.ishome) .days .dcol .cal-ico .w{font-size:13.5px;font-weight:600;padding-bottom:5px}
 .pub:not(.ishome) .days .dcol .cal-ico .h{font-size:12px;padding:5px 1px 6px}
 .pub:not(.ishome) .days .dcol .cal-ico .h small{font-size:10px}
 .pub:not(.ishome) .days .dcol .cal-ico .rng2{font-size:12px}
-/* horaires « 15h–18h » sur une ligne, sans « de / à » */
-.pub:not(.ishome) .days .dcol .cal-ico .h small{display:none}
-.pub:not(.ishome) .days .dcol .cal-ico .h .rg{column-gap:0;font-size:13px;font-weight:700}
-.pub:not(.ishome) .days .dcol .cal-ico .h .rg>span+span::before{content:"–"}
+/* horaires « 15h à 18h » sur une ligne (minutes plus petites) ; période « dim. 22 / au lun. 23 » sans « du » */
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg{flex-wrap:nowrap!important;column-gap:3px!important;font-size:13px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg>span:first-child>small{display:none}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg small{font-size:10.5px;font-weight:500;letter-spacing:0}
+.pub:not(.ishome) .days .dcol .cal-ico .mn{font-size:.72em;letter-spacing:0}
+.pub:not(.ishome) .days .dcol .cal-ico .rng2>span:first-child>small{display:none}
+.pub:not(.ishome) .days .dcol .cal-ico .rng2{padding:6px 1px 7px!important;font-size:13px!important}
+
+
+
 .pub:not(.ishome) .days .dcol .cal-ico .w{font-size:14px}
 /* menu d'accueil : boutons plus réactifs, pas de sélection de texte */
 .ht{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -2138,7 +2144,7 @@ function dayHTML(day,settings,opts){
     <div class="h">${day.closed?'<span class="off">Fermé</span>':(()=>{
       const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);
       const lab=hasActs&&(day.slots||[]).some(x=>(x.start||x.end)&&x.label&&String(x.label).trim());
-      const rgH=(a,b)=>a&&b?`<span class="rg"><span><small>de</small> ${fmtTH(a)}</span><span><small>à</small> ${fmtTH(b)}</span></span>`:a?`<span class="rg"><span><small>à partir de</small> ${fmtTH(a)}</span></span>`:b?`<span class="rg"><span><small>jusqu'à</small> ${fmtTH(b)}</span></span>`:'';
+      const fmM=t=>fmtTH(t).replace(/h(\d\d)$/,'h<span class="mn">$1</span>');const rgH=(a,b)=>a&&b?`<span class="rg"><span><small>de</small> ${fmM(a)}</span><span><small>à</small> ${fmM(b)}</span></span>`:a?`<span class="rg"><span><small>à partir de</small> ${fmM(a)}</span></span>`:b?`<span class="rg"><span><small>jusqu'à</small> ${fmM(b)}</span></span>`:'';
       if(lab)return slotRanges(day).map(([a,b,s])=>rgH(a,b)+(s.label&&String(s.label).trim()?`<span class="slbl">${esc(lc1(s.label))}</span>`:'')).join('<i></i>');
       return dayRanges(day).map(([a,b])=>rgH(a,b)).join('<i></i>')||'';
     })()}</div></div>${(()=>{if(day.closed)return '';const hasActs=(day.slots||[]).some(x=>(x.acts||[]).length);if(!hasActs)return '';
@@ -2654,7 +2660,7 @@ function mountPublic(root,data,opts){
     let t=hd?hd.getBoundingClientRect().bottom:0;[pf,pn].forEach(x=>{if(x&&x.getClientRects().length)t=Math.max(t,x.getBoundingClientRect().bottom)});
     const vb=window.visualViewport?visualViewport.height:innerHeight,b=Math.min(vb,ft?ft.getBoundingClientRect().top:vb);nav.style.top=Math.round((t+Math.max(b,t+60))/2)+'px'}
   window.addEventListener('scroll',()=>{if(dv)dvNavPos()},{capture:true,passive:true});window.addEventListener('resize',()=>{if(dv)dvNavPos()});
-  const DVG=28;
+  const DVG=26;
   function dvDeco(sec){const pb=root.querySelector('.pub');if(!pb)return;const I=(st.settings||{}).info||{},cp=!!(sec&&I.dvCompact!==false);
     let bar=root.querySelector('.days>.dvbar');
     if(false){if(!bar){bar=document.createElement('div');bar.className='dvbar';bar.innerHTML=`<i class="al">${ARW(-1)}</i><span>affichage par jour</span><i class="ar">${ARW(1)}</i>`}
@@ -3003,7 +3009,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.185';
+const APP_VERSION='v261123.186';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
