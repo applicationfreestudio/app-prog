@@ -2809,7 +2809,7 @@ function mountPublic(root,data,opts){
       bar.innerHTML='<div class="pbt">'+days.map(k=>`<i class="${cl(k)}"></i>`).join('')+'</div>'+vac.map(q=>`<b class="pbv" data-i0="${q.i0}" data-i1="${q.i1}"><span>${esc(q.n)}</span></b>`).join('');pb.appendChild(bar)}
     // limites de la jauge : marges gauche et droite des cartes
     const W=document.documentElement.clientWidth,cd=[...root.querySelectorAll('.days .card')].map(e=>e.getBoundingClientRect()).find(r=>r.width>0);
-    const x0=cd?Math.round(cd.left):26,x1=cd?Math.round(cd.right):W-26,sp=Math.max(1,x1-x0);{const t2=bar.querySelector('.pbt');t2.style.left=x0+'px';t2.style.width=sp+'px'}
+    const x0=(cd?Math.round(cd.left):26)+4,x1=(cd?Math.round(cd.right):W-26)-4,sp=Math.max(1,x1-x0);{const t2=bar.querySelector('.pbt');t2.style.left=x0+'px';t2.style.width=sp+'px'}
     bar.querySelectorAll('.pbv').forEach(e=>{const i0=+e.dataset.i0,i1=+e.dataset.i1;e.style.left=(x0+i0/N*sp).toFixed(2)+'px';e.style.width=((i1-i0+1)/N*sp).toFixed(2)+'px'});
     // période affichée : la journée en vue jour par jour, sinon les journées visibles à l'écran
     let a=null,b=null;if(dv){const sec=root.querySelector('#j-'+dv);a=dv;const ci=sec&&sec.querySelector('.cal-ico.multi');b=dv;if(ci){const nx=dvSecs()[dvSecs().indexOf(sec)+1];b=nx?addDays(nx.id.slice(2),-1):dv}}
@@ -3074,7 +3074,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.196';
+const APP_VERSION='v261123.197';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
