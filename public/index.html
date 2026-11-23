@@ -1029,10 +1029,11 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 /* jauge de progression : sous le bandeau, sans décaler les cartes */
 .pbar{position:fixed;z-index:12;left:0;right:0;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) - 2px);height:8px;pointer-events:none}
 /* 8 px : 2 px sur le bandeau, 6 px dessous ; extrémités arrondies */
-.pbar .pbt{position:absolute;top:0;bottom:0;display:flex;border-radius:4px;overflow:hidden}
+.pbar .pbt{position:absolute;top:0;bottom:0;display:flex;border-radius:4px;overflow:hidden;background:#EDEBE8}
+/* sous la jauge : le même fond que la bande des cartes à la une (sinon celui du bandeau) */
+.pbar.pbpin .pbt{background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
 .pbar .pbt i{flex:1 1 0;min-width:0;height:100%;position:relative}
 /* couleur la plus claire du dégradé du thème, en transparence réglable (--pbo) ; période affichée renforcée et opaque (--pbs) */
-.pbar .pbt i{transition:background-color .25s}
 .pbar .pbt i.op{background:color-mix(in srgb,var(--call,#F9CE34) var(--pbo,30%),transparent)}.pbar .pbt i.sh{background:color-mix(in srgb,var(--shl,#F5B800) var(--pbo,30%),transparent)}
 .pbar .pbt i.op.on{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbt i.sh.on{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
 .pbar .pbf{position:absolute;top:0;bottom:0;display:flex;border-radius:3px;overflow:hidden;z-index:0;}
@@ -2816,6 +2817,7 @@ function mountPublic(root,data,opts){
     const x0=(cd?Math.round(cd.left):26)+4,x1=(cd?Math.round(cd.right):W-26)-4,sp=Math.max(1,x1-x0);{const t2=bar.querySelector('.pbt');t2.style.left=x0+'px';t2.style.width=sp+'px'}
     {const I=(st.settings||{}).info||{},cv=n=>Math.max(0,Math.min(100,+n));bar.style.setProperty('--pbo',cv(I.pbCol==null?30:I.pbCol)+'%');bar.style.setProperty('--pbs',cv(I.pbSel==null?40:I.pbSel)+'%')}
     // vacances : les journées fermées qui suivent directement les vacances en font partie
+    {const pf=root.querySelector('.pinned.pinfix');bar.classList.toggle('pbpin',!!(pf&&pf.offsetHeight))}
     pbG={bar,days,N,x0,sp,t,cl,vac:[...bar.querySelectorAll('.pbv')].map(e=>{let v1=+e.dataset.i1;while(v1+1<N&&cl(days[v1+1])==='sh')v1++;return [+e.dataset.i0,v1]})};
     // zone tactile : on se déplace sur la jauge de période d'ouverture en période d'ouverture
     let h=bar.querySelector('.pbhit');if(!h){h=document.createElement('b');h.className='pbhit';bar.appendChild(h);pbTouch(h)}
@@ -2844,10 +2846,12 @@ function mountPublic(root,data,opts){
       // périodes d'ouverture seulement
       const op=dvSecs().filter(x=>{const d=st.days[x.id.slice(2)];return d&&!d.closed}).map(x=>({x,s:pbSpan(x.id.slice(2),true)})).filter(o=>o.s);if(!op.length)return;
       let best=op[0],bd=1e9;op.forEach(o=>{const d=n<o.s[0]?o.s[0]-n:n>o.s[1]?n-o.s[1]:0;if(d<bd){bd=d;best=o}});
-      if(best.x.id!=='j-'+dv){dvHintHide();if(pbG)pbPlace(pbSpan(best.x.id.slice(2)),null,'none');dvArrive(best.x)}};
+      if(best.x.id!=='j-'+dv){dvHintHide();if(pbG)pbPlace(pbSpan(best.x.id.slice(2)),null,'none');dvPeekClear();dv=best.x.id.slice(2);pbFor=null;dvApply();fitStay();dvScTop(best.x)}};
     h.addEventListener('pointerdown',e=>{if(!dv)return;e.stopPropagation();e.preventDefault();pid=e.pointerId;try{h.setPointerCapture(pid)}catch(_){}jump(e)});
     h.addEventListener('pointermove',e=>{if(e.pointerId!==pid)return;e.stopPropagation();jump(e)});
-    const up=e=>{if(e.pointerId!==pid)return;pid=null;try{h.releasePointerCapture(e.pointerId)}catch(_){}};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
+    const up=e=>{if(e.pointerId!==pid)return;pid=null;try{h.releasePointerCapture(e.pointerId)}catch(_){}
+      // déploiement automatique seulement une fois le doigt relâché sur une période
+      const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvOpen(sec)};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
   {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true});window.addEventListener('resize',()=>{if(root.isConnected)pbUpdate()})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});onbMaybe();startDay();
@@ -3102,7 +3106,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.200';
+const APP_VERSION='v261123.201';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
