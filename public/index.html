@@ -946,13 +946,13 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 /* chevron de retour : même place sur toutes les pages hors menu (logo décalé), animation logo à droite / à gauche */
 .pub:not(.ishome) .pub-head{padding-left:28px}
 .pub:not(.ishome) .pub-head .brand{position:static}
-.pub:not(.ishome) .pub-head .back-btn{position:absolute!important;left:2px;top:calc(50% + env(safe-area-inset-top)/2);width:24px!important;height:40px;margin:0!important;transform:translateY(-50%);overflow:visible!important}
+.pub:not(.ishome) .pub-head .back-btn{position:relative!important;left:auto;top:auto;flex:0 0 auto;width:24px!important;height:40px;margin:0 -10px 0 -26px!important;transform:none;overflow:visible!important}
 .pub:not(.ishome) .pub-head .back-btn.anim{animation:bkin .55s cubic-bezier(.45,0,.2,1) both}
 .pub:not(.ishome) .pub-head .back-btn.out{animation:bkout .4s cubic-bezier(.45,0,.2,1) both}
 .pub-head .brand:has(>.back-btn.anim)>:not(.back-btn){animation:brin .55s cubic-bezier(.45,0,.2,1) both;animation-delay:inherit}
 .pub-head .brand:has(>.back-btn.out)>:not(.back-btn){animation:brout .4s cubic-bezier(.45,0,.2,1) both}
-@keyframes bkin{from{opacity:0;transform:translate(-8px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
-@keyframes bkout{from{opacity:1;transform:translate(0,-50%)}to{opacity:0;transform:translate(-8px,-50%)}}
+@keyframes bkin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes bkout{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-8px)}}
 @keyframes brin{from{transform:translateX(-10px)}to{transform:none}}
 @keyframes brout{from{transform:none}to{transform:translateX(-10px)}}
 /* espacements : cartes à la une -> jours passés, mention -> premier jour, vue jour par jour */
@@ -1015,6 +1015,9 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub-head .dvdate .dvhh{flex:1;padding:3px 0 4px!important;justify-content:center}
 .pub-head .dvdate .dvhh b{font-size:21px!important;line-height:1!important}
 .pub-head .dvdate .dvhh small{font-size:16px!important;line-height:1!important;margin-top:3px!important}
+/* bandeau de titre opaque (seul le logo en filigrane apparaît) ; il couvre aussi la zone de sécurité du haut en plein écran, filigrane compris */
+.pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;margin-top:0!important;top:var(--top,0px)!important;padding-top:env(safe-area-inset-top,0px)!important;height:calc(var(--hh) + env(safe-area-inset-top,0px))!important;box-sizing:border-box}
+.pub>.wm{top:calc(var(--top,0px) - 40px)!important;clip-path:polygon(144px 0,100% 0,100% 100%,0 100%,0 calc(40px + var(--hh) + env(safe-area-inset-top,0px)),144px calc(40px + var(--hh) + env(safe-area-inset-top,0px)))!important}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
 .back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
@@ -3016,7 +3019,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.187';
+const APP_VERSION='v261123.188';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
