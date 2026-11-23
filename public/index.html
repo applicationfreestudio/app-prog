@@ -958,7 +958,8 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 /* espacements : cartes à la une -> jours passés, mention -> premier jour, vue jour par jour */
 .days>.pinned:not(.pinfix)+.past-btn{margin-top:-16px!important}
 .act-foot{margin-bottom:-24px!important}
-.pub.dayview .days>section.dvon{margin-top:-14px!important}
+.pub.dayview .days>section.dvon{margin-top:-15px!important}
+.pub.dayview .days>.pinned .cards{gap:11px!important}
 /* bande des cartes figées : bord bas en fondu */
 .pinned.pinfix::after{content:'';position:absolute;left:0;right:0;top:100%;height:8px;pointer-events:none;background:linear-gradient(rgba(245,244,241,.72),rgba(245,244,241,0));-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px);-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
 /* vue jour par jour : sous-titre plus lisible ; jour fermé : grand calendrier centré */
@@ -3117,7 +3118,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.204';
+const APP_VERSION='v261123.29';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
