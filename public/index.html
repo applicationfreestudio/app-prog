@@ -970,8 +970,6 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub-head .dvdate .dvhh small{font-size:18px!important;font-weight:600!important;color:#3a3740!important;margin-top:2px}
 /* sous-titre du bandeau plus lisible sur toutes les pages */
 .pub-head .brand>div:not(.dvdate) small{font-size:15px!important;font-weight:600!important;color:#4a4650!important}
-/* grand calendrier « Fermé » : bandeau du mois plus fin */
-.pub.dvcompact .days>section.dvon.dvclosed .dcol .cal-ico .m{font-size:9px!important;padding:2px 0 1px!important;letter-spacing:.1em}
 /* calendrier du bandeau : jour de la semaine plus grand */
 .pub-head .dvdate .cal-ico .w{font-size:19px!important;font-weight:600!important;line-height:1.1!important}
 /* bande figée : transition au milieu de l'espace entre la dernière carte figée et la carte à la une suivante */
@@ -988,9 +986,9 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub:not(.ishome) .days .dcol .cal-ico .h small{font-size:10px}
 .pub:not(.ishome) .days .dcol .cal-ico .rng2{font-size:12px}
 /* horaires « 15h à 18h » sur une ligne (minutes plus petites) ; période « dim. 22 / au lun. 23 » sans « du » */
-.pub:not(.ishome) .days .dcol .cal-ico .h .rg{flex-wrap:nowrap!important;column-gap:3px!important;font-size:13px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg{flex-wrap:nowrap!important;column-gap:3px!important;font-size:12px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
 .pub:not(.ishome) .days .dcol .cal-ico .h .rg>span:first-child>small{display:none}
-.pub:not(.ishome) .days .dcol .cal-ico .h .rg small{font-size:10.5px;font-weight:500;letter-spacing:0}
+.pub:not(.ishome) .days .dcol .cal-ico .h .rg small{font-size:11px;font-weight:600;letter-spacing:0;color:#5a5650}
 .pub:not(.ishome) .days .dcol .cal-ico .mn{font-size:.72em;letter-spacing:0}
 .pub:not(.ishome) .days .dcol .cal-ico .rng2>span:first-child>small{display:none}
 .pub:not(.ishome) .days .dcol .cal-ico .rng2{padding:6px 1px 7px!important;font-size:13px!important}
@@ -1008,6 +1006,15 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub.dvcompact .days>section.dvpeek .dcol{display:none}
 .pub.dvcompact .days>section.dvpeek .dgrid{grid-template-columns:minmax(0,1fr)!important;padding:0}
 .pub.dvcompact .days>section.dvpeek.dvclosedp .dcol{display:flex!important;justify-content:center;padding:44px 0 60px}
+.pub:not(.ishome) .days .dcol .cal-ico .rng2 small{font-size:12px!important;font-weight:600!important;color:#5a5650}
+/* calendrier du bandeau (vue jour par jour) : boîte fixe, même échelle pour tous les jours */
+.pub-head .dvdate>.cal-ico{width:76px!important;height:76px!important;box-sizing:border-box;display:flex;flex-direction:column}
+.pub-head .dvdate>.cal-ico .m{padding:3px 0!important;flex:0 0 auto}
+.pub-head .dvdate>.cal-ico .d{font-size:25px!important;line-height:1!important;padding:5px 0 0!important}
+.pub-head .dvdate>.cal-ico .w{font-size:15px!important;line-height:1!important;padding:2px 0 0!important}
+.pub-head .dvdate .dvhh{flex:1;padding:3px 0 4px!important;justify-content:center}
+.pub-head .dvdate .dvhh b{font-size:21px!important;line-height:1!important}
+.pub-head .dvdate .dvhh small{font-size:16px!important;line-height:1!important;margin-top:3px!important}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
 .back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
@@ -2677,7 +2684,7 @@ function mountPublic(root,data,opts){
         let fresh=false;if(!dd){fresh=true;dd=document.createElement('div');const lg=br.querySelector('.logo');br.insertBefore(dd,lg?lg.nextSibling:br.firstChild)}
         // même calendrier que dans la journée ; pour plusieurs jours regroupés : horaires dans le calendrier, période en sous-titre
         dd.className='dvdate';dd.innerHTML='';let rng='';if(ci){const cl=ci.cloneNode(true);const r2=cl.querySelector('.rng2');if(multi&&r2){rng=[...r2.querySelectorAll('span')].map(x=>x.textContent.replace(/\s+/g,' ').trim()).join(' ');const rr=dayRanges(d)[0]||[];cl.querySelectorAll('.h').forEach(x=>x.remove());r2.outerHTML=`<div class="dvhh">${rr[0]?`<b>${fmtTH(rr[0])}</b>`:''}${rr[1]?`<small>${rr[0]?'à ':'jusqu\'à '}${fmtTH(rr[1])}</small>`:''}</div>`}else cl.querySelectorAll('.h').forEach(x=>x.remove());
-          cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);const h=cl.offsetHeight||66,w=cl.offsetWidth||66,k=Math.min(66/h,66/w);cl.style.transform=`translateX(${((66-w*k)/2).toFixed(1)}px) scale(${k.toFixed(3)})`;dd.style.width='66px';dd.style.height='66px'}
+          cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);cl.style.transform='scale('+(66/76)+')';dd.style.width='66px';dd.style.height='66px'}
         if(sm2){if(sm2.dataset.orig==null)sm2.dataset.orig=sm2.textContent;sm2.textContent=multi&&rng?rng:hoursText(d)||''}
         if(fresh)dd.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out'})}
       if(!nav){nav=document.createElement('div');nav.className='dvnav';nav.innerHTML=`<button type="button" class="l" data-dvgo="-1" aria-label="Jour précédent">${CHEV(-1)}</button><button type="button" class="r" data-dvgo="1" aria-label="Jour suivant">${CHEV(1)}</button>`;pb.appendChild(nav)}
@@ -3009,7 +3016,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.186';
+const APP_VERSION='v261123.187';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
