@@ -1035,6 +1035,9 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pbar .pbt i{transition:background-color .25s}
 .pbar .pbt i.op{background:color-mix(in srgb,var(--call,#F9CE34) var(--pbo,30%),transparent)}.pbar .pbt i.sh{background:color-mix(in srgb,var(--shl,#F5B800) var(--pbo,30%),transparent)}
 .pbar .pbt i.op.on{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbt i.sh.on{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
+.pbar .pbf{position:absolute;top:0;bottom:0;display:flex;border-radius:3px;overflow:hidden;z-index:0}
+.pbar .pbf>i{flex:1 1 0;min-width:0;height:100%}
+.pbar .pbf>i.op{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),var(--call,#F9CE34))}.pbar .pbf>i.sh{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),var(--shl,#F5B800))}
 /* nom des vacances écrit en blanc dans la bande */
 .pbar .pbv{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;color:#fff;font-size:7px;line-height:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 2px rgba(20,19,23,.45);z-index:1}
 /* A : segments par jour, séparés d'un fin espace */
@@ -2802,9 +2805,9 @@ function mountPublic(root,data,opts){
     const t=iso(new Date()),keys=Object.keys(st.days).filter(k=>k>=t&&st.days[k]).sort();if(!keys.length){if(bar)bar.remove();return}
     // vacances programmées (au moins une journée publiée) : la jauge va jusqu'à leur dernier jour
     const vq=((st.settings||{}).periods||[]).filter(q=>q.type==='vacances'&&q.start&&q.end&&q.end>=t&&keys.some(k=>k>=q.start&&k<=q.end));
+    const cl=k=>{const d=st.days[k];return !d||d.closed?'sh':'op'};
     const last=vq.reduce((m,q)=>q.end>m?q.end:m,keys[keys.length-1]),days=[];for(let k=t;k<=last;k=addDays(k,1))days.push(k);const N=days.length;
     if(!bar||bar.dataset.v!==v||bar.dataset.n!==String(N)+vq.length){if(bar)bar.remove();bar=document.createElement('div');bar.className='pbar pb-'+v;bar.dataset.v=v;bar.dataset.n=String(N)+vq.length;
-      const cl=k=>{const d=st.days[k];return !d||d.closed?'sh':'op'};
       const vac=vq.map(q=>({n:q.name||'Vacances',i0:days.indexOf(q.start<t?t:q.start),i1:days.indexOf(q.end)})).filter(q=>q.i0>=0&&q.i1>=q.i0);
       bar.innerHTML='<div class="pbt">'+days.map(k=>`<i class="${cl(k)}"></i>`).join('')+'</div>'+vac.map(q=>`<b class="pbv" data-i0="${q.i0}" data-i1="${q.i1}"><span>${esc(q.n)}</span></b>`).join('');pb.appendChild(bar)}
     // limites de la jauge : marges gauche et droite des cartes
@@ -2819,7 +2822,12 @@ function mountPublic(root,data,opts){
     let i0=-1,i1=-1;if(a){if(a<t)a=t;if(b<a)b=a;i0=days.indexOf(a);i1=i0<0?-1:Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b))}
     // sur une journée de vacances : toute la période des vacances est mise en évidence
     if(i0>=0)bar.querySelectorAll('.pbv').forEach(e=>{const v0=+e.dataset.i0,v1=+e.dataset.i1;if(i0<=v1&&i1>=v0){i0=Math.min(i0,v0);i1=Math.max(i1,v1)}});
-    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('on',n>=i0&&n<=i1&&i0>=0))}
+    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('on',n>=i0&&n<=i1&&i0>=0));
+    // sélecteur : la période mise en évidence, débordant d'1 px de chaque côté, bords arrondis
+    let f=bar.querySelector('.pbf');if(!f){f=document.createElement('b');f.className='pbf';bar.appendChild(f)}
+    if(i0<0){f.style.display='none';return}f.style.display='';const key=i0+'-'+i1;
+    if(f.dataset.k!==key){f.dataset.k=key;f.innerHTML=days.slice(i0,i1+1).map(k=>`<i class="${cl(k)} on"></i>`).join('')}
+    f.style.left=(x0+i0/N*sp-1).toFixed(2)+'px';f.style.width=((i1-i0+1)/N*sp+2).toFixed(2)+'px'}
   {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true});window.addEventListener('resize',()=>{if(root.isConnected)pbUpdate()})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
   update(data||{});onbMaybe();startDay();
@@ -3074,7 +3082,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.197';
+const APP_VERSION='v261123.198';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
