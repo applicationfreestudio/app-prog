@@ -1284,6 +1284,16 @@ textarea.in{min-height:64px;resize:vertical}
 .setx .fld>textarea,.setx textarea{width:100%;min-height:64px}
 .setx input[type=range]{width:100%}
 .setx button.btn:not(.thopt):not(.kitopt):not(.cmode):not(.fp),.setx button.ico{all:revert;font:inherit;font-size:14px;cursor:pointer}
+/* style « AppHike » : icônes monocouleurs, tout aligné à gauche sans retrait ; rubriques à chevron, sous-rubriques à « + » */
+.setx .para>summary{padding:18px 0}
+.setx .para>summary .pi{width:22px;height:22px;flex:0 0 auto;color:var(--ink,#141317)}
+.setx .para>summary h2{font-size:18px}
+.setx .pbody{padding:0 0 18px!important}
+.setx .fold>summary,.setx .tsub>summary{padding:12px 0!important;justify-content:flex-start;gap:8px}
+.setx .fold>summary::after,.setx .tsub>summary::after{content:'+'!important;width:auto!important;height:auto!important;border:0!important;transform:none!important;margin:0 0 0 auto!important;font-size:21px;font-weight:300;line-height:1;color:#8a8580;background:none!important}
+.setx .fold[open]>summary::after,.setx .tsub[open]>summary::after{content:'−'!important;transform:none!important;margin:0 0 0 auto!important}
+.setx .tsub>summary{font-size:15px;font-weight:600}
+.setx .tsub .tsb,.setx .fold .fbody{padding-left:0!important;padding-right:0!important}
 .setx .sw{font-weight:400!important}
 .setx .sw input[type=checkbox]{all:revert;margin:2px 0 0;flex:0 0 auto;width:18px;height:18px}
 .setx .sw input[type=checkbox]::after{content:none}
@@ -2885,7 +2895,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.177';
+const APP_VERSION='v261123.178';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3877,7 +3887,9 @@ function renderLibrary(main){
 }
 
 /* ---------- Paramètres ---------- */
-const para=(key,icon,title,inner)=>`<details class="para" data-fold="p-${key}" ${UI.open['p-'+key]?'open':''}><summary><span class="pi">${icon}</span><h2>${title}</h2></summary><div class="pbody">${inner}</div></details>`;
+// icônes monocouleurs des rubriques de paramètres
+const PARA_ICO={cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',aff:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',theme:'<path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.6-1 1.2-1.8-.5-1 .2-2.2 1.4-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.1"/><circle cx="10.5" cy="7.2" r="1.1"/><circle cx="15" cy="7.6" r="1.1"/>',save:'<path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-6h10v6"/>',part:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14.6c2.8.2 4.8 2 4.8 4.9"/>',ext:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>'};
+const para=(key,icon,title,inner)=>`<details class="para" data-fold="p-${key}" ${UI.open['p-'+key]?'open':''}><summary><svg class="pi" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PARA_ICO[key]||''}</svg><h2>${title}</h2></summary><div class="pbody">${inner}</div></details>`;
 const fold=(key,title,inner,sub)=>`<details class="panel fold" data-fold="${key}" ${UI.open[key]?'open':''}><summary><h2>${title}</h2>${sub?`<span class="fsub">${sub}</span>`:''}</summary><div class="fbody">${inner}</div></details>`;
 function renderSettings(main){
   if(!S.ready.settings){main.innerHTML='<div class="loading">Chargement des paramètres…</div>';return}
