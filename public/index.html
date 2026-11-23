@@ -960,14 +960,23 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .act-foot{margin-bottom:-24px!important}
 .pub.dayview .days>section.dvon{margin-top:-14px!important}
 /* bande des cartes figées : bord bas en fondu */
-.pinned.pinfix::after{content:'';position:absolute;left:0;right:0;top:100%;height:18px;pointer-events:none;background:linear-gradient(rgba(245,244,241,.72),rgba(245,244,241,0));-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px);-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
+.pinned.pinfix::after{content:'';position:absolute;left:0;right:0;top:100%;height:12px;pointer-events:none;background:linear-gradient(rgba(245,244,241,.72),rgba(245,244,241,0));-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px);-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
 /* vue jour par jour : sous-titre plus lisible ; jour fermé : grand calendrier centré */
-.pub.dvcompact:not(.dvshut) .pub-head .brand>div:not(.dvdate) small{font-size:15.5px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
-.pub.dvcompact .days>section.dvon.dvclosed .dcol{display:flex!important;justify-content:center;padding:18px 0 60px}
+.pub.dvcompact:not(.dvshut) .pub-head .brand>div:not(.dvdate) small{font-size:16px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
+.pub.dvcompact .days>section.dvon.dvclosed .dcol{display:flex!important;justify-content:center;padding:44px 0 60px}
 .pub.dvcompact .days>section.dvon.dvclosed .dcol .cal-ico{transform:scale(1.7);transform-origin:top center;margin-bottom:70px}
 .dvdate .dvhh{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 9px;line-height:1.05}
-.dvdate .dvhh b{font-size:24px;font-weight:600;letter-spacing:-.02em}
-.dvdate .dvhh small{font-size:13px;color:#555;margin-top:3px}
+.pub-head .dvdate .dvhh b{font-size:22px!important;font-weight:700!important;letter-spacing:-.02em}
+.pub-head .dvdate .dvhh small{font-size:18px!important;font-weight:600!important;color:#3a3740!important;margin-top:2px}
+/* sous-titre du bandeau plus lisible sur toutes les pages */
+.pub-head .brand>div:not(.dvdate) small{font-size:15px!important;font-weight:600!important;color:#4a4650!important}
+/* grand calendrier « Fermé » : bandeau du mois plus fin */
+.pub.dvcompact .days>section.dvon.dvclosed .dcol .cal-ico .m{font-size:9px!important;padding:2px 0 1px!important;letter-spacing:.1em}
+/* calendrier du bandeau : jour de la semaine plus grand */
+.pub-head .dvdate .cal-ico .w{font-size:19px!important;font-weight:600!important;line-height:1.1!important}
+/* bande figée : transition au milieu de l'espace entre la dernière carte figée et la carte à la une suivante */
+.pub .days>.pinned.pinfix{padding-bottom:3px!important}
+.days>.pinned.pinfix+.pinned:not(.pinfix){margin-top:15px!important}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
 .back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
@@ -2607,7 +2616,7 @@ function mountPublic(root,data,opts){
   const BACK_SVG='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
   let dvHeadOn=false;
   // vue jour par jour : un seul chevron ; en entrant et en sortant, le logo glisse à gauche (chevron effacé) puis revient à droite
-  function dvHead(on){const br=root.querySelector('.pub-head .brand');if(!br)return;const hb=br.querySelector('.back-btn[data-home]');const anim=(on!==dvHeadOn);dvHeadOn=on;
+  function dvHead(on){dvHeadOn=on;return;const br=root.querySelector('.pub-head .brand');if(!br)return;const hb=br.querySelector('.back-btn[data-home]');const anim=true;
     br.querySelectorAll('.dvback').forEach(x=>x.remove());if(!hb||!anim)return;
     hb.classList.remove('anim','out');hb.removeAttribute('style');void hb.offsetWidth;hb.classList.add('out');
     setTimeout(()=>{if(!hb.isConnected)return;hb.classList.remove('out');void hb.offsetWidth;hb.style.animationDelay='0s';hb.classList.add('anim')},420)}
@@ -2630,20 +2639,21 @@ function mountPublic(root,data,opts){
       // jour fermé : logo et sous-titre habituels, le calendrier « Fermé » s'affiche en grand au centre de la journée
       sec.classList.toggle('dvclosed',shut);
       const sm2=br.querySelector(':scope>div:not(.dvdate) small');
-      if(shut){if(dd)dd.remove();dd=null;if(sm2&&sm2.dataset.orig!=null){sm2.textContent=sm2.dataset.orig;delete sm2.dataset.orig}pb.classList.add('dvshut')}
+      if(shut){if(dd){dd.remove();const lg=br.querySelector('.logo');if(lg)lg.animate([{opacity:0,filter:'blur(6px)'},{opacity:1,filter:'blur(0)'}],{duration:380,easing:'ease-out'})}dd=null;if(sm2&&sm2.dataset.orig!=null){sm2.textContent=sm2.dataset.orig;delete sm2.dataset.orig}pb.classList.add('dvshut')}
       else{pb.classList.remove('dvshut');
-        if(!dd){dd=document.createElement('div');const lg=br.querySelector('.logo');br.insertBefore(dd,lg?lg.nextSibling:br.firstChild)}
+        let fresh=false;if(!dd){fresh=true;dd=document.createElement('div');const lg=br.querySelector('.logo');br.insertBefore(dd,lg?lg.nextSibling:br.firstChild)}
         // même calendrier que dans la journée ; pour plusieurs jours regroupés : horaires dans le calendrier, période en sous-titre
         dd.className='dvdate';dd.innerHTML='';let rng='';if(ci){const cl=ci.cloneNode(true);const r2=cl.querySelector('.rng2');if(multi&&r2){rng=[...r2.querySelectorAll('span')].map(x=>x.textContent.replace(/\s+/g,' ').trim()).join(' ');const rr=dayRanges(d)[0]||[];cl.querySelectorAll('.h').forEach(x=>x.remove());r2.outerHTML=`<div class="dvhh">${rr[0]?`<b>${fmtTH(rr[0])}</b>`:''}${rr[1]?`<small>${rr[0]?'à ':'jusqu\'à '}${fmtTH(rr[1])}</small>`:''}</div>`}else cl.querySelectorAll('.h').forEach(x=>x.remove());
           cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);const h=cl.offsetHeight||66,w=cl.offsetWidth||66,k=66/h;cl.style.transform=`scale(${k.toFixed(3)})`;dd.style.width=(w*k).toFixed(1)+'px';dd.style.height='66px'}
-        if(sm2){if(sm2.dataset.orig==null)sm2.dataset.orig=sm2.textContent;sm2.textContent=multi&&rng?rng:hoursText(d)||''}}
+        if(sm2){if(sm2.dataset.orig==null)sm2.dataset.orig=sm2.textContent;sm2.textContent=multi&&rng?rng:hoursText(d)||''}
+        if(fresh)dd.animate([{opacity:0,filter:'blur(6px)'},{opacity:1,filter:'blur(0)'}],{duration:380,easing:'ease-out'})}
       if(!nav){nav=document.createElement('div');nav.className='dvnav';nav.innerHTML=`<button type="button" class="l" data-dvgo="-1" aria-label="Jour précédent">${CHEV(-1)}</button><button type="button" class="r" data-dvgo="1" aria-label="Jour suivant">${CHEV(1)}</button>`;pb.appendChild(nav)}
       const ss=dvSecs(),i=ss.indexOf(sec);nav.querySelector('.l').classList.toggle('off',!(i>0||pastHidden()));nav.querySelector('.r').classList.toggle('off',!(i<ss.length-1));
       // alignement : même marge à gauche et à droite pour la date, les cartes à la une et les cartes du jour (les chevrons tiennent dans la marge)
       const pr=pb.getBoundingClientRect(),dz=root.querySelector('.days');if(dz){const zr=dz.getBoundingClientRect(),cs=getComputedStyle(dz);pb.style.setProperty('--dvl',(DVG-(zr.left-pr.left)-parseFloat(cs.paddingLeft))+'px');pb.style.setProperty('--dvr',(DVG-(pr.right-zr.right)-parseFloat(cs.paddingRight))+'px');
         root.querySelectorAll('.days>.pinned').forEach(pz=>{const pc=pz.querySelector('.card');if(!pc)return;const a=pc.getBoundingClientRect().left-pz.getBoundingClientRect().left,b=pz.getBoundingClientRect().right-pc.getBoundingClientRect().right;pz.style.setProperty('--dvpl',a+'px');pz.style.setProperty('--dvpr',b+'px')})}
       nav.style.left=pr.left+'px';nav.style.width=pr.width+'px';nav.style.right='auto';dvNavPos()}
-    else{if(dd)dd.remove();const sm2=br&&br.querySelector(':scope>div:not(.dvdate) small');if(sm2&&sm2.dataset.orig!=null){sm2.textContent=sm2.dataset.orig;delete sm2.dataset.orig}if(nav)nav.remove();pb.classList.remove('dvshut');root.querySelectorAll('.dvclosed').forEach(x=>x.classList.remove('dvclosed'))}}
+    else{if(dd){dd.remove();const lg=br&&br.querySelector('.logo');if(lg)lg.animate([{opacity:0,filter:'blur(6px)'},{opacity:1,filter:'blur(0)'}],{duration:380,easing:'ease-out'})}const sm2=br&&br.querySelector(':scope>div:not(.dvdate) small');if(sm2&&sm2.dataset.orig!=null){sm2.textContent=sm2.dataset.orig;delete sm2.dataset.orig}if(nav)nav.remove();pb.classList.remove('dvshut');root.querySelectorAll('.dvclosed').forEach(x=>x.classList.remove('dvclosed'))}}
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);if(sec&&!dvHeadOn)dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();dvDeco(null);return}
     if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
@@ -2956,7 +2966,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.182';
+const APP_VERSION='v261123.183';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
