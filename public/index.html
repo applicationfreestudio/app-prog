@@ -1019,13 +1019,25 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;opacity:1!important;margin-top:env(safe-area-inset-top,0px)!important;top:calc(var(--top,0px) + env(safe-area-inset-top,0px))!important;padding-top:0!important;padding-bottom:0!important;height:var(--hh)!important;box-sizing:border-box;align-items:center!important}
 /* zone de sécurité du haut (plein écran) : transparente, la page défile derrière ; le filigrane y reste visible par-dessus */
 .pub>.wm{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important}
-.pub>.wm-safe{position:fixed!important;z-index:30!important;pointer-events:none;top:calc(var(--top,0px) - 40px)!important;right:calc(max(0px,(100vw - 680px) / 2) - 56px)!important;width:200px;height:200px;object-fit:contain;clip-path:inset(0 0 calc(100% - 40px - env(safe-area-inset-top,0px)) 0)!important}
+.pub>.wm-safe{position:fixed!important;z-index:30!important;pointer-events:none;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important;right:calc(max(0px,(100vw - 680px) / 2) - 56px)!important;width:200px;height:200px;object-fit:contain;clip-path:inset(0 0 calc(100% - 40px) 0)!important}
 /* logo et calendrier du bandeau : même taille (marges égales en haut et en bas), même arrondi */
 .pub-head .logo{width:72px!important;height:72px!important;border-radius:12px!important}
 .pub-head .dvdate>.cal-ico{border-radius:12.7px!important}
 /* passage en plein écran sans fond noir */
 :root:fullscreen,:root:-webkit-full-screen{background:#F5F4F1}
 ::backdrop{background:#F5F4F1}
+/* jauge de progression : sous le bandeau, sans décaler les cartes */
+.pbar{position:fixed;z-index:12;left:calc(max(0px,(100vw - 680px) / 2) + 26px);right:calc(max(0px,(100vw - 680px) / 2) + 26px);top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) + 5px);height:3px;pointer-events:none}
+.pbar .pbt{position:absolute;inset:0;display:flex;border-radius:2px;overflow:hidden}
+.pbar .pbt i{flex:1 1 0;min-width:0;height:100%}
+.pbar .pbt i.op{background:var(--caln,#700000)}.pbar .pbt i.sh{background:var(--shn,#065e00)}
+.pbar .pbf{position:absolute;top:-4px;bottom:-4px;border:2px solid #2a2730;border-radius:4px;min-width:6px;box-sizing:border-box;transition:left .25s,width .25s;margin-left:-2px;padding:0 2px;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+/* A : segments par jour, séparés d'un fin espace */
+.pb-a .pbt{gap:1px}
+/* B : jauge continue, jours déjà passés pleins, jours à venir atténués */
+.pb-b .pbt i{opacity:.28}.pb-b .pbt i.past{opacity:1}
+/* C : seuls les jours d'ouverture sont colorés, les fermetures en gris clair */
+.pb-c .pbt{gap:1px}.pb-c .pbt i.sh{background:#D9D5CE}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
 .back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
@@ -2341,7 +2353,7 @@ function mountPublic(root,data,opts){
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}${info.fixFoot?' fixfoot':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plfn:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))/100};--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
       <main class="days">${pinnedHTML(ks,true)}${pinnedHTML(ks)}${pastBtn}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
-    markWraps();wmClip();fitStay();dvApply();
+    markWraps();wmClip();fitStay();dvApply();pbUpdate();
     {const pw=root.querySelector('.pub>img.wm:not(.wm-in):not(.wm-safe)');if(pw&&!root.querySelector('.pub>.wm-safe')){const c=pw.cloneNode();c.classList.add('wm-safe');c.setAttribute('aria-hidden','true');pw.after(c)}}
     {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
       if(pf)pf.querySelectorAll('.card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;requestAnimationFrame(()=>pinScroll())}
@@ -2495,10 +2507,10 @@ function mountPublic(root,data,opts){
   root.addEventListener('click',e=>{
     if(e.target.closest('.ext-chip'))return;
     {const g=e.target.closest('[data-dvgo]');if(g&&dv){dvHintHide();dvGo(+g.dataset.dvgo);return}}
-    if(e.target.closest('[data-dvback]')||(dv&&e.target.closest('[data-home]'))){const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvToggle(sec);return}
+    if(e.target.closest('[data-dvback]')||(dv&&e.target.closest('[data-home],.pub-head .dvdate,.pub-head .logo'))){const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvToggle(sec);return}
     const go=e.target.closest('[data-go],[data-home]');
     if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
-    if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;if(st.view==='prog')onbMaybe();return}
+    if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;if(st.view==='prog'){onbMaybe();startDay()}return}
     const ci=e.target.closest('.days .cal-ico');
     if(ci&&((st.settings||{}).info||{}).dayByDay&&ci.closest('section.day[id^="j-"]')){dvToggle(ci.closest('section.day'));return}
     if(ci){const sec=ci.closest('section.day');if(sec){const cs=[...sec.querySelectorAll('.card:not(.nofold)')];const anyF=cs.some(c=>c.classList.contains('fold'));cs.filter(c=>c.classList.contains('fold')===anyF).forEach(toggleFold)}return}
@@ -2709,10 +2721,10 @@ function mountPublic(root,data,opts){
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);if(sec&&!dvHeadOn)dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();dvDeco(null);return}
     if(dvMv&&!dvMv.pn.isConnected)dvMv=null;
-    pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn();dvDeco(sec)}
+    pb.classList.add('dayview');dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn();dvDeco(sec);pbUpdate()}
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;if(glued)glued.release();
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
-      dv=null;dvHintHide();dvDeco(null);dvHead(false);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
+      dv=null;dvHintHide();dvDeco(null);dvHead(false);setTimeout(pbUpdate,0);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();auHold=performance.now()+900;
       
       // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
       fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
@@ -2775,8 +2787,25 @@ function mountPublic(root,data,opts){
     H.animate([{opacity:0},{opacity:1}],{duration:300,delay:200,fill:'backwards'})}
   function dvHintMaybe(){if(!DVH_FORCE&&sessGet('ej-dvh'))return;DVH_FORCE=false;sessSet('ej-dvh');setTimeout(()=>{if(dv)dvHint()},250)}
   const pastHidden=()=>!opts.allDays&&!st.past&&Object.keys(st.days).some(k=>k<iso(new Date()));
+  // option : arriver directement sur la vue jour par jour (journée en cours)
+  function startDay(){const I=(st.settings||{}).info||{};if(st.view!=='prog'||dv||!I.dayByDay||I.startView!=='day')return;setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
+  // ---------- jauge de progression sous le bandeau (propositions) ----------
+  function pbUpdate(){const pb=root.querySelector('.pub');if(!pb||st.view==='home'){const x=root.querySelector('.pbar');if(x)x.remove();return}
+    const v=String(window.EJ_PBV||((st.settings||{}).info||{}).progBar||'');let bar=root.querySelector('.pbar');if(!v){if(bar)bar.remove();return}
+    const t=iso(new Date()),keys=Object.keys(st.days).filter(k=>k>=t).sort();if(!keys.length){if(bar)bar.remove();return}
+    const last=keys[keys.length-1],days=[];for(let k=t;k<=last;k=addDays(k,1))days.push(k);const N=days.length;
+    if(!bar||bar.dataset.v!==v||bar.dataset.n!==String(N)){if(bar)bar.remove();bar=document.createElement('div');bar.className='pbar pb-'+v;bar.dataset.v=v;bar.dataset.n=N;
+      bar.innerHTML='<div class="pbt">'+days.map(k=>{const d=st.days[k];const sh=!d||d.closed;return `<i class="${sh?'sh':'op'}"></i>`}).join('')+'</div><b class="pbf"></b>';pb.appendChild(bar)}
+    // période affichée : la journée en vue jour par jour, sinon les journées visibles à l'écran
+    let a=null,b=null;if(dv){const sec=root.querySelector('#j-'+dv);a=dv;const ci=sec&&sec.querySelector('.cal-ico.multi');b=dv;if(ci){const nx=dvSecs()[dvSecs().indexOf(sec)+1];b=nx?addDays(nx.id.slice(2),-1):dv}}
+    else{const hd=root.querySelector('.pub-head'),top=hd?hd.getBoundingClientRect().bottom:0,vb=innerHeight;const vis=[...root.querySelectorAll('.days>section.day[id^="j-"]')].filter(x=>{const r=x.getBoundingClientRect();return r.bottom>top+20&&r.top<vb-20});
+      if(vis.length){a=vis[0].id.slice(2);const lx=vis[vis.length-1],all=[...root.querySelectorAll('.days>section.day[id^="j-"]')],nx=all[all.indexOf(lx)+1];b=nx?addDays(nx.id.slice(2),-1):last}}
+    const f=bar.querySelector('.pbf');if(!a){f.style.display='none';return}f.style.display='';if(a<t)a=t;if(b<a)b=a;
+    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));f.style.left=(i0/N*100)+'%';f.style.width=((i1-i0+1)/N*100)+'%';
+    bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('past',n<i0))}
+  {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
-  update(data||{});onbMaybe();
+  update(data||{});onbMaybe();startDay();
   return {update};
 }
 window.EJ={perSort,resetVisitor,linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAges:a=>{if(Array.isArray(a)&&a.length)AGES=a},getAges:()=>AGES,spanOf,isInfo,resolveGrid,setTarifs:t=>{TARIFS=t||[]},qfLine,QF_OPS,gridSummary,isNight,LBL_DEF,LBL_NAMES,setLabels,sepLabel,FONTS,loadFont,fsBtn,rng,MONTHS,MONTHS_S,DAYS,DAYS_S,pad,iso,parse,addDays,dow,cap,fmtLong,fmtShortDate,hoursText,fmtT,esc,euro,CATS,VIS,VIS_LIST,visualSVG,actImage,whenText,priceText,PUBLICS,badgesHTML,cardHTML,periodOf,dayHTML,mountPublic};
@@ -3028,7 +3057,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.189';
+const APP_VERSION='v261123.190';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -4084,6 +4113,7 @@ function renderSettings(main){
       <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
       <h4 class="tsh">Vue jour par jour</h4>
       <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Parcourir le calendrier jour par jour (un appui sur le calendrier d'une journée l'affiche seule, cartes déployées ; glisser à l'horizontale pour changer de jour ; nouvel appui pour revenir à la vue continue)</label>
+      <label class="sw"><input type="checkbox" id="startday" ${st.info.startView==='day'?'checked':''}> Arriver directement sur la vue jour par jour (sinon sur la vue continue)</label>
       <label class="sw"><input type="checkbox" data-ib="dvFit" data-def="1" ${(st.info.dvFit==null?true:st.info.dvFit)?'checked':''}> Déployer automatiquement les cartes à l'arrivée sur le jour s'il y a la place</label>
       <label class="sw"><input type="checkbox" data-ib="dvCompact" data-def="1" ${(st.info.dvCompact==null?true:st.info.dvCompact)?'checked':''}> La date à la place du logo, les horaires à la place du sous-titre, la journée sur toute la largeur</label>`)}
     ${fold('aff-home',"Paramétrage de la page d'accueil",`      <label class="fld"><span>Sous-titre de l'établissement (page d'accueil)</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
@@ -4163,6 +4193,7 @@ function renderSettings(main){
   {const sk=main.querySelector('#stickall');if(sk)sk.onchange=()=>saveInfo(i=>{i.stickAlways=sk.checked},sk.checked?'Effet collant à chaque passage ✓':'Effet collant la première fois seulement ✓')}
   // options du calendrier (cases à cocher, enregistrées tout de suite)
   main.querySelectorAll('[data-ib]').forEach(e=>e.onchange=()=>saveInfo(i=>{i[e.dataset.ib]=e.checked},'Option enregistrée ✓'));
+  {const sd=main.querySelector('#startday');if(sd)sd.onchange=()=>saveInfo(i=>{i.startView=sd.checked?'day':'list'},'Option enregistrée ✓')}
   {const db=main.querySelector('#daybyday');if(db)db.onchange=()=>saveInfo(i=>{i.dayByDay=db.checked},db.checked?'Parcours jour par jour activé ✓':'Parcours jour par jour désactivé ✓')}
   {const au=main.querySelector('#autounf');if(au)au.onchange=()=>saveInfo(i=>{i.autoUnfold=au.checked},au.checked?'Déploiement automatique activé ✓':'Déploiement automatique désactivé ✓')}
   {const ff=main.querySelector('#fixfoot');if(ff)ff.onchange=()=>saveInfo(i=>{i.fixFoot=ff.checked},ff.checked?'Pied de page figé ✓':'Pied de page libre ✓')}
