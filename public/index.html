@@ -930,17 +930,20 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dvbar i.off{opacity:.2}
 /* option « date à la place du logo » */
 .pub.dvcompact .pub-head .logo{display:none}
-.dvdate{width:66px;height:66px;flex:0 0 auto;border-radius:12px;display:flex;flex-direction:column;align-items:center;overflow:hidden;background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;border:2.5px solid transparent;box-shadow:var(--cals,none)}
-.dvdate.shut{background:linear-gradient(#fff,#fff) padding-box,var(--shg,linear-gradient(45deg,#141317,#F5B800)) border-box}
-.dvdate .m{align-self:stretch;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--calm,var(--calg,#700000));padding:2px 0 1px;font-style:normal}
-.dvdate.shut .m{background:var(--shm,var(--shg,#141317))}
-.dvdate b{font-size:24px;line-height:1.05;margin-top:1px;color:#141317}
-.dvdate i{font-size:11px;font-style:normal;color:#555;line-height:1}
+.dvdate{position:relative;flex:0 0 auto;overflow:visible}
+.dvdate>.cal-ico{position:absolute;left:0;top:0;box-shadow:none}
+.pub.dvcompact{--dvg:28px}
+.pub.dvcompact .pub-head{padding-left:var(--dvg)!important;padding-right:var(--dvg)!important;position:sticky}
+.pub.dvcompact .pub-head .back-btn{position:absolute!important;top:calc(50% + env(safe-area-inset-top)/2);transform:translateY(-50%);left:0px;margin:0!important;width:22px!important;animation:none!important}
+.pub.dvcompact .pub-head .back-btn.dvback{left:8px}
+.pub.dvcompact .days>section.dvon{margin-left:var(--dvl,0px)!important;margin-right:var(--dvr,0px)!important}
+.pub.dvcompact .days>.pinned{margin-left:calc(var(--dvl,0px) - var(--dvpl,0px))!important;margin-right:calc(var(--dvr,0px) - var(--dvpr,0px))!important}
+.pub.dvcompact .pub-head .brand{position:static!important}
 .pub.dvcompact .days>section.dvon .dcol{display:none}
-.pub.dvcompact .days>section.dvon .dgrid{grid-template-columns:minmax(0,1fr);padding:0 22px}
-.dvnav{position:fixed;left:0;right:0;top:50%;height:0;transition:top .15s;z-index:25;max-width:680px;margin:0 auto;pointer-events:none}
+.pub.dvcompact .days>section.dvon .dgrid{grid-template-columns:minmax(0,1fr);padding:0}
+.dvnav{position:fixed;left:0;right:0;top:50%;height:0;transition:top .15s;z-index:25;pointer-events:none}
 .dvnav button{position:absolute;top:-24px;width:26px;height:48px;padding:0;border:0;background:none;color:rgba(32,33,36,.55);display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent}
-.dvnav .l{left:-4px}.dvnav .r{right:-4px}
+.dvnav .l{left:1px}.dvnav .r{right:1px}
 .dvnav button.off{opacity:.15;pointer-events:none}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback{margin-left:-17px;margin-right:-6px}
@@ -2593,6 +2596,7 @@ function mountPublic(root,data,opts){
     let t=hd?hd.getBoundingClientRect().bottom:0;[pf,pn].forEach(x=>{if(x&&x.getClientRects().length)t=Math.max(t,x.getBoundingClientRect().bottom)});
     const vb=window.visualViewport?visualViewport.height:innerHeight,b=Math.min(vb,ft?ft.getBoundingClientRect().top:vb);nav.style.top=Math.round((t+Math.max(b,t+60))/2)+'px'}
   window.addEventListener('scroll',()=>{if(dv)dvNavPos()},{capture:true,passive:true});window.addEventListener('resize',()=>{if(dv)dvNavPos()});
+  const DVG=28;
   function dvDeco(sec){const pb=root.querySelector('.pub');if(!pb)return;const I=(st.settings||{}).info||{},cp=!!(sec&&I.dvCompact!==false);
     let bar=root.querySelector('.days>.dvbar');
     if(false){if(!bar){bar=document.createElement('div');bar.className='dvbar';bar.innerHTML=`<i class="al">${ARW(-1)}</i><span>affichage par jour</span><i class="ar">${ARW(1)}</i>`}
@@ -2602,10 +2606,16 @@ function mountPublic(root,data,opts){
     const br=root.querySelector('.pub-head .brand'),sm=br&&br.querySelector('small');let dd=br&&br.querySelector('.dvdate'),nav=root.querySelector('.dvnav');
     if(cp&&br){const d=st.days[dv]||{date:dv},dt=parse(dv),shut=!!d.closed;
       if(!dd){dd=document.createElement('div');const lg=br.querySelector('.logo');br.insertBefore(dd,lg?lg.nextSibling:br.firstChild)}
-      dd.className='dvdate'+(shut?' shut':'');dd.innerHTML=`<span class="m">${esc(MONTHS_S[dt.getMonth()].replace('.',''))}</span><b>${dt.getDate()}</b><i>${esc(DAYS_S[dow(dv)])}.</i>`;
+      // même calendrier que dans la journée (copie, sans la ligne d'horaires), réduit à la hauteur du logo
+      dd.className='dvdate';dd.innerHTML='';const ci=sec.querySelector('.cal-ico');if(ci){const cl=ci.cloneNode(true);cl.querySelectorAll('.h').forEach(x=>x.remove());cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);
+        const h=cl.offsetHeight||66,w=cl.offsetWidth||66,k=66/h;cl.style.transform=`scale(${k.toFixed(3)})`;dd.style.width=(w*k).toFixed(1)+'px';dd.style.height='66px'}
       if(sm){if(sm.dataset.orig==null)sm.dataset.orig=sm.textContent;sm.textContent=d.closed?((d.closedReason||'').trim()||'Fermé'):hoursText(d)||''}
       if(!nav){nav=document.createElement('div');nav.className='dvnav';nav.innerHTML=`<button type="button" class="l" data-dvgo="-1" aria-label="Jour précédent">${CHEV(-1)}</button><button type="button" class="r" data-dvgo="1" aria-label="Jour suivant">${CHEV(1)}</button>`;pb.appendChild(nav)}
-      const ss=dvSecs(),i=ss.indexOf(sec);nav.querySelector('.l').classList.toggle('off',!(i>0||pastHidden()));nav.querySelector('.r').classList.toggle('off',!(i<ss.length-1));dvNavPos()}
+      const ss=dvSecs(),i=ss.indexOf(sec);nav.querySelector('.l').classList.toggle('off',!(i>0||pastHidden()));nav.querySelector('.r').classList.toggle('off',!(i<ss.length-1));
+      // alignement : même marge à gauche et à droite pour la date, les cartes à la une et les cartes du jour (les chevrons tiennent dans la marge)
+      const pr=pb.getBoundingClientRect(),dz=root.querySelector('.days');if(dz){const zr=dz.getBoundingClientRect(),cs=getComputedStyle(dz);pb.style.setProperty('--dvl',(DVG-(zr.left-pr.left)-parseFloat(cs.paddingLeft))+'px');pb.style.setProperty('--dvr',(DVG-(pr.right-zr.right)-parseFloat(cs.paddingRight))+'px');
+        root.querySelectorAll('.days>.pinned').forEach(pz=>{const pc=pz.querySelector('.card');if(!pc)return;const a=pc.getBoundingClientRect().left-pz.getBoundingClientRect().left,b=pz.getBoundingClientRect().right-pc.getBoundingClientRect().right;pz.style.setProperty('--dvpl',a+'px');pz.style.setProperty('--dvpr',b+'px')})}
+      nav.style.left=pr.left+'px';nav.style.width=pr.width+'px';nav.style.right='auto';dvNavPos()}
     else{if(dd)dd.remove();if(sm&&sm.dataset.orig!=null){sm.textContent=sm.dataset.orig;delete sm.dataset.orig}if(nav)nav.remove()}}
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);if(sec&&!root.querySelector('.dvback'))dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();dvDeco(null);return}
@@ -2919,7 +2929,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.180';
+const APP_VERSION='v261123.181';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
