@@ -938,7 +938,7 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .dvdate i{font-size:11px;font-style:normal;color:#555;line-height:1}
 .pub.dvcompact .days>section.dvon .dcol{display:none}
 .pub.dvcompact .days>section.dvon .dgrid{grid-template-columns:minmax(0,1fr);padding:0 22px}
-.dvnav{position:fixed;left:0;right:0;top:50%;height:0;z-index:25;max-width:680px;margin:0 auto;pointer-events:none}
+.dvnav{position:fixed;left:0;right:0;top:50%;height:0;transition:top .15s;z-index:25;max-width:680px;margin:0 auto;pointer-events:none}
 .dvnav button{position:absolute;top:-24px;width:26px;height:48px;padding:0;border:0;background:none;color:rgba(32,33,36,.55);display:flex;align-items:center;justify-content:center;pointer-events:auto;-webkit-tap-highlight-color:transparent}
 .dvnav .l{left:-4px}.dvnav .r{right:-4px}
 .dvnav button.off{opacity:.15;pointer-events:none}
@@ -2172,7 +2172,7 @@ function mountPublic(root,data,opts){
     // retire les séjours et les activités épinglées de la journée
     const stays=[], d=JSON.parse(JSON.stringify(day));
     const today=iso(new Date());
-    d.slots=(d.slots||[]).map(s=>Object.assign(s,{acts:(s.acts||[]).filter(a=>{if(a.pinned&&a.pinFix&&(a.endDate||day.date)>=today)return false;if(spanOf(a)==='multi'&&a.endDate>day.date){stays.push(a);return false}return true})}));
+    d.slots=(d.slots||[]).map(s=>Object.assign(s,{acts:(s.acts||[]).filter(a=>{if(a.pinned&&(a.endDate||day.date)>=today)return false;if(spanOf(a)==='multi'&&a.endDate>day.date){stays.push(a);return false}return true})}));
     const left=d.slots.reduce((n,s)=>n+s.acts.length,0), had=(day.slots||[]).reduce((n,s)=>n+(s.acts||[]).length,0);
     return {d,stays,skip:had>0&&left===0&&!d.note&&!d.closed};
   }
@@ -2237,7 +2237,7 @@ function mountPublic(root,data,opts){
     requestAnimationFrame(knock);
     root.innerHTML=`<div class="pub ishome${info.tileBold?' tbold':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--tbl:${Math.max(0,Math.min(12,info.tileBlur==null?1.5:+info.tileBlur))}px;--t1:${tcol(TA)};--t2:${tcol(TA*.62)};--t3:${tcol(TA*.5)};--t4:${tcol(TA*.25)};--kbg:${kbg.replace(/"/g,"'")};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${info.homeBg&&!opts.noAssets?`<img class="hbg" src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.homeBg)}" alt="" aria-hidden="true" style="opacity:${Math.max(0,Math.min(100,info.homeBgOp==null?25:+info.homeBgOp))/100}">`:''}${wm}${headHTML(info,wm)}${homeHTML(info)}${footHTML(info)}</div>`;return}
     root.innerHTML=`<div class="pub${info.showNight===false?' nonight':''}${info.fixFoot?' fixfoot':''}" style="--pf:'${font}',system-ui,-apple-system,Segoe UI,sans-serif;${thv};--plh:${Math.max(30,Math.min(140,+info.partH||84))}px;--plfn:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))/100};--plf:${Math.max(0,Math.min(100,info.partFade==null?70:+info.partFade))}%">${wm}${headHTML(info,wm)}
-      <main class="days">${pinnedHTML(ks,true)}${pastBtn}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
+      <main class="days">${pinnedHTML(ks,true)}${pinnedHTML(ks)}${pastBtn}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();dvApply();
     {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
@@ -2552,7 +2552,7 @@ function mountPublic(root,data,opts){
     ok.forEach(c=>{if(c.dataset.fk)autoDone.add(c.dataset.fk);toggleFold(c)})}
   // en vue jour par jour, les cartes à la une non figées rejoignent la bande figée (et y retournent ensuite)
   let dvMv=null;
-  function dvPinIn(){if(dvMv)return;const pn=root.querySelector('.days>.pinned:not(.pinfix)');if(!pn)return;const pf=root.querySelector('.days>.pinned.pinfix');
+  function dvPinIn(){return;if(dvMv)return;const pn=root.querySelector('.days>.pinned:not(.pinfix)');if(!pn)return;const pf=root.querySelector('.days>.pinned.pinfix');
     if(pf){const box=pf.querySelector('.cards'),nodes=[...pn.querySelector('.cards').childNodes];nodes.forEach(n=>box.appendChild(n));pn.style.display='none';dvMv={pn,nodes}}
     else{pn.classList.add('pinfix');dvMv={pn,own:true}}
     root.querySelectorAll('.pinfix .card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;pinScroll();refBase()}
@@ -2569,9 +2569,13 @@ function mountPublic(root,data,opts){
   // décor de la vue jour par jour : ligne « ← affichage par jour → » au-dessus de la journée ; option « date à la place du logo »
   // (logo remplacé par la date, sous-titre remplacé par les horaires, journée sur toute la largeur, chevrons au milieu des côtés)
   const ARW=d=>`<svg viewBox="0 0 36 10" width="36" height="10" aria-hidden="true"><path d="${d<0?'M35 5H2M6 1.5 2 5l4 3.5':'M1 5h33M30 1.5 34 5l-4 3.5'}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  function dvDeco(sec){const pb=root.querySelector('.pub');if(!pb)return;const I=(st.settings||{}).info||{},cp=!!(sec&&I.dvCompact);
+  function dvNavPos(){const nav=root.querySelector('.dvnav');if(!nav)return;const pf=root.querySelector('.pinned.pinfix'),pn=root.querySelector('.days>.pinned:not(.pinfix)'),hd=root.querySelector('.pub-head'),ft=root.querySelector('.pub-foot');
+    let t=hd?hd.getBoundingClientRect().bottom:0;[pf,pn].forEach(x=>{if(x&&x.getClientRects().length)t=Math.max(t,x.getBoundingClientRect().bottom)});
+    const vb=window.visualViewport?visualViewport.height:innerHeight,b=Math.min(vb,ft?ft.getBoundingClientRect().top:vb);nav.style.top=Math.round((t+Math.max(b,t+60))/2)+'px'}
+  window.addEventListener('scroll',()=>{if(dv)dvNavPos()},{capture:true,passive:true});window.addEventListener('resize',()=>{if(dv)dvNavPos()});
+  function dvDeco(sec){const pb=root.querySelector('.pub');if(!pb)return;const I=(st.settings||{}).info||{},cp=!!(sec&&I.dvCompact!==false);
     let bar=root.querySelector('.days>.dvbar');
-    if(sec&&!cp){if(!bar){bar=document.createElement('div');bar.className='dvbar';bar.innerHTML=`<i class="al">${ARW(-1)}</i><span>affichage par jour</span><i class="ar">${ARW(1)}</i>`}
+    if(false){if(!bar){bar=document.createElement('div');bar.className='dvbar';bar.innerHTML=`<i class="al">${ARW(-1)}</i><span>affichage par jour</span><i class="ar">${ARW(1)}</i>`}
       if(bar.nextElementSibling!==sec)sec.parentNode.insertBefore(bar,sec);const ss=dvSecs(),i=ss.indexOf(sec);bar.querySelector('.al').classList.toggle('off',!(i>0||pastHidden()));bar.querySelector('.ar').classList.toggle('off',!(i<ss.length-1))}
     else if(bar)bar.remove();
     pb.classList.toggle('dvcompact',cp);
@@ -2581,7 +2585,7 @@ function mountPublic(root,data,opts){
       dd.className='dvdate'+(shut?' shut':'');dd.innerHTML=`<span class="m">${esc(MONTHS_S[dt.getMonth()].replace('.',''))}</span><b>${dt.getDate()}</b><i>${esc(DAYS_S[dow(dv)])}.</i>`;
       if(sm){if(sm.dataset.orig==null)sm.dataset.orig=sm.textContent;sm.textContent=d.closed?((d.closedReason||'').trim()||'Fermé'):hoursText(d)||''}
       if(!nav){nav=document.createElement('div');nav.className='dvnav';nav.innerHTML=`<button type="button" class="l" data-dvgo="-1" aria-label="Jour précédent">${CHEV(-1)}</button><button type="button" class="r" data-dvgo="1" aria-label="Jour suivant">${CHEV(1)}</button>`;pb.appendChild(nav)}
-      const ss=dvSecs(),i=ss.indexOf(sec);nav.querySelector('.l').classList.toggle('off',!(i>0||pastHidden()));nav.querySelector('.r').classList.toggle('off',!(i<ss.length-1))}
+      const ss=dvSecs(),i=ss.indexOf(sec);nav.querySelector('.l').classList.toggle('off',!(i>0||pastHidden()));nav.querySelector('.r').classList.toggle('off',!(i<ss.length-1));dvNavPos()}
     else{if(dd)dd.remove();if(sm&&sm.dataset.orig!=null){sm.textContent=sm.dataset.orig;delete sm.dataset.orig}if(nav)nav.remove()}}
   function dvApply(){const pb=root.querySelector('.pub');if(!pb)return;const sec=dv&&root.querySelector('#j-'+dv);if(sec&&!root.querySelector('.dvback'))dvHead(true);
     if(!sec){if(dv){dv=null}pb.classList.remove('dayview');dvPinOut();dvDeco(null);return}
@@ -2895,7 +2899,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.178';
+const APP_VERSION='v261123.179';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -3952,7 +3956,7 @@ function renderSettings(main){
       <h4 class="tsh">Vue jour par jour</h4>
       <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Parcourir le calendrier jour par jour (un appui sur le calendrier d'une journée l'affiche seule, cartes déployées ; glisser à l'horizontale pour changer de jour ; nouvel appui pour revenir à la vue continue)</label>
       <label class="sw"><input type="checkbox" data-ib="dvFit" data-def="1" ${(st.info.dvFit==null?true:st.info.dvFit)?'checked':''}> Déployer automatiquement les cartes à l'arrivée sur le jour s'il y a la place</label>
-      <label class="sw"><input type="checkbox" data-ib="dvCompact" data-def="0" ${(st.info.dvCompact==null?false:st.info.dvCompact)?'checked':''}> La date à la place du logo, les horaires à la place du sous-titre, la journée sur toute la largeur</label>`)}
+      <label class="sw"><input type="checkbox" data-ib="dvCompact" data-def="1" ${(st.info.dvCompact==null?true:st.info.dvCompact)?'checked':''}> La date à la place du logo, les horaires à la place du sous-titre, la journée sur toute la largeur</label>`)}
     ${fold('aff-home',"Paramétrage de la page d'accueil",`      <label class="fld"><span>Sous-titre de l'établissement (page d'accueil)</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
       <h4 class="tsh">Photo de fond</h4>
       <div class="row" style="align-items:center;gap:10px"><span class="logo-prev">${st.info.homeBg?`<img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+st.info.homeBg)}" alt="" style="object-fit:cover">`:'—'}</span>
