@@ -1031,11 +1031,10 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pbar .pbt{position:absolute;inset:0;display:flex;border-radius:2px;overflow:hidden}
 .pbar .pbt i{flex:1 1 0;min-width:0;height:100%}
 .pbar .pbt i.op{background:var(--caln,#700000)}.pbar .pbt i.sh{background:var(--shn,#065e00)}
-.pbar .pbf{position:absolute;top:-4px;bottom:-4px;border:2px solid #2a2730;border-radius:4px;min-width:6px;box-sizing:border-box;transition:left .25s,width .25s;margin-left:-2px;padding:0 2px;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.pbar .pbf{position:absolute;top:-2px;bottom:-2px;border:2px solid #2a2730;border-radius:3px;min-width:7px;box-sizing:border-box;transition:left .25s,width .25s}
 /* A : segments par jour, séparés d'un fin espace */
 .pb-a .pbt{gap:1px}
 /* B : jauge continue, jours déjà passés pleins, jours à venir atténués */
-.pb-b .pbt i{opacity:.28}.pb-b .pbt i.past{opacity:1}
 /* C : seuls les jours d'ouverture sont colorés, les fermetures en gris clair */
 .pb-c .pbt{gap:1px}.pb-c .pbt i.sh{background:#D9D5CE}
 /* second chevron (vue jour par jour), tout contre le premier */
@@ -2445,7 +2444,8 @@ function mountPublic(root,data,opts){
       if(b.bottom<=hb.top||b.top>=hb.bottom||b.right<=r.left||b.left>=r.right)return;
       d+=`M${(b.left-r.left).toFixed(1)} ${(b.top-r.top).toFixed(1)}h${b.width.toFixed(1)}v${b.height.toFixed(1)}h${(-b.width).toFixed(1)}Z`;
     });
-    c.style.clipPath=`path(evenodd,"${d}")`;
+    // bandeau opaque : le filigrane y reste entier (plus d'effacement là où les cartes passent dessous)
+    c.style.clipPath='';
     // bande des cartes à la une figées : elle recouvre le filigrane de la page, on y place une copie alignée au pixel près
     // (au-dessus du fond translucide de la bande, sous ses cartes), effacée là où une carte du programme passe dessous
     const pf=root.querySelector('.pinned.pinfix'),g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf):not(.wm-safe)');
@@ -2791,17 +2791,18 @@ function mountPublic(root,data,opts){
   function startDay(){const I=(st.settings||{}).info||{};if(st.view!=='prog'||dv||!I.dayByDay||I.startView!=='day')return;setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
   // ---------- jauge de progression sous le bandeau (propositions) ----------
   function pbUpdate(){const pb=root.querySelector('.pub');if(!pb||st.view==='home'){const x=root.querySelector('.pbar');if(x)x.remove();return}
-    const v=String(window.EJ_PBV||((st.settings||{}).info||{}).progBar||'');let bar=root.querySelector('.pbar');if(!v){if(bar)bar.remove();return}
-    const t=iso(new Date()),keys=Object.keys(st.days).filter(k=>k>=t).sort();if(!keys.length){if(bar)bar.remove();return}
+    const v=String(window.EJ_PBV||(((st.settings||{}).info||{}).progBar===false?'':'b'));let bar=root.querySelector('.pbar');if(!v){if(bar)bar.remove();return}
+    // de la date du jour à la dernière journée qui a une carte avec une heure de fin
+    const t=iso(new Date()),keys=Object.keys(st.days).filter(k=>k>=t&&(st.days[k].slots||[]).some(x=>(x.acts||[]).some(a=>a.timing&&a.timing.end))).sort();if(!keys.length){if(bar)bar.remove();return}
     const last=keys[keys.length-1],days=[];for(let k=t;k<=last;k=addDays(k,1))days.push(k);const N=days.length;
     if(!bar||bar.dataset.v!==v||bar.dataset.n!==String(N)){if(bar)bar.remove();bar=document.createElement('div');bar.className='pbar pb-'+v;bar.dataset.v=v;bar.dataset.n=N;
       bar.innerHTML='<div class="pbt">'+days.map(k=>{const d=st.days[k];const sh=!d||d.closed;return `<i class="${sh?'sh':'op'}"></i>`}).join('')+'</div><b class="pbf"></b>';pb.appendChild(bar)}
     // période affichée : la journée en vue jour par jour, sinon les journées visibles à l'écran
     let a=null,b=null;if(dv){const sec=root.querySelector('#j-'+dv);a=dv;const ci=sec&&sec.querySelector('.cal-ico.multi');b=dv;if(ci){const nx=dvSecs()[dvSecs().indexOf(sec)+1];b=nx?addDays(nx.id.slice(2),-1):dv}}
     else{const hd=root.querySelector('.pub-head'),top=hd?hd.getBoundingClientRect().bottom:0,vb=innerHeight;const vis=[...root.querySelectorAll('.days>section.day[id^="j-"]')].filter(x=>{const r=x.getBoundingClientRect();return r.bottom>top+20&&r.top<vb-20});
-      if(vis.length){a=vis[0].id.slice(2);const lx=vis[vis.length-1],all=[...root.querySelectorAll('.days>section.day[id^="j-"]')],nx=all[all.indexOf(lx)+1];b=nx?addDays(nx.id.slice(2),-1):last}}
+      if(vis.length){const fx=vis[0];a=fx.id.slice(2);b=a;if(fx.querySelector('.cal-ico.multi')){const all=[...root.querySelectorAll('.days>section.day[id^="j-"]')],nx=all[all.indexOf(fx)+1];b=nx?addDays(nx.id.slice(2),-1):a}}}
     const f=bar.querySelector('.pbf');if(!a){f.style.display='none';return}f.style.display='';if(a<t)a=t;if(b<a)b=a;
-    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));f.style.left=(i0/N*100)+'%';f.style.width=((i1-i0+1)/N*100)+'%';
+    const i0=Math.max(0,days.indexOf(a)),i1=Math.max(i0,days.indexOf(b)<0?N-1:days.indexOf(b));if(days.indexOf(a)<0){f.style.display='none';return}f.style.left=`calc(${(i0/N*100).toFixed(3)}% - 2px)`;f.style.width=`calc(${((i1-i0+1)/N*100).toFixed(3)}% + 4px)`;
     bar.querySelectorAll('.pbt>i').forEach((x,n)=>x.classList.toggle('past',n<i0))}
   {let raf=0;window.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)pbUpdate()})},{capture:true,passive:true})}
   function update(d){if(d.days)st.days=linkDays(d.days);if(d.settings)st.settings=d.settings;render()}
@@ -3057,7 +3058,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.190';
+const APP_VERSION='v261123.191';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -4102,6 +4103,7 @@ function renderSettings(main){
       <label class="sw"><input type="checkbox" id="fixfoot" ${st.info.fixFoot?'checked':''}> Figer le pied de page et les logos (toujours visibles en bas du programme)</label>
       <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Déployer les cartes à l'ouverture de la page programme</label>
       <label class="sw"><input type="checkbox" data-ib="pinShrink" data-def="1" ${(st.info.pinShrink==null?true:st.info.pinShrink)?'checked':''}> Réduire les cartes figées à la une en petites cartes pendant le défilement</label>
+      <label class="sw"><input type="checkbox" data-ib="progBar" data-def="1" ${st.info.progBar===false?'':'checked'}> Jauge de progression sous le bandeau (période du calendrier, journée affichée encadrée)</label>
       <h4 class="tsh">Effets au défilement</h4>
       <label class="sw"><input type="checkbox" data-ib="fxAuto" data-def="1" ${(st.info.fxAuto==null?true:st.info.fxAuto)?'checked':''}> Déploiement automatique des cartes au défilement</label>
       <label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
