@@ -1042,7 +1042,7 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pbar .pbf>i.op{background:color-mix(in srgb,var(--caln,#700000) var(--pbs,40%),color-mix(in srgb,var(--call,#F9CE34) var(--pbo,30%),#EDEBE8))}.pbar .pbf>i.sh{background:color-mix(in srgb,var(--shn,#065e00) var(--pbs,40%),color-mix(in srgb,var(--shl,#F5B800) var(--pbo,30%),#EDEBE8))}
 .pbar .pbv{display:none}
 /* zone tactile de la jauge */
-.pbar .pbhit{position:absolute;top:-6px;height:22px;pointer-events:auto;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pbar .pbhit{position:absolute;top:-6px;height:34px;pointer-events:auto;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* A : segments par jour, séparés d'un fin espace */
 .pb-a .pbt{gap:1px}
 /* B : jauge continue, jours déjà passés pleins, jours à venir atténués */
@@ -2827,7 +2827,7 @@ function mountPublic(root,data,opts){
     // vacances : les journées fermées qui suivent directement les vacances en font partie
     {const pf=root.querySelector('.pinned.pinfix');bar.classList.toggle('pbpin',!!(pf&&pf.offsetHeight))}
     pbG={bar,days,N,x0,sp,t,cl,vac:[...bar.querySelectorAll('.pbv')].map(e=>{let v1=+e.dataset.i1;while(v1+1<N&&cl(days[v1+1])==='sh')v1++;return [+e.dataset.i0,v1]})};
-    // zone tactile : on se déplace sur la jauge de période d'ouverture en période d'ouverture
+    // zone tactile : le sélecteur va là où le doigt se pose, puis le suit
     let h=bar.querySelector('.pbhit');if(!h){h=document.createElement('b');h.className='pbhit';bar.appendChild(h);pbTouch(h)}
     h.style.left=(x0-8)+'px';h.style.width=(sp+16)+'px';
     if(pbDragging)return;pbPlace(pbSpan(pbFor||dv||pbListDay()))}
@@ -2853,8 +2853,8 @@ function mountPublic(root,data,opts){
   function pbGoTo(d){pbDragging=false;pbFor=d;if(pbG)pbPlace(pbSpan(d),null,'none')}
   function pbTouch(h){let pid=null;
     const jump=e=>{const G=pbG;if(!G)return;const n=Math.max(0,Math.min(G.N-1,Math.floor((e.clientX-G.x0)/G.sp*G.N)));
-      // périodes d'ouverture seulement
-      const op=dvSecs().filter(x=>{const d=st.days[x.id.slice(2)];return d&&!d.closed}).map(x=>({x,s:pbSpan(x.id.slice(2),true)})).filter(o=>o.s);if(!op.length)return;
+      // la journée sous le doigt (ouverte ou fermée)
+      const op=dvSecs().map(x=>({x,s:pbSpan(x.id.slice(2),true)})).filter(o=>o.s);if(!op.length)return;
       let best=op[0],bd=1e9;op.forEach(o=>{const d=n<o.s[0]?o.s[0]-n:n>o.s[1]?n-o.s[1]:0;if(d<bd){bd=d;best=o}});
       if(!dv){const sec=best.x,sc=scrollerOf(sec),d=sec.getBoundingClientRect().top-(refBase()||0)-6;auHold=performance.now()+1e7;if(Math.abs(d)>.5)sc.scrollTop+=d;pbPlace(pbSpan(sec.id.slice(2)),null,'none');return}
       if(best.x.id!=='j-'+dv){dvHintHide();if(pbG)pbPlace(pbSpan(best.x.id.slice(2)),null,'none');dvPeekClear();dv=best.x.id.slice(2);pbFor=null;dvApply();fitStay();dvScTop(best.x)}};
@@ -3117,7 +3117,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.203';
+const APP_VERSION='v261123.204';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
