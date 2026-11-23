@@ -1016,8 +1016,16 @@ html:has(.pub:not(.ishome)),body:has(.pub:not(.ishome)){overscroll-behavior-y:no
 .pub-head .dvdate .dvhh b{font-size:21px!important;line-height:1!important}
 .pub-head .dvdate .dvhh small{font-size:16px!important;line-height:1!important;margin-top:3px!important}
 /* bandeau de titre opaque (seul le logo en filigrane apparaît) ; il couvre aussi la zone de sécurité du haut en plein écran, filigrane compris */
-.pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;margin-top:0!important;top:var(--top,0px)!important;padding-top:env(safe-area-inset-top,0px)!important;height:calc(var(--hh) + env(safe-area-inset-top,0px))!important;box-sizing:border-box}
-.pub>.wm{top:calc(var(--top,0px) - 40px)!important;clip-path:polygon(144px 0,100% 0,100% 100%,0 100%,0 calc(40px + var(--hh) + env(safe-area-inset-top,0px)),144px calc(40px + var(--hh) + env(safe-area-inset-top,0px)))!important}
+html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;opacity:1!important;margin-top:env(safe-area-inset-top,0px)!important;top:calc(var(--top,0px) + env(safe-area-inset-top,0px))!important;padding-top:0!important;padding-bottom:0!important;height:var(--hh)!important;box-sizing:border-box;align-items:center!important}
+/* zone de sécurité du haut (plein écran) : transparente, la page défile derrière ; le filigrane y reste visible par-dessus */
+.pub>.wm{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) - 40px)!important}
+.pub>.wm-safe{position:fixed!important;z-index:30!important;pointer-events:none;top:calc(var(--top,0px) - 40px)!important;right:calc(max(0px,(100vw - 680px) / 2) - 56px)!important;width:200px;height:200px;object-fit:contain;clip-path:inset(0 0 calc(100% - 40px - env(safe-area-inset-top,0px)) 0)!important}
+/* logo et calendrier du bandeau : même taille (marges égales en haut et en bas), même arrondi */
+.pub-head .logo{width:72px!important;height:72px!important;border-radius:12px!important}
+.pub-head .dvdate>.cal-ico{border-radius:12.7px!important}
+/* passage en plein écran sans fond noir */
+:root:fullscreen,:root:-webkit-full-screen{background:#F5F4F1}
+::backdrop{background:#F5F4F1}
 /* second chevron (vue jour par jour), tout contre le premier */
 .back-btn.dvback.anim{animation:dvin .55s cubic-bezier(.45,0,.2,1) both;overflow:hidden}
 .back-btn.dvback.out{animation:dvout .5s cubic-bezier(.45,0,.2,1) both;overflow:hidden;pointer-events:none}
@@ -2334,6 +2342,7 @@ function mountPublic(root,data,opts){
       <main class="days">${pinnedHTML(ks,true)}${pinnedHTML(ks)}${pastBtn}${ks.length&&info.actFooter!==' '?`<p class="act-foot">${esc(info.actFooter||'Programme susceptible d\'être modifié en fonction de la météo, des envies, des opportunités.')}</p>`:''}${ks.length?withSeps(ks):'<div class="pub-empty">Le programme arrive bientôt.</div>'}</main>
       ${footHTML(info)}</div>${st.sheet?sheetHTML(info):''}`;
     markWraps();wmClip();fitStay();dvApply();
+    {const pw=root.querySelector('.pub>img.wm:not(.wm-in):not(.wm-safe)');if(pw&&!root.querySelector('.pub>.wm-safe')){const c=pw.cloneNode();c.classList.add('wm-safe');c.setAttribute('aria-hidden','true');pw.after(c)}}
     {const pf=root.querySelector('.pinfix'),pb=root.querySelector('.pub');const sp=()=>pb&&pb.style.setProperty('--pinh',pf?Math.round(pf.offsetHeight)+'px':'0px');sp();requestAnimationFrame(sp);setTimeout(sp,400)
       if(pf)pf.querySelectorAll('.card.demi').forEach(c=>c.dataset.demi='1');pinMini=false;requestAnimationFrame(()=>pinScroll())}
   }
@@ -2427,7 +2436,7 @@ function mountPublic(root,data,opts){
     c.style.clipPath=`path(evenodd,"${d}")`;
     // bande des cartes à la une figées : elle recouvre le filigrane de la page, on y place une copie alignée au pixel près
     // (au-dessus du fond translucide de la bande, sous ses cartes), effacée là où une carte du programme passe dessous
-    const pf=root.querySelector('.pinned.pinfix'),g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf)');
+    const pf=root.querySelector('.pinned.pinfix'),g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf):not(.wm-safe)');
     if(!pf||!g)return;
     let im=pf.querySelector(':scope>.wm-pf');
     if(!im){im=document.createElement('img');im.alt='';im.setAttribute('aria-hidden','true');pf.prepend(im)}
@@ -2687,7 +2696,7 @@ function mountPublic(root,data,opts){
         let fresh=false;if(!dd){fresh=true;dd=document.createElement('div');const lg=br.querySelector('.logo');br.insertBefore(dd,lg?lg.nextSibling:br.firstChild)}
         // même calendrier que dans la journée ; pour plusieurs jours regroupés : horaires dans le calendrier, période en sous-titre
         dd.className='dvdate';dd.innerHTML='';let rng='';if(ci){const cl=ci.cloneNode(true);const r2=cl.querySelector('.rng2');if(multi&&r2){rng=[...r2.querySelectorAll('span')].map(x=>x.textContent.replace(/\s+/g,' ').trim()).join(' ');const rr=dayRanges(d)[0]||[];cl.querySelectorAll('.h').forEach(x=>x.remove());r2.outerHTML=`<div class="dvhh">${rr[0]?`<b>${fmtTH(rr[0])}</b>`:''}${rr[1]?`<small>${rr[0]?'à ':'jusqu\'à '}${fmtTH(rr[1])}</small>`:''}</div>`}else cl.querySelectorAll('.h').forEach(x=>x.remove());
-          cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);cl.style.transform='scale('+(66/76)+')';dd.style.width='66px';dd.style.height='66px'}
+          cl.style.transformOrigin='0 0';cl.style.margin='0';dd.appendChild(cl);cl.style.transform='scale('+(72/76)+')';dd.style.width='72px';dd.style.height='72px'}
         if(sm2){if(sm2.dataset.orig==null)sm2.dataset.orig=sm2.textContent;sm2.textContent=multi&&rng?rng:hoursText(d)||''}
         if(fresh)dd.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out'})}
       if(!nav){nav=document.createElement('div');nav.className='dvnav';nav.innerHTML=`<button type="button" class="l" data-dvgo="-1" aria-label="Jour précédent">${CHEV(-1)}</button><button type="button" class="r" data-dvgo="1" aria-label="Jour suivant">${CHEV(1)}</button>`;pb.appendChild(nav)}
@@ -3019,7 +3028,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261123.188';
+const APP_VERSION='v261123.189';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
