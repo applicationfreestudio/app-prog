@@ -1054,7 +1054,6 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pub.fview .days>section.day:not(.fcur) .acts{opacity:.2}
 .pub.fview .days>section.day.fvoff{display:none!important}
 .pub.fview.fv-s0 .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]){display:none!important}
-.pub.fview.fv-s1 .days>section.day:not([data-ft~="sch"]),.pub.fview.fv-s1 .days>.psep.vac{display:none!important}
 .pub.fview.fv-u0 .days>.pinned{display:none!important}
 .pub.fview.fv-st .days>section.day:not(.fvhl),.pub.fview.fv-st .days>.psep{display:none!important}
 .pub.fview.fv-st .days>section.day .card:not(.hl),.pub.fview.fv-st .days>section.day .acts>:not(.cards),.pub.fview.fv-st .days>section.day .cards:not(:has(.card.hl)){display:none!important}
@@ -1062,13 +1061,16 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
 .fvbar{position:sticky;z-index:7;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:flex;align-items:center;gap:8px;padding:12px 26px 10px;margin-top:-18px;margin-bottom:14px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
-.fvb{all:unset;box-sizing:border-box;height:34px;padding:0 13px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:13.5px;font-weight:600;color:#141317;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;border:2.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;transition:opacity .2s,filter .2s}
+.fvb{all:unset;box-sizing:border-box;height:36px;padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:13.5px;font-weight:600;color:var(--caln,#141317);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
+.fvb::after{content:'';position:absolute;inset:-6px -4px}.fvb{position:relative}
 .fvb.today{padding:0;font-size:12px;letter-spacing:-.01em;flex:0 0 auto}
-.fvb.star{padding:0;width:40px}
-.fvb.on{background:var(--calg,var(--ig)) border-box;color:#fff}
+.fvb.star{padding:0;width:42px}
+.fvb.on{background:var(--caln,#141317);border-color:var(--caln,#141317);color:#fff}
 .fvb.off{opacity:.35;filter:grayscale(1);pointer-events:none;cursor:default}
 .fvb.today.dim{opacity:.4;filter:grayscale(.6);cursor:default}
 .fvb.mark{animation:fvmark .55s ease-out}
+/* espace entre les journées : fine barre verticale, date au milieu */
+.pub.fview .days>section.day[id^="j-"]:not(.fvfirst)::before{content:attr(data-fvd);display:flex;align-items:center;justify-content:center;height:96px;margin:-12px 0 6px;font-size:12px;font-weight:300;letter-spacing:.04em;color:#a8a4ae;background:linear-gradient(#d9d5dc,#d9d5dc) center top/1px calc(50% - 13px) no-repeat,linear-gradient(#d9d5dc,#d9d5dc) center bottom/1px calc(50% - 13px) no-repeat}
 @keyframes fvmark{0%{transform:scale(1);box-shadow:0 0 0 0 color-mix(in srgb,var(--caln,#C13584) 55%,transparent)}30%{transform:scale(.94)}100%{transform:scale(1);box-shadow:0 0 0 12px transparent}}
 /* A : segments par jour, séparés d'un fin espace */
 .pb-a .pbt{gap:1px}
@@ -2554,7 +2556,7 @@ function mountPublic(root,data,opts){
       if(!dv&&vOrigin==='day'){const sec=(lastDv&&root.querySelector('#j-'+lastDv))||onbToday();if(sec){dvToggle(sec);return}}
 }}
     if(fv&&!dv&&e.target.closest('.pub-head .dvdate')&&((st.settings||{}).info||{}).dayByDay){const sec=fvCur&&root.querySelector('#j-'+fvCur);if(sec){dvToggle(sec);return}}
-    {const fb=e.target.closest('.fvbar [data-fv]');if(fb){fvClick(fb);return}}
+    if(e.target.closest('.fvbar'))return;
     if(e.target.closest('[data-dvback]')||(dv&&e.target.closest('.pub-head .dvdate,.pub-head .logo'))){const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvToggle(sec);return}
     const go=e.target.closest('[data-go],[data-home]');
     if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
@@ -2844,21 +2846,25 @@ function mountPublic(root,data,opts){
   function fvTypes(k,until){const out=new Set();let d=k;for(let n=0;n<62;n++){const p=periodOf(d,(st.settings||{}).periods);const w=dow(d);out.add(p&&p.type==='vacances'?'vac':(w===2||w===5||w===6)?'ws':'sch');if(!until||d>=until)break;d=addDays(d,1)}return [...out].join(' ')}
   function fvMark(){const ss=dvSecs();ss.forEach((x,i)=>{const k=x.id.slice(2),d=st.days[k]||{},ci=x.querySelector('.cal-ico'),nx=ss[i+1];
       const until=ci&&ci.classList.contains('multi')&&nx?addDays(nx.id.slice(2),-1):k;x.dataset.ft=fvTypes(k,until);x.dataset.until=until;x.classList.toggle('fvoff',!!d.closed);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))});
+    const L=k=>{const d=parse(k);return DAYS[dow(k)]+' '+d.getDate()+' '+MONTHS[d.getMonth()]};ss.forEach(x=>{const k=x.id.slice(2),u=x.dataset.until;x.dataset.fvd=u&&u!==k?'du '+L(k)+' au '+L(u):L(k)});
     root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))})}
   function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today">Aujourd'hui</button><button type="button" class="fvb" data-fv="une">À la une</button><button type="button" class="fvb" data-fv="scol">Scolaire</button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button>`}
   function fvApply(){const pb=root.querySelector('.pub');if(!pb)return;const on=fv&&!dv&&st.view==='prog';
     pb.classList.toggle('fview',on);let bar=root.querySelector('.days>.fvbar');
     if(!on){if(bar)bar.remove();root.querySelectorAll('.days>section.day.fcur').forEach(x=>x.classList.remove('fcur'));if(!dv)fvHead(null);return}
     const days=root.querySelector('.days');if(!days)return;
-    if(!bar){bar=document.createElement('nav');bar.className='fvbar';bar.innerHTML=fvBarHTML();days.insertBefore(bar,days.firstChild)}
+    if(!bar){bar=document.createElement('nav');bar.className='fvbar';bar.innerHTML=fvBarHTML();days.insertBefore(bar,days.firstChild);
+      // réaction immédiate au toucher
+      bar.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-fv]');if(!b||e.button>0)return;e.preventDefault();fvClick(b)});setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
     pb.classList.toggle('fv-u0',!fvF.une||fvF.star);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
-    fvMark();fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
+    fvMark();{let f=true;root.querySelectorAll('.days>section.day[id^="j-"]').forEach(x=>{const v=!!x.offsetParent;x.classList.toggle('fvfirst',v&&f);if(v)f=false})}fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
     fitStay();fvCalc()}
   // le bouton « Aujourd'hui » exactement sous le logo (ou la date), même largeur
   function fvLayout(){const bar=root.querySelector('.days>.fvbar'),days=root.querySelector('.days'),pb=root.querySelector('.pub');if(!bar||!days||!pb)return;
     const cs=getComputedStyle(days);bar.style.marginLeft=-parseFloat(cs.paddingLeft)+'px';bar.style.marginRight=-parseFloat(cs.paddingRight)+'px';
-    const lg=[...root.querySelectorAll('.pub-head .logo,.pub-head .dvdate')].map(e=>e.getBoundingClientRect()).find(r=>r.width>0),br=bar.getBoundingClientRect();
-    if(lg){bar.style.paddingLeft=Math.round(lg.left-br.left)+'px';const t=bar.querySelector('.today');if(t)t.style.width=Math.round(lg.width)+'px'}
+    // position de mise en page (sans les animations du bandeau) : bord gauche du logo ou de la date
+    const hd=root.querySelector('.pub-head'),el=[...root.querySelectorAll('.pub-head .dvdate,.pub-head .logo')].find(e=>e.offsetWidth>0),br=bar.getBoundingClientRect();
+    if(hd&&el){let x=0,e=el;while(e&&e!==hd){x+=e.offsetLeft;e=e.offsetParent}if(e===hd){bar.style.paddingLeft=Math.round(hd.getBoundingClientRect().left+x-br.left)+'px';const t=bar.querySelector('.today');if(t)t.style.width=el.offsetWidth+'px'}}
     pb.style.setProperty('--fvh',Math.round(bar.offsetHeight)+'px')}
   // première journée affichée à partir d'aujourd'hui
   function fvTodaySec(){const t=iso(new Date());return dvSecs().find(x=>x.offsetParent&&(x.dataset.until||x.id.slice(2))>=t)||null}
@@ -2873,14 +2879,14 @@ function mountPublic(root,data,opts){
   function fvSync(){const bar=root.querySelector('.days>.fvbar');if(!bar)return;const ts=fvTodaySec(),atT=!ts||(fvCur&&ts.id==='j-'+fvCur);
     const b=n=>bar.querySelector(`[data-fv="${n}"]`);
     b('today').classList.toggle('dim',atT);b('today').classList.toggle('on',!atT);
-    b('une').classList.toggle('on',fvF.une&&!fvF.star);b('une').classList.toggle('off',fvF.star);
-    b('scol').classList.toggle('on',fvF.scol&&!fvF.star);b('scol').classList.toggle('off',fvF.star);
+    b('une').classList.toggle('on',fvF.une&&!fvF.star);b('scol').classList.toggle('on',fvF.scol&&!fvF.star);
     b('star').classList.toggle('on',fvF.star)}
   function fvGoSec(sec,smooth){if(!sec)return;const sc=scrollerOf(sec),d=sec.getBoundingClientRect().top-(refBase()||0)-6;if(Math.abs(d)>.5){if(smooth&&sc.scrollTo)sc.scrollTo({top:sc.scrollTop+d,behavior:'smooth'});else sc.scrollTop+=d}}
   function fvClick(b){const n=b.dataset.fv;if(b.classList.contains('off'))return;
     if(n==='today'){if(b.classList.contains('dim'))return;b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});fvGoSec(fvTodaySec(),true);return}
     const keep=fvCur&&root.querySelector('#j-'+fvCur);
-    if(n==='une')fvF.une=!fvF.une;else if(n==='scol')fvF.scol=!fvF.scol;else if(n==='star')fvF.star=!fvF.star;
+    // en mode étoile, « À la une » ou « Scolaire » quitte l'étoile et se sélectionne
+    if(n==='star')fvF.star=!fvF.star;else if(fvF.star){fvF.star=false;fvF[n]=true}else if(n==='une')fvF.une=!fvF.une;else if(n==='scol')fvF.scol=!fvF.scol;
     fvApply();(root.closest('.realview')||document.scrollingElement).scrollTop=0;fvCurReset();fvCalc();pbUpdate()}
   function fvCurReset(){fvCur=null}
   // date dans le bandeau (même présentation que la vue jour par jour), horaires en sous-titre
@@ -3208,7 +3214,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.1';
+const APP_VERSION='v261127.2';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
