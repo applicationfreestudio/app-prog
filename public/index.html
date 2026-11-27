@@ -1051,7 +1051,7 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview.fvdate .pub-head .logo{display:none}
 .pub.fview.fvdate .pub-head .brand>div:not(.dvdate) small{font-size:16px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
 .pub.fview .days>section.day .acts{transition:opacity .2s ease,filter .2s ease}
-.pub.fview .days>section.day:not(.fcur) .acts{opacity:.2;filter:blur(.6px)}
+.pub.fview .days>section.day:not(.fcur) .acts{opacity:.12}
 .pub.fview .days>section.day.fvoff>.dgrid{display:none!important}
 
 .pub.fview.fv-st .days>section.day.fvoff{display:none!important}
@@ -1071,15 +1071,15 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
 .fvbar{position:sticky;z-index:7;transform:translateZ(0);top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:flex;align-items:center;gap:6px;padding:10px 26px 8px;margin-top:-18px;margin-bottom:-14px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
-.fvb{all:unset;box-sizing:border-box;height:30px;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
+.fvb{all:unset;box-sizing:border-box;height:30px;border-radius:8px!important;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:14.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
 .fvb::after{content:'';position:absolute;inset:-6px -4px}.fvb{position:relative}
-.fvb.today{padding:0;font-size:12px;letter-spacing:-.01em;flex:0 0 auto}
+.fvb.today{padding:0;font-size:13px;letter-spacing:-.01em;flex:0 0 auto}
 .fvb.star{padding:0;width:42px}
 .fvb.scol{padding:0 10px;gap:5px}
 .fvb.on{background:var(--fvc);border-color:var(--fvc);color:#fff}
 .fvb.today.on{background:#fff;border-color:var(--fvc);color:color-mix(in srgb,var(--caln,#141317) 90%,#fff)}
 .fvb.off{opacity:.35;filter:grayscale(1);pointer-events:none;cursor:default}
-.fvb.today.dim{cursor:default;color:#fff;border:0;background:var(--calm,var(--ig));box-shadow:var(--cals,var(--lift));font-size:12px;letter-spacing:.01em;font-weight:700}
+.fvb.today.dim{cursor:default;color:#fff;border:0;background:var(--calm,var(--ig));box-shadow:var(--cals,var(--lift));font-size:13px;letter-spacing:0;font-weight:700}
 .fvb.mark{animation:fvmark .55s ease-out}
 /* espace entre les journées : fine barre verticale, date ; espace réduit de moitié sous la date */
 .pub.fview .days>section.day:is([id^="j-"],.stay)::before{content:attr(data-fvd);display:block;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:30px 0 18px;margin:-14px 0 0;font-size:12px;font-weight:400;line-height:16px;letter-spacing:.04em;color:#77737d;background:linear-gradient(#d9d5dc,#d9d5dc) center bottom/1px 10px no-repeat}
@@ -2904,7 +2904,7 @@ function mountPublic(root,data,opts){
     b('une').classList.toggle('on',fvF.une&&!fvF.star);b('scol').classList.toggle('on',fvF.scol&&!fvF.star);
     b('star').classList.toggle('on',fvF.star);{const all=Object.keys(st.days),t=iso(new Date()),np=all.filter(k=>k<t).length;b('past').classList.toggle('on',!!st.past);b('past').classList.toggle('off',!np)}fvFit()}
   // le menu tient sur une ligne : texte réduit si besoin
-  function fvFit(){const bar=root.querySelector('.days>.fvbar');if(!bar)return;const bs=[...bar.querySelectorAll('.fvb:not(.today):not(.star)')];bs.forEach(b=>b.style.fontSize='');let f=13,n=0;const over=()=>{const l=bar.lastElementChild;return l&&l.getBoundingClientRect().right>bar.getBoundingClientRect().right-parseFloat(getComputedStyle(bar).paddingRight)+.5};while(over()&&f>10&&n<12){f-=.5;n++;bs.forEach(b=>{b.style.fontSize=f+'px';b.style.paddingLeft=b.style.paddingRight=Math.max(6,f-4)+'px'})}}
+  function fvFit(){const bar=root.querySelector('.days>.fvbar');if(!bar)return;const bs=[...bar.querySelectorAll('.fvb:not(.today):not(.star)')];bs.forEach(b=>b.style.fontSize='');let f=14,n=0;const over=()=>{const l=bar.lastElementChild;return l&&l.getBoundingClientRect().right>bar.getBoundingClientRect().right-parseFloat(getComputedStyle(bar).paddingRight)+.5};while(over()&&f>10&&n<12){f-=.5;n++;bs.forEach(b=>{b.style.fontSize=f+'px';b.style.paddingLeft=b.style.paddingRight=Math.max(6,f-4)+'px'})}}
   function fvGoSec(sec,smooth){if(!sec)return;const sc=scrollerOf(sec),d=sec.getBoundingClientRect().top-(refBase()||0)-6;if(Math.abs(d)>.5){if(smooth&&sc.scrollTo)sc.scrollTo({top:sc.scrollTop+d,behavior:'smooth'});else sc.scrollTop+=d}}
   function fvClick(b){const n=b.dataset.fv;if(b.classList.contains('off'))return;
     if(n==='past'){const t=iso(new Date());st.past=!st.past;render();const sc=root.closest('.realview')||document.scrollingElement;if(st.past)sc.scrollTop=0;else{sc.scrollTop=0;fvGoSec(fvTodaySec(),false)}fvCurReset();fvCalc();return}
@@ -3241,7 +3241,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.10';
+const APP_VERSION='v261127.11';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
