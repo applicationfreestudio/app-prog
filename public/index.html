@@ -2865,7 +2865,7 @@ function mountPublic(root,data,opts){
   // option : arriver directement sur la vue jour par jour (journée en cours)
   let vOrigin='list',lastDv=null;
   // ---------- vue filtrée : défilement vertical, date dans le bandeau, cartes sur toute la largeur, menu de filtres ----------
-  let fv=false,fvCur=null,fvKey=null,fvF={une:true,scol:false,star:false};
+  let fv=false,fvCur=null,fvKey=null,fvForceK=null,fvF={une:true,scol:false,star:false};
   const FV_TODAY=`<svg viewBox="0 0 24 24" width="0" height="0" aria-hidden="true"></svg>`;
   // types d'une journée (ou d'un groupe de journées) : vacances, mercredi/samedi/dimanche, jour d'école
   function fvTypes(k,until){const out=new Set();let d=k;for(let n=0;n<62;n++){const p=periodOf(d,(st.settings||{}).periods);const w=dow(d);out.add(p&&p.type==='vacances'?'vac':(w===2||w===5||w===6)?'ws':'sch');if(!until||d>=until)break;d=addDays(d,1)}return [...out].join(' ')}
@@ -2886,6 +2886,7 @@ function mountPublic(root,data,opts){
       // réaction immédiate au toucher
       {let p0=null;bar.addEventListener('pointerdown',e=>{p0=e.button>0?null:{x:e.clientX,y:e.clientY,sl:bar.scrollLeft}});bar.addEventListener('pointerup',e=>{const b=e.target.closest('[data-fv]');if(!b||!p0)return;const mv=Math.abs(e.clientX-p0.x)+Math.abs(bar.scrollLeft-p0.sl);p0=null;if(mv<8)fvClick(b)});bar.addEventListener('pointercancel',()=>{p0=null})}setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
     pb.classList.toggle('fv-u0',!fvF.une);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
+    root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));if(fvForceK){const x=root.querySelector('#j-'+fvForceK);if(x)x.classList.add('fvforce')}
     fvMark();fvFirst();fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
     fitStay();fvCalc()}
   function fvFirst(){{let f=true,po=false;root.querySelectorAll('.days>section.day').forEach(x=>{const v=!!x.offsetParent;if(x.id){x.classList.toggle('fvfirst',v&&f);if(v)f=false}x.classList.toggle('fvaft',v&&po&&!x.classList.contains('fvoff'));if(v)po=x.classList.contains('fvoff')})}}
@@ -2931,10 +2932,10 @@ function mountPublic(root,data,opts){
       {let e=x.previousElementSibling;while(e&&!e.classList.contains('psep'))e=e.previousElementSibling;if(e&&e.classList.contains('vac')&&e.offsetParent)x=e}b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});fvGoSec(x,true);return}
     if(n==='today'){if(b.classList.contains('dim'))return;b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});
       // aujourd'hui masqué par les options d'affichage : affiché quand même
-      const ta=fvTodayAny();if(ta&&!ta.offsetParent){root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));ta.classList.add('fvforce');fvMark();fvFirst();fitStay()}fvGoSec(ta&&ta.offsetParent?ta:fvTodaySec(),true);return}
+      const ta=fvTodayAny();if(ta&&!ta.offsetParent){fvForceK=ta.id.slice(2);fvApply()}fvGoSec(ta&&ta.offsetParent?ta:fvTodaySec(),true);return}
     const keep=fvCur&&root.querySelector('#j-'+fvCur);
     // en mode étoile, « À la une » ou « Scolaire » quitte l'étoile et se sélectionne
-    root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));
+    fvForceK=null;
     if(n==='star')fvF.star=!fvF.star;else if(fvF.star){fvF.star=false;fvF[n]=true}else if(n==='une')fvF.une=!fvF.une;else if(n==='scol')fvF.scol=!fvF.scol;
     // on reste sur la journée en cours de lecture (ou la plus proche encore affichée)
     const ce=fvCur&&(fvKey&&fvKey[0]==='s'?root.querySelector('.days>section.stay[data-d="'+fvCur+'"]'):root.querySelector('#j-'+fvCur)),off=ce?ce.getBoundingClientRect().top-(refBase()||0):0;
@@ -2958,7 +2959,9 @@ function mountPublic(root,data,opts){
 
   function startDay(){const I=(st.settings||{}).info||{};vOrigin='list';fv=false;fvF={une:true,scol:false,star:false};if(st.view!=='prog'||dv){fvApply();return}
     const m=DIRECT==='jour'?'day':DIRECT==='defile'?'list':DIRECT==='filtre'?'filter':(I.arrive||'filter');
-    if(m==='filter'){vOrigin='filter';fv=true;fvApply();return}fvApply();if(m!=='day')return;vOrigin='day';setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
+    if(m==='filter'){vOrigin='filter';fv=true;fvForceK=null;fvApply();
+      // à l'arrivée, les cartes du jour s'affichent même si le filtre les masque
+      const ta=fvTodayAny();if(ta&&!ta.offsetParent){fvForceK=ta.id.slice(2);fvApply()}return}fvApply();if(m!=='day')return;vOrigin='day';setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
   // ---------- jauge de progression sous le bandeau (propositions) ----------
   function pbUpdate(){const pb=root.querySelector('.pub');if(!pb||st.view==='home'){const x=root.querySelector('.pbar');if(x)x.remove();return}
     const PI=(st.settings||{}).info||{},pbOn=dv?(PI.pbDay==null?PI.progBar!==false:!!PI.pbDay):!!PI.pbList;
@@ -3269,7 +3272,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.17';
+const APP_VERSION='v261127.18';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
