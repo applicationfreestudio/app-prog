@@ -1052,6 +1052,9 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview.fvdate .pub-head .brand>div:not(.dvdate) small{font-size:16px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
 .pub.fview .days>section.day .acts{transition:opacity .2s ease,filter .2s ease}
 .pub.fview .days>section.day:not(.fcur) .acts{opacity:.12}
+/* intitulé d'un jour estompé aussi ; jamais les fermetures ni les périodes de vacances */
+.pub.fview .days>section.day::before{transition:opacity .2s ease}
+.pub.fview .days>section.day:not(.fcur):not(.fvoff)::before{opacity:.3}
 .pub.fview .days>section.day.fvoff>.dgrid{display:none!important}
 
 .pub.fview.fv-st .days>section.day.fvoff:not(.fvforce){display:none!important}
@@ -3262,7 +3265,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.15';
+const APP_VERSION='v261127.16';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
