@@ -1054,17 +1054,17 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview .days>section.day:not(.fcur) .acts{opacity:.12}
 .pub.fview .days>section.day.fvoff>.dgrid{display:none!important}
 
-.pub.fview.fv-st .days>section.day.fvoff{display:none!important}
+.pub.fview.fv-st .days>section.day.fvoff:not(.fvforce){display:none!important}
 .pub.fview .days>section.day.fvoff{padding:10px 0;background:linear-gradient(#e6e2e8,#e6e2e8) center/100% 1px no-repeat}
 .pub.fview .days>section.day.fvoff::before{display:table!important;margin:0 auto!important;padding:4px 14px!important;border-radius:14px;background:#F8F7F5!important;box-shadow:inset 0 0 0 1px #dedae1;font-size:12.5px!important;font-weight:400!important;color:#9b97a1!important;white-space:pre-line!important;line-height:1.4!important;letter-spacing:.02em!important}
 .pub.fview.fv-u0 .days>.pinned{display:none!important}
 .pub.pub.fview.fv-u0 .days>.past-btn,.pub.pub.fview.fv-st .days>.pinned:not(.pinfix):not(:has(.card.hl))+.past-btn{margin-top:22px!important}
-/* lundi, mardi, jeudi, vendredi hors vacances : masqués si le bouton n'est pas sélectionné, sauf les cartes mises en évidence */
-.pub.fview.fv-s0:not(.fv-st) .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]):not(.fvhl){display:none!important}
-.pub.fview.fv-s0:not(.fv-st) .days>section.day.fvhl:not([data-ft~="ws"]):not([data-ft~="vac"]) :is(.card:not(.hl),.acts>:not(.cards),.cards:not(:has(.card.hl))){display:none!important}
-/* étoile : uniquement les cartes mises en évidence, à la une comprises */
-.pub.fview.fv-st .days>section.day:not(.fvhl),.pub.fview.fv-st .days>.psep,.pub.fview.fv-st .days>.pinned:not(:has(.card.hl)){display:none!important}
-.pub.fview.fv-st .days>section.day .card:not(.hl),.pub.fview.fv-st .days>section.day .acts>:not(.cards),.pub.fview.fv-st .days>section.day .cards:not(:has(.card.hl)),.pub.fview.fv-st .days>.pinned .card:not(.hl){display:none!important}
+/* lundi, mardi, jeudi, vendredi hors vacances : masqués si « scolaire » n'est pas sélectionné, sauf les journées avec une carte mise en évidence (affichées en entier) */
+.pub.fview.fv-s0:not(.fv-st) .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]):not(.fvhl):not(.fvforce){display:none!important}
+/* étoile : uniquement les cartes mises en évidence et les cartes sur réservation, à la une comprises */
+.pub.fview.fv-st .days>section.day:not(.fvst):not(.fvforce),.pub.fview.fv-st .days>.psep,.pub.fview.fv-st .days>.pinned:not(:has(.card:is(.hl,.resa))){display:none!important}
+.pub.fview.fv-st .days>section.day:not(.fvforce) :is(.card:not(.hl):not(.resa),.acts>:not(.cards),.cards:not(:has(.card:is(.hl,.resa)))),.pub.fview.fv-st .days>.pinned .card:not(.hl):not(.resa){display:none!important}
+.pub.fview .days>section.day.fvoff.fvforce{display:block!important}
 .pub.fview .pinned.pinfix{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) + var(--fvh,0px))!important}
 /* première carte à la une figée dès l'arrivée, juste sous le menu */
 .pub.pub.fview .days>.pinned.pinfix{margin-top:-16px!important;padding-top:3px!important}
@@ -2140,7 +2140,7 @@ function cardHTML(a,opts){
   const mx=(h,k)=>{const n=parseInt(h.slice(1),16),f=c=>Math.round(c*k+255*(1-k));return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')'};
   const fk=(a.id||a.title||'')+'|'+(opts.date||''),fold=!opts.nofold&&!a.alwaysOpen&&(UNFOLD_ALL?CLOSED_CARDS.has(fk):!OPEN_CARDS.has(fk));
   const ctop=a.full?`<div class="ctop">${''}${a.full?`<span class="ctfull">${esc(LBL.full).toUpperCase()}</span>`:''}</div>`:'';
-  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${a.alwaysOpen?' aopen':''}${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info2?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
+  return `${ctop}<article data-aid="${esc(a.id||'')}" data-fk="${esc(fk)}"${a.autoUnfold?' data-au="1"':''} class="card${a.alwaysOpen?' aopen':''}${fold?' fold':''}${CARD_MODE==='demi'?' demi':''}${opts.une?' une':''}${a.morning?' morning':''}${info2?'':' noinfo'}${a.full?' hasrib':''}${a.highlight?' hl':''}${a.booking&&a.booking.on?' resa':''}${a.desc?' hasdesc':''}" style="--ac:${v.c1};--hlx:${mx(v.c1,.2)}">${a.full?`<span class="rib-w" aria-label="${esc(LBL.full)}"><span class="rib">${esc(LBL.full).toUpperCase()}</span></span>`:''}${(()=>{const g=[];return g.length?`<span class="rib-w r" aria-label="${esc(g.join(', '))}"><span class="rib blue${g.join(' · ').length>12?' long':''}">${esc(g.join(' · ')).toUpperCase()}</span></span>`:''})()}
     <button class="fold-ar" type="button" aria-label="${fold?'Déplier':'Replier'} la carte" aria-expanded="${!fold}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="card-img">${actImage(a,opts)}</div>
     <div class="card-head">
@@ -2867,13 +2867,13 @@ function mountPublic(root,data,opts){
   // types d'une journée (ou d'un groupe de journées) : vacances, mercredi/samedi/dimanche, jour d'école
   function fvTypes(k,until){const out=new Set();let d=k;for(let n=0;n<62;n++){const p=periodOf(d,(st.settings||{}).periods);const w=dow(d);out.add(p&&p.type==='vacances'?'vac':(w===2||w===5||w===6)?'ws':'sch');if(!until||d>=until)break;d=addDays(d,1)}return [...out].join(' ')}
   function fvMark(){const ss=dvSecs();ss.forEach((x,i)=>{const k=x.id.slice(2),d=st.days[k]||{},ci=x.querySelector('.cal-ico'),nx=ss[i+1];
-      const until=ci&&ci.classList.contains('multi')&&nx?addDays(nx.id.slice(2),-1):k;x.dataset.ft=fvTypes(k,until);x.dataset.until=until;x.classList.toggle('fvoff',!!d.closed);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))});
+      const until=ci&&ci.classList.contains('multi')&&nx?addDays(nx.id.slice(2),-1):k;x.dataset.ft=fvTypes(k,until);x.dataset.until=until;x.classList.toggle('fvoff',!!d.closed);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'));x.classList.toggle('fvst',!!x.querySelector('.card.hl,.card.resa'))});
     const Y0=new Date().getFullYear(),YY=k=>parse(k).getFullYear()!==Y0?' '+parse(k).getFullYear():'',L=k=>{const d=parse(k);return DAYS[dow(k)]+' '+(d.getDate()===1?'1er':d.getDate())+' '+MONTHS_S[d.getMonth()]+YY(k)};ss.forEach(x=>{const k=x.id.slice(2),u=x.dataset.until,d=st.days[k]||{};const W2=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate()),dl=u&&u!==k?'du '+W2(k)+(MONTHS_S[parse(k).getMonth()]===MONTHS_S[parse(u).getMonth()]&&k.slice(0,4)===u.slice(0,4)?'':' '+MONTHS_S[parse(k).getMonth()]+YY(k))+' au '+L(u):L(k);
       const D1=k=>{const n=parse(k).getDate();return n===1?'1er':String(n)},MM=k=>MONTHS_S[parse(k).getMonth()],cl=u&&u!==k?'du '+D1(k)+(MM(k)===MM(u)&&k.slice(0,4)===u.slice(0,4)?'':' '+MM(k)+(k.slice(0,4)!==u.slice(0,4)?YY(k):''))+' au '+D1(u)+' '+MM(u)+YY(u):'le '+D1(k)+' '+MM(k)+YY(k);
       // intitulé : date et horaires sur une ligne ; fermeture : date, « Fermé », raison
       const hr=d.closed?'':dayRanges(d).map(([a,b])=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'à partir de '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'').filter(Boolean).join(' et ');
       x.dataset.fvd=d.closed?'Fermé '+cl+((d.closedReason||'').trim()?'\n'+d.closedReason.trim():''):dl+(hr?' '+hr:'')});
-    root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);{const a=x.dataset.d,e=x.dataset.e||a,MM=k=>MONTHS_S[parse(k).getMonth()],same=MM(a)===MM(e)&&a.slice(0,4)===e.slice(0,4),W=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate());x.dataset.fvd=e===a?L(a):'du '+W(a)+(same?'':' '+MM(a)+YY(a))+' au '+W(e)+' '+MM(e)+YY(e)}x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))})}
+    root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);{const a=x.dataset.d,e=x.dataset.e||a,MM=k=>MONTHS_S[parse(k).getMonth()],same=MM(a)===MM(e)&&a.slice(0,4)===e.slice(0,4),W=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate());x.dataset.fvd=e===a?L(a):'du '+W(a)+(same?'':' '+MM(a)+YY(a))+' au '+W(e)+' '+MM(e)+YY(e)}x.classList.toggle('fvhl',!!x.querySelector('.card.hl'));x.classList.toggle('fvst',!!x.querySelector('.card.hl,.card.resa'))})}
   function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today" aria-label="Revenir à aujourd'hui">ce jour</button><button type="button" class="fvb" data-fv="une">à la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Jours scolaires"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3 2.5 8 12 13l9.5-5z" fill="currentColor"/><path d="M6 10.2v4.6c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.6L12 13.4z" fill="currentColor" opacity=".75"/><path d="M20.3 8.6v5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>scolaire</span></button><button type="button" class="fvb vac" data-fv="vac" aria-label="Prochaines vacances"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12.2 9.2c-.6 4.4-1.6 8.3-3.4 11.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.4 9.6C10.6 6.4 7.2 5.6 4 7.4c3-.2 5.4.6 8.4 2.2zM12.4 9.6c1-3.6 4.2-5.2 7.8-4.2-2.8.4-5 1.8-7.8 4.2zM12.4 9.6c3.4-1 6.4.6 7.4 4-1.8-2-4.4-3.2-7.4-4zM12.4 9.6c-2.8.6-4.8 2.8-5 6 1.2-2.6 2.8-4.4 5-6z" fill="currentColor"/><path d="M4.5 21h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>vacances</span></button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button><button type="button" class="fvb past" data-fv="past">passé</button>`}
   function fvApply(){const pb=root.querySelector('.pub');if(!pb)return;const on=fv&&!dv&&st.view==='prog';
     pb.classList.toggle('fview',on);let bar=root.querySelector('.days>.fvbar');
@@ -2883,8 +2883,9 @@ function mountPublic(root,data,opts){
       // réaction immédiate au toucher
       {let p0=null;bar.addEventListener('pointerdown',e=>{p0=e.button>0?null:{x:e.clientX,y:e.clientY,sl:bar.scrollLeft}});bar.addEventListener('pointerup',e=>{const b=e.target.closest('[data-fv]');if(!b||!p0)return;const mv=Math.abs(e.clientX-p0.x)+Math.abs(bar.scrollLeft-p0.sl);p0=null;if(mv<8)fvClick(b)});bar.addEventListener('pointercancel',()=>{p0=null})}setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
     pb.classList.toggle('fv-u0',!fvF.une);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
-    fvMark();{let f=true,po=false;root.querySelectorAll('.days>section.day').forEach(x=>{const v=!!x.offsetParent;if(x.id){x.classList.toggle('fvfirst',v&&f);if(v)f=false}x.classList.toggle('fvaft',v&&po&&!x.classList.contains('fvoff'));if(v)po=x.classList.contains('fvoff')})}fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
+    fvMark();fvFirst();fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
     fitStay();fvCalc()}
+  function fvFirst(){{let f=true,po=false;root.querySelectorAll('.days>section.day').forEach(x=>{const v=!!x.offsetParent;if(x.id){x.classList.toggle('fvfirst',v&&f);if(v)f=false}x.classList.toggle('fvaft',v&&po&&!x.classList.contains('fvoff'));if(v)po=x.classList.contains('fvoff')})}}
   // le bouton « Aujourd'hui » exactement sous le logo (ou la date), même largeur
   function fvLayout(){const bar=root.querySelector('.days>.fvbar'),days=root.querySelector('.days'),pb=root.querySelector('.pub');if(!bar||!days||!pb)return;
     const cs=getComputedStyle(days);bar.style.marginLeft=-parseFloat(cs.paddingLeft)+'px';bar.style.marginRight=-parseFloat(cs.paddingRight)+'px';
@@ -2893,6 +2894,8 @@ function mountPublic(root,data,opts){
     if(hd&&el){let x=0,e=el;while(e&&e!==hd){x+=e.offsetLeft;e=e.offsetParent}if(e===hd){bar.style.paddingLeft=Math.round(hd.getBoundingClientRect().left+x-br.left)+'px';const t=bar.querySelector('.today');if(t)t.style.width=el.offsetWidth+'px'}}
     pb.style.setProperty('--fvh',Math.round(bar.offsetHeight)+'px')}
   // première journée affichée à partir d'aujourd'hui
+  // section qui couvre aujourd'hui (même masquée par les filtres)
+  function fvTodayAny(){const t=iso(new Date());return dvSecs().find(x=>(x.dataset.until||x.id.slice(2))>=t)||null}
   function fvTodaySec(){const t=iso(new Date());return dvSecs().find(x=>x.offsetParent&&!x.classList.contains('fvoff')&&(x.dataset.until||x.id.slice(2))>=t)||null}
   // journée courante : celle dont la dernière carte est encore entièrement visible sous le bandeau
   function fvCalc(){if(!fv||dv)return;const pb=root.querySelector('.pub');if(!pb||!pb.classList.contains('fview'))return;const base=(refBase()||0)-1;
@@ -2903,7 +2906,7 @@ function mountPublic(root,data,opts){
     root.querySelectorAll('.days>section.day').forEach(x=>x.classList.toggle('fcur',!!cur&&(x===cur||(!isSt&&x.classList.contains('stay')&&x.dataset.d>=k&&x.dataset.d<=(cur.dataset.until||k)))));
     if(key!==fvKey){fvKey=key;fvCur=k;fvHead(cur);pbUpdate()}else if(cur&&!root.querySelector('.pub-head .dvdate'))fvHead(cur);fvSync()}
   // état des boutons : grisé (inutilisable), normal, sélectionné
-  function fvSync(){const bar=root.querySelector('.days>.fvbar');if(!bar)return;const ts=fvTodaySec(),atT=!ts||(fvCur&&ts.id==='j-'+fvCur);
+  function fvSync(){const bar=root.querySelector('.days>.fvbar');if(!bar)return;const ts=fvTodayAny(),atT=!ts||(fvCur&&ts.id==='j-'+fvCur);
     const b=n=>bar.querySelector(`[data-fv="${n}"]`);
     b('today').classList.toggle('dim',atT);b('today').classList.toggle('on',!atT);
     b('une').classList.toggle('on',fvF.une&&!fvF.star);b('scol').classList.toggle('on',fvF.scol&&!fvF.star);
@@ -2920,10 +2923,15 @@ function mountPublic(root,data,opts){
   function fvGoSec(sec,smooth){if(!sec)return;if(glued)glued.release();auHold=performance.now()+(smooth?1400:300);const sc=scrollerOf(sec),d=sec.getBoundingClientRect().top-(refBase()||0)-6;if(Math.abs(d)>.5){if(smooth&&sc.scrollTo)sc.scrollTo({top:sc.scrollTop+d,behavior:'smooth'});else sc.scrollTop+=d}}
   function fvClick(b){const n=b.dataset.fv;if(b.classList.contains('off'))return;
     if(n==='past'){const t=iso(new Date());st.past=!st.past;render();const sc=root.closest('.realview')||document.scrollingElement;if(st.past)sc.scrollTop=0;else{sc.scrollTop=0;fvGoSec(fvTodaySec(),false)}fvCurReset();fvCalc();return}
-    if(n==='vac'){const x=fvVacSec();if(!x)return;b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});fvGoSec(x,true);return}
-    if(n==='today'){if(b.classList.contains('dim'))return;b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});fvGoSec(fvTodaySec(),true);return}
+    if(n==='vac'){let x=fvVacSec();if(!x)return;
+      // arrivée sur le cartouche qui annonce la période de vacances
+      {let e=x.previousElementSibling;while(e&&!e.classList.contains('psep'))e=e.previousElementSibling;if(e&&e.classList.contains('vac')&&e.offsetParent)x=e}b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});fvGoSec(x,true);return}
+    if(n==='today'){if(b.classList.contains('dim'))return;b.classList.remove('mark');void b.offsetWidth;b.classList.add('mark');b.addEventListener('animationend',()=>b.classList.remove('mark'),{once:true});
+      // aujourd'hui masqué par les options d'affichage : affiché quand même
+      const ta=fvTodayAny();if(ta&&!ta.offsetParent){root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));ta.classList.add('fvforce');fvMark();fvFirst();fitStay()}fvGoSec(ta&&ta.offsetParent?ta:fvTodaySec(),true);return}
     const keep=fvCur&&root.querySelector('#j-'+fvCur);
     // en mode étoile, « À la une » ou « Scolaire » quitte l'étoile et se sélectionne
+    root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));
     if(n==='star')fvF.star=!fvF.star;else if(fvF.star){fvF.star=false;fvF[n]=true}else if(n==='une')fvF.une=!fvF.une;else if(n==='scol')fvF.scol=!fvF.scol;
     fvApply();(root.closest('.realview')||document.scrollingElement).scrollTop=0;fvCurReset();fvCalc();pbUpdate()}
   function fvCurReset(){fvCur=null;fvKey=null}
@@ -3254,7 +3262,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.14';
+const APP_VERSION='v261127.15';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
