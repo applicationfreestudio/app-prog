@@ -2936,7 +2936,11 @@ function mountPublic(root,data,opts){
     // en mode étoile, « À la une » ou « Scolaire » quitte l'étoile et se sélectionne
     root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));
     if(n==='star')fvF.star=!fvF.star;else if(fvF.star){fvF.star=false;fvF[n]=true}else if(n==='une')fvF.une=!fvF.une;else if(n==='scol')fvF.scol=!fvF.scol;
-    fvApply();(root.closest('.realview')||document.scrollingElement).scrollTop=0;fvCurReset();fvCalc();pbUpdate()}
+    // on reste sur la journée en cours de lecture (ou la plus proche encore affichée)
+    const ce=fvCur&&(fvKey&&fvKey[0]==='s'?root.querySelector('.days>section.stay[data-d="'+fvCur+'"]'):root.querySelector('#j-'+fvCur)),off=ce?ce.getBoundingClientRect().top-(refBase()||0):0;
+    fvApply();let tg=ce,o=off;if(tg&&!tg.offsetParent){let e=tg.nextElementSibling;while(e&&!(e.matches('section.day')&&e.offsetParent&&!e.classList.contains('fvoff')))e=e.nextElementSibling;if(!e){e=tg.previousElementSibling;while(e&&!(e.matches('section.day')&&e.offsetParent&&!e.classList.contains('fvoff')))e=e.previousElementSibling}tg=e;o=6}
+    if(tg){const sc=scrollerOf(tg);auHold=performance.now()+400;sc.scrollTop+=tg.getBoundingClientRect().top-(refBase()||0)-o}else (root.closest('.realview')||document.scrollingElement).scrollTop=0;
+    fvCurReset();fvCalc();pbUpdate()}
   function fvCurReset(){fvCur=null;fvKey=null}
   // date dans le bandeau (même présentation que la vue jour par jour), horaires en sous-titre
   function fvHead(sec){const pb=root.querySelector('.pub'),br=root.querySelector('.pub-head .brand');if(!pb||!br)return;let dd=br.querySelector('.dvdate');const sm2=br.querySelector(':scope>div:not(.dvdate) small');
@@ -3265,7 +3269,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.16';
+const APP_VERSION='v261127.17';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
