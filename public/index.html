@@ -1057,7 +1057,6 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview .days>section.day:not(.fcur):not(.fvoff)::before{opacity:.3}
 .pub.fview .days>section.day.fvoff>.dgrid{display:none!important}
 
-.pub.fview.fv-st .days>section.day.fvoff:not(.fvforce){display:none!important}
 .pub.fview .days>section.day.fvoff{padding:10px 0;background:linear-gradient(#e6e2e8,#e6e2e8) center/100% 1px no-repeat}
 .pub.fview .days>section.day.fvoff::before{display:table!important;margin:0 auto!important;padding:4px 14px!important;border-radius:14px;background:#F8F7F5!important;box-shadow:inset 0 0 0 1px #dedae1;font-size:12.5px!important;font-weight:400!important;color:#9b97a1!important;white-space:pre-line!important;line-height:1.4!important;letter-spacing:.02em!important}
 .pub.fview.fv-u0 .days>.pinned{display:none!important}
@@ -1065,7 +1064,7 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 /* lundi, mardi, jeudi, vendredi hors vacances : masqués si « scolaire » n'est pas sélectionné, sauf les journées avec une carte mise en évidence (affichées en entier) */
 .pub.fview.fv-s0:not(.fv-st) .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]):not(.fvhl):not(.fvforce){display:none!important}
 /* étoile : uniquement les cartes mises en évidence et les cartes sur réservation, à la une comprises */
-.pub.fview.fv-st .days>section.day:not(.fvst):not(.fvforce),.pub.fview.fv-st .days>.psep,.pub.fview.fv-st .days>.pinned:not(:has(.card:is(.hl,.resa))){display:none!important}
+.pub.fview.fv-st .days>section.day:not(.fvst):not(.fvforce):not(.fvoff),.pub.fview.fv-st .days>.pinned:not(:has(.card:is(.hl,.resa))){display:none!important}
 .pub.fview.fv-st .days>section.day:not(.fvforce) :is(.card:not(.hl):not(.resa),.acts>:not(.cards),.cards:not(:has(.card:is(.hl,.resa)))),.pub.fview.fv-st .days>.pinned .card:not(.hl):not(.resa){display:none!important}
 .pub.fview .days>section.day.fvoff.fvforce{display:block!important}
 .pub.fview .pinned.pinfix{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) + var(--fvh,0px))!important}
@@ -3272,7 +3271,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.18';
+const APP_VERSION='v261127.19';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
