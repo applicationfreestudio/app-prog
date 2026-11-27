@@ -1053,10 +1053,14 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .pub.fview .days>section.day .acts{transition:opacity .2s ease}
 .pub.fview .days>section.day:not(.fcur) .acts{opacity:.2}
 .pub.fview .days>section.day.fvoff{display:none!important}
-.pub.fview.fv-s0 .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]){display:none!important}
 .pub.fview.fv-u0 .days>.pinned{display:none!important}
-.pub.fview.fv-st .days>section.day:not(.fvhl),.pub.fview.fv-st .days>.psep{display:none!important}
-.pub.fview.fv-st .days>section.day .card:not(.hl),.pub.fview.fv-st .days>section.day .acts>:not(.cards),.pub.fview.fv-st .days>section.day .cards:not(:has(.card.hl)){display:none!important}
+.pub.pub.fview.fv-u0 .days>.past-btn,.pub.pub.fview.fv-st .days>.pinned:not(.pinfix):not(:has(.card.hl))+.past-btn{margin-top:22px!important}
+/* lundi, mardi, jeudi, vendredi hors vacances : masqués si le bouton n'est pas sélectionné, sauf les cartes mises en évidence */
+.pub.fview.fv-s0:not(.fv-st) .days>section.day:not([data-ft~="ws"]):not([data-ft~="vac"]):not(.fvhl){display:none!important}
+.pub.fview.fv-s0:not(.fv-st) .days>section.day.fvhl:not([data-ft~="ws"]):not([data-ft~="vac"]) :is(.card:not(.hl),.acts>:not(.cards),.cards:not(:has(.card.hl))){display:none!important}
+/* étoile : uniquement les cartes mises en évidence, à la une comprises */
+.pub.fview.fv-st .days>section.day:not(.fvhl),.pub.fview.fv-st .days>.psep,.pub.fview.fv-st .days>.pinned:not(:has(.card.hl)){display:none!important}
+.pub.fview.fv-st .days>section.day .card:not(.hl),.pub.fview.fv-st .days>section.day .acts>:not(.cards),.pub.fview.fv-st .days>section.day .cards:not(:has(.card.hl)),.pub.fview.fv-st .days>.pinned .card:not(.hl){display:none!important}
 .pub.fview .pinned.pinfix{top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh) + var(--fvh,0px))!important}
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
@@ -1065,6 +1069,7 @@ html body .pub .pub-head{background:#EDEBE8!important;-webkit-backdrop-filter:no
 .fvb::after{content:'';position:absolute;inset:-6px -4px}.fvb{position:relative}
 .fvb.today{padding:0;font-size:12px;letter-spacing:-.01em;flex:0 0 auto}
 .fvb.star{padding:0;width:42px}
+.fvb.scol{padding:0 9px;font-size:12px;letter-spacing:-.015em}
 .fvb.on{background:var(--caln,#141317);border-color:var(--caln,#141317);color:#fff}
 .fvb.off{opacity:.35;filter:grayscale(1);pointer-events:none;cursor:default}
 .fvb.today.dim{opacity:.4;filter:grayscale(.6);cursor:default}
@@ -2848,7 +2853,7 @@ function mountPublic(root,data,opts){
       const until=ci&&ci.classList.contains('multi')&&nx?addDays(nx.id.slice(2),-1):k;x.dataset.ft=fvTypes(k,until);x.dataset.until=until;x.classList.toggle('fvoff',!!d.closed);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))});
     const L=k=>{const d=parse(k);return DAYS[dow(k)]+' '+d.getDate()+' '+MONTHS[d.getMonth()]};ss.forEach(x=>{const k=x.id.slice(2),u=x.dataset.until;x.dataset.fvd=u&&u!==k?'du '+L(k)+' au '+L(u):L(k)});
     root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))})}
-  function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today">Aujourd'hui</button><button type="button" class="fvb" data-fv="une">À la une</button><button type="button" class="fvb" data-fv="scol">Scolaire</button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button>`}
+  function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today">Aujourd'hui</button><button type="button" class="fvb" data-fv="une">À la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Lundi, mardi, jeudi, vendredi">Lun Mar Jeu Ven</button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button>`}
   function fvApply(){const pb=root.querySelector('.pub');if(!pb)return;const on=fv&&!dv&&st.view==='prog';
     pb.classList.toggle('fview',on);let bar=root.querySelector('.days>.fvbar');
     if(!on){if(bar)bar.remove();root.querySelectorAll('.days>section.day.fcur').forEach(x=>x.classList.remove('fcur'));if(!dv)fvHead(null);return}
@@ -2856,7 +2861,7 @@ function mountPublic(root,data,opts){
     if(!bar){bar=document.createElement('nav');bar.className='fvbar';bar.innerHTML=fvBarHTML();days.insertBefore(bar,days.firstChild);
       // réaction immédiate au toucher
       bar.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-fv]');if(!b||e.button>0)return;e.preventDefault();fvClick(b)});setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
-    pb.classList.toggle('fv-u0',!fvF.une||fvF.star);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
+    pb.classList.toggle('fv-u0',!fvF.une);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
     fvMark();{let f=true;root.querySelectorAll('.days>section.day[id^="j-"]').forEach(x=>{const v=!!x.offsetParent;x.classList.toggle('fvfirst',v&&f);if(v)f=false})}fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
     fitStay();fvCalc()}
   // le bouton « Aujourd'hui » exactement sous le logo (ou la date), même largeur
@@ -3214,7 +3219,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.2';
+const APP_VERSION='v261127.3';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
