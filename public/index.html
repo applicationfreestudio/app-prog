@@ -1050,8 +1050,8 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview .days section.day .dgrid{grid-template-columns:minmax(0,1fr)!important;column-gap:0!important}
 .pub.fview.fvdate .pub-head .logo{display:none}
 .pub.fview.fvdate .pub-head .brand>div:not(.dvdate) small{font-size:16px!important;font-weight:600!important;color:#3a3740!important;letter-spacing:.005em}
-.pub.fview .days>section.day .acts{transition:opacity .2s ease}
-.pub.fview .days>section.day:not(.fcur) .acts{opacity:.2}
+.pub.fview .days>section.day .acts{transition:opacity .2s ease,filter .2s ease}
+.pub.fview .days>section.day:not(.fcur) .acts{opacity:.2;filter:blur(.6px)}
 .pub.fview .days>section.day.fvoff>.dgrid{display:none!important}
 
 .pub.fview.fv-st .days>section.day.fvoff{display:none!important}
@@ -1071,18 +1071,18 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
 .fvbar{position:sticky;z-index:7;transform:translateZ(0);top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:flex;align-items:center;gap:6px;padding:10px 26px 8px;margin-top:-18px;margin-bottom:-14px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
-.fvb{all:unset;box-sizing:border-box;height:36px;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
+.fvb{all:unset;box-sizing:border-box;height:30px;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:13.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
 .fvb::after{content:'';position:absolute;inset:-6px -4px}.fvb{position:relative}
 .fvb.today{padding:0;font-size:12px;letter-spacing:-.01em;flex:0 0 auto}
 .fvb.star{padding:0;width:42px}
-.fvb.scol{padding:0 9px;font-size:12px;letter-spacing:-.015em}
+.fvb.scol{padding:0 10px;gap:5px}
 .fvb.on{background:var(--fvc);border-color:var(--fvc);color:#fff}
 .fvb.today.on{background:#fff;border-color:var(--fvc);color:color-mix(in srgb,var(--caln,#141317) 90%,#fff)}
 .fvb.off{opacity:.35;filter:grayscale(1);pointer-events:none;cursor:default}
-.fvb.today.dim{cursor:default;color:#141317;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--calg,var(--ig)) border-box;box-shadow:var(--cals,var(--lift))}
+.fvb.today.dim{cursor:default;color:#fff;border:0;background:var(--calm,var(--ig));box-shadow:var(--cals,var(--lift));font-size:12px;letter-spacing:.01em;font-weight:700}
 .fvb.mark{animation:fvmark .55s ease-out}
 /* espace entre les journées : fine barre verticale, date ; espace réduit de moitié sous la date */
-.pub.fview .days>section.day:is([id^="j-"],.stay)::before{content:attr(data-fvd);display:block;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:30px 0 18px;margin:-14px 0 0;font-size:12px;font-weight:300;line-height:16px;letter-spacing:.04em;color:#a8a4ae;background:linear-gradient(#d9d5dc,#d9d5dc) center bottom/1px 10px no-repeat}
+.pub.fview .days>section.day:is([id^="j-"],.stay)::before{content:attr(data-fvd);display:block;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:30px 0 18px;margin:-14px 0 0;font-size:12px;font-weight:400;line-height:16px;letter-spacing:.04em;color:#77737d;background:linear-gradient(#d9d5dc,#d9d5dc) center bottom/1px 10px no-repeat}
 .pub.fview .days>section.day.fvaft::before{padding-top:4px}
 .pub.fview .days>section.day.fvfirst::before{padding-top:8px;background:linear-gradient(#d9d5dc,#d9d5dc) center bottom/1px 10px no-repeat}
 /* phrase d'en-tête : en pied de calendrier, sous la dernière carte ; pas de bouton rond des jours passés */
@@ -2869,7 +2869,7 @@ function mountPublic(root,data,opts){
       const hr=d.closed?'':dayRanges(d).map(([a,b])=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'à partir de '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'').filter(Boolean).join(' et ');
       x.dataset.fvd=d.closed?'Fermé '+cl+((d.closedReason||'').trim()?'\n'+d.closedReason.trim():''):dl+(hr?' '+hr:'')});
     root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);{const a=x.dataset.d,e=x.dataset.e||a,MM=k=>MONTHS_S[parse(k).getMonth()],same=MM(a)===MM(e)&&a.slice(0,4)===e.slice(0,4),W=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate());x.dataset.fvd=e===a?L(a):'du '+W(a)+(same?'':' '+MM(a)+YY(a))+' au '+W(e)+' '+MM(e)+YY(e)}x.classList.toggle('fvhl',!!x.querySelector('.card.hl'))})}
-  function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today">Aujourd'hui</button><button type="button" class="fvb" data-fv="une">À la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Lundi, mardi, jeudi, vendredi">Lun Mar Jeu Ven</button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button><button type="button" class="fvb past" data-fv="past">Passé</button>`}
+  function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today">Aujourd'hui</button><button type="button" class="fvb" data-fv="une">À la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Jours scolaires"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3 2.5 8 12 13l9.5-5z" fill="currentColor"/><path d="M6 10.2v4.6c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.6L12 13.4z" fill="currentColor" opacity=".75"/><path d="M20.3 8.6v5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Scolaire</button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button><button type="button" class="fvb past" data-fv="past">Passé</button>`}
   function fvApply(){const pb=root.querySelector('.pub');if(!pb)return;const on=fv&&!dv&&st.view==='prog';
     pb.classList.toggle('fview',on);let bar=root.querySelector('.days>.fvbar');
     if(!on){if(bar)bar.remove();root.querySelectorAll('.days>section.day.fcur').forEach(x=>x.classList.remove('fcur'));if(!dv)fvHead(null);return}
@@ -3241,7 +3241,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.9';
+const APP_VERSION='v261127.10';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
