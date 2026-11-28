@@ -1045,6 +1045,10 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 /* zone tactile de la jauge */
 .pbar .pbhit{position:absolute;top:-6px;height:34px;pointer-events:auto;touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* ===== vue filtrée CSS ===== */
+/* ===== partage d'une journée ===== */
+.ejtoast{position:fixed;z-index:60;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);opacity:0;pointer-events:none;background:#2a2730;color:#fff;font:500 14px/1.3 var(--pf);padding:10px 16px;border-radius:12px;max-width:86vw;text-align:center;transition:opacity .2s,transform .2s}
+.ejtoast.on{opacity:1;transform:translate(-50%,0)}
+.pub .days .card{-webkit-touch-callout:none}
 /* ===== vue filtrée ===== */
 .pub.fview .days section.day .dcol{display:none!important}
 .pub.fview .days section.day .dgrid{grid-template-columns:minmax(0,1fr)!important;column-gap:0!important}
@@ -2302,9 +2306,10 @@ function linkDays(days,lib){lib=lib||libItems();if(!lib.length||!days)return day
   Object.keys(days).forEach(k=>{const d=days[k];out[k]=d&&d.slots?Object.assign({},d,{slots:d.slots.map(sl=>Object.assign({},sl,{acts:(sl.acts||[]).map(a=>linkAct(a,lib))}))}):d});return out}
 function mountPublic(root,data,opts){
   opts=opts||{};{const ag=data&&data.settings&&data.settings.info&&data.settings.info.ages;if(Array.isArray(ag)&&ag.length)AGES=ag}if(data&&data.settings&&data.settings.tarifs)TARIFS=data.settings.tarifs;
-  const DIRECT=opts.hashNav&&(location.hash==='#jour'||location.hash==='#defile'||location.hash==='#filtre')?location.hash.slice(1):'';
+  const DDATE=opts.hashNav&&/^#jour=\d{4}-\d\d-\d\d$/.test(location.hash)?location.hash.slice(6):'';
+  const DIRECT=DDATE?'jour':opts.hashNav&&(location.hash==='#jour'||location.hash==='#defile'||location.hash==='#filtre')?location.hash.slice(1):'';
   const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!DIRECT&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
-  if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{if(DIRECT)return;const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;if(v==='home'&&dv){dv=null;dvHintHide();dvDeco(null);dvPinOut()}render();window.scrollTo(0,0)}});
+  if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{if(DIRECT)return;const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;if(v==='home'&&dv){dv=null;dvHintHide();dvDeco(null);dvPinOut()}render();window.scrollTo(0,0);if(window.EJ_REFRESH)window.EJ_REFRESH()}});
   const HICO={horaires:'<path d="M12 19.6c-1.1-.7-8.4-5.1-8.4-10.2A4.6 4.6 0 0 1 12 6.6a4.6 4.6 0 0 1 8.4 2.8c0 5.1-7.3 9.5-8.4 10.2z"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
   const kico=(k,info)=>{const sv=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="${info.tileBold?3.1:2.6}" stroke-linecap="round" stroke-linejoin="round">${HICO[k]}</svg>`,u=`url('data:image/svg+xml,${encodeURIComponent(sv)}')`;return `<span class="kicw" aria-hidden="true"><i class="kic ktx" style="-webkit-mask-image:${u};mask-image:${u}"></i></span>`};
   // lettrage « découpé » : on y voit le fond (photo ou couleur) exactement aligné
@@ -2599,7 +2604,7 @@ function mountPublic(root,data,opts){
     if(e.target.closest('[data-dvback]')||(dv&&e.target.closest('.pub-head .dvdate,.pub-head .logo'))){const sec=dv&&root.querySelector('#j-'+dv);if(sec)dvToggle(sec);return}
     const go=e.target.closest('[data-go],[data-home]');
     if(go&&go.dataset.home&&!go.classList.contains('out')){go.classList.remove('anim');go.removeAttribute('style');void go.offsetWidth;go.classList.add('out');let done=false;const fin=()=>{if(done)return;done=true;go.click()};go.addEventListener('animationend',fin,{once:true});setTimeout(fin,700);return}
-    if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='home'&&dv){dv=null;dvHintHide();dvDeco(null);dvPinOut();const pb=root.querySelector('.pub');if(pb)pb.classList.remove('dayview')}if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;if(st.view==='prog'){onbMaybe();startDay()}return}
+    if(go){st.view=go.dataset.home?'home':'prog';if(st.view==='home'&&dv){dv=null;dvHintHide();dvDeco(null);dvPinOut();const pb=root.querySelector('.pub');if(pb)pb.classList.remove('dayview')}if(st.view==='prog')st.animT=performance.now();if(opts.hashNav){if(st.view==='prog')history.pushState(null,'','#programme');else history.pushState(null,'',location.pathname+location.search)}render();(root.closest('.realview')||document.scrollingElement).scrollTop=0;if(st.view==='prog'){onbMaybe();startDay()}if(opts.hashNav&&window.EJ_REFRESH)window.EJ_REFRESH();return}
     const ci=e.target.closest('.days .cal-ico');
     if(ci&&((st.settings||{}).info||{}).dayByDay&&ci.closest('section.day[id^="j-"]')){dvToggle(ci.closest('section.day'));return}
     if(ci){const sec=ci.closest('section.day');if(sec){const cs=[...sec.querySelectorAll('.card:not(.nofold)')];const anyF=cs.some(c=>c.classList.contains('fold'));cs.filter(c=>c.classList.contains('fold')===anyF).forEach(toggleFold)}return}
@@ -2878,6 +2883,20 @@ function mountPublic(root,data,opts){
   const pastHidden=()=>!opts.allDays&&!st.past&&Object.keys(st.days).some(k=>k<iso(new Date()));
   // option : arriver directement sur la vue jour par jour (journée en cours)
   let vOrigin='list',lastDv=null;
+  // partage d'une journée : appui long sur une carte (clic droit à la souris)
+  if(opts.hashNav){let lpT=null,lpP=null,lpAt=0,eat=false;
+    const dayOf=c=>{const sec=c.closest('.days>section.day');if(sec)return sec.id?sec.id.slice(2):sec.dataset.d;return dv||fvCur||iso(new Date())};
+    const toast=t=>{let e=root.querySelector('.ejtoast');if(!e){e=document.createElement('div');e.className='ejtoast';(root.querySelector('.pub')||root).appendChild(e)}e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2200)};
+    const share=c=>{lpAt=Date.now();const k=dayOf(c);if(!k)return;const d=parse(k),I=(st.settings||{}).info||{};
+      const url=location.origin+location.pathname+'#jour='+k,lab=DAYS[dow(k)]+' '+d.getDate()+' '+MONTHS[d.getMonth()],title=(I.name||'Espace jeunes')+' — '+lab;
+      try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}
+      if(navigator.share)navigator.share({title,text:title,url}).catch(()=>{});
+      else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>toast('Lien du '+lab+' copié'),()=>toast(url));else toast(url)};
+    root.addEventListener('pointerdown',e=>{const c=e.target.closest('.days .card');if(!c||e.button>0)return;lpP={x:e.clientX,y:e.clientY};clearTimeout(lpT);lpT=setTimeout(()=>{lpT=null;eat=true;share(c)},560)},true);
+    root.addEventListener('pointermove',e=>{if(lpT&&lpP&&Math.abs(e.clientX-lpP.x)+Math.abs(e.clientY-lpP.y)>10){clearTimeout(lpT);lpT=null}},true);
+    ['pointerup','pointercancel'].forEach(t=>root.addEventListener(t,()=>{clearTimeout(lpT);lpT=null},true));
+    root.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
+    root.addEventListener('contextmenu',e=>{const c=e.target.closest('.days .card');if(!c)return;e.preventDefault();if(Date.now()-lpAt>800)share(c)})}
   // ---------- vue filtrée : défilement vertical, date dans le bandeau, cartes sur toute la largeur, menu de filtres ----------
   let fv=false,fvCur=null,fvKey=null,fvForceK=null,fvF={une:true,scol:false,star:false};
   const FV_TODAY=`<svg viewBox="0 0 24 24" width="0" height="0" aria-hidden="true"></svg>`;
@@ -2976,7 +2995,10 @@ function mountPublic(root,data,opts){
     const m=DIRECT==='jour'?'day':DIRECT?'filter':(I.arrive==='day'?'day':'filter');
     if(m==='filter'){vOrigin='filter';fv=true;fvForceK=null;fvApply();
       // à l'arrivée, les cartes du jour s'affichent même si le filtre les masque
-      const ta=fvTodayAny();if(ta&&!ta.offsetParent){fvForceK=ta.id.slice(2);fvApply()}return}fvApply();if(m!=='day')return;vOrigin='day';setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
+      const ta=fvTodayAny();if(ta&&!ta.offsetParent){fvForceK=ta.id.slice(2);fvApply()}return}fvApply();if(m!=='day')return;vOrigin='day';
+    // lien partagé vers une journée : on ouvre cette journée (jours passés affichés si besoin)
+    if(DDATE&&DDATE<iso(new Date())&&!st.past){st.past=true;render()}
+    setTimeout(()=>{if(dv||!root.isConnected)return;const ss=dvSecs();let sec=null;if(DDATE){sec=ss.find(x=>x.id.slice(2)<=DDATE&&(x.dataset.until||x.id.slice(2))>=DDATE)||ss.find(x=>x.id.slice(2)>=DDATE)||null;if(sec&&sec.querySelector('.cal-ico.multi')){const nx=ss[ss.indexOf(sec)+1];if(nx&&nx.id.slice(2)<=DDATE)sec=nx}}if(!sec)sec=onbToday();if(sec)dvToggle(sec)},60)}
   // ---------- jauge de progression sous le bandeau (propositions) ----------
   function pbUpdate(){const pb=root.querySelector('.pub');if(!pb||st.view==='home'){const x=root.querySelector('.pbar');if(x)x.remove();return}
     const PI=(st.settings||{}).info||{},pbOn=dv?(PI.pbDay==null?PI.progBar!==false:!!PI.pbDay):!!PI.pbList;
@@ -3136,6 +3158,18 @@ window.EJ={perSort,resetVisitor,linkAct,linkDays,tplOf,OWN_KEYS,themeVars,setAge
     return null;
   }};
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // vérification des données : nouvelle lecture, et mise à jour seulement si un éditeur a changé quelque chose
+  let lastRaw=null,refreshing=null;
+  async function refresh(){if(refreshing)return refreshing;refreshing=(async()=>{try{await load();
+      const r=canEdit?await fetch('/api/all',{headers:auth(),cache:'no-store'}):await fetch('/api/public',{cache:'no-store'});if(!r.ok)return false;
+      const raw=await r.text();if(lastRaw===null){lastRaw=raw}
+      const d=JSON.parse(raw),cur=canEdit?JSON.stringify({settings:store.settings,library:store.library,drafts:store.drafts,public:store.public}):JSON.stringify({p:store.public,s:store.settings,l:window.EJ_LIBDATA||[]});
+      const nw=canEdit?JSON.stringify({settings:d.settings,library:d.library,drafts:d.drafts||{},public:d.public||{}}):JSON.stringify({p:d.days||{},s:d.settings||null,l:d.library||[]});
+      if(nw===cur)return false;
+      if(canEdit)Object.assign(store,{settings:d.settings,library:d.library,drafts:d.drafts||{},public:d.public||{}});
+      else{store.public=d.days||{};store.settings=d.settings||null;window.EJ_LIBDATA=d.library||[]}
+      ['settings','library','drafts','public'].forEach(notify);return true}catch(e){return false}finally{refreshing=null}})();return refreshing}
+  window.EJ_REFRESH=refresh;
   window.EJ_CF={
     logout(){try{localStorage.removeItem(LS)}catch(e){}location.hash='';location.reload()},
     expired(){if(!window.EJ_CF._warned){window.EJ_CF._warned=true;try{localStorage.removeItem(LS)}catch(e){}alert('Le jeton n\'est plus valide : reconnecte-toi.');location.reload()}},
@@ -3287,7 +3321,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.8';
+const APP_VERSION='v261128.9';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
