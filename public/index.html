@@ -1072,11 +1072,13 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.pub.fview .days>.pinned.pinfix{margin-top:-16px!important;padding-top:3px!important}
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
-.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:flex;align-items:center;gap:6px;padding:10px 0 8px 26px;margin-top:-18px;margin-bottom:-14px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
+.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow:hidden;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:block;padding:10px 0 8px;margin-top:-18px;margin-bottom:-14px;background:rgba(245,244,241,.72);-webkit-backdrop-filter:saturate(1.3) blur(7px);backdrop-filter:saturate(1.3) blur(7px)}
 .fvb{all:unset;box-sizing:border-box;height:30px;border-radius:8px!important;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:14.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
-.fvbar::-webkit-scrollbar{display:none}
+.fvsc{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding-left:26px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
+.fvsc::-webkit-scrollbar{display:none}
+.fvbar>.wm-pf{position:absolute;z-index:0;width:200px;height:200px;object-fit:contain;pointer-events:none;margin:0;max-width:none}
 /* le dernier bouton s'arrête sur la marge de droite */
-.fvbar::after{content:'';flex:0 0 20px;height:1px}
+.fvsc::after{content:'';flex:0 0 20px;height:1px}
 .fvb{flex:0 0 auto}.fvb::after{content:'';position:absolute;inset:-4px -3px}.fvb{position:relative}
 .fvb.today{padding:0;font-size:13px;letter-spacing:-.01em;flex:0 0 auto}
 .fvb.star{padding:0;width:42px}
@@ -2515,8 +2517,10 @@ function mountPublic(root,data,opts){
     c.style.clipPath='';
     // bande des cartes à la une figées : elle recouvre le filigrane de la page, on y place une copie alignée au pixel près
     // (au-dessus du fond translucide de la bande, sous ses cartes), effacée là où une carte du programme passe dessous
-    const pf=root.querySelector('.pinned.pinfix'),g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf):not(.wm-safe)');
-    if(!pf||!g)return;
+    // bandes du premier plan (cartes à la une figées, menu de la vue filtrée) : leur fond recouvre le filigrane de la page ;
+    // on y place une copie alignée au pixel près, au-dessus du fond et sous les boutons et cartes, effacée là où une carte passe dessous
+    const g=root.querySelector('img.wm:not(.wm-in):not(.wm-pf):not(.wm-safe)');if(!g)return;
+    [root.querySelector('.pinned.pinfix'),root.querySelector('.pub.fview .days>.fvbar')].forEach(pf=>{if(!pf||!pf.offsetHeight)return;
     let im=pf.querySelector(':scope>.wm-pf');
     if(!im){im=document.createElement('img');im.alt='';im.setAttribute('aria-hidden','true');pf.prepend(im)}
     const cl='wm-pf '+[...g.classList].filter(x=>x!=='wm').join(' ');if(im.className!==cl)im.className=cl;if(im.src!==g.src)im.src=g.src;
@@ -2524,12 +2528,22 @@ function mountPublic(root,data,opts){
     im.style.left=(gr.left-pr.left).toFixed(1)+'px';im.style.top=(gr.top-pr.top).toFixed(1)+'px';
     let q=`M${(pr.left-gr.left).toFixed(1)} ${(pr.top-gr.top).toFixed(1)}h${pr.width.toFixed(1)}v${pr.height.toFixed(1)}h${(-pr.width).toFixed(1)}Z`;
     root.querySelectorAll('.days .card,.days .dnote,.days .cal-ico,.days .stay-tag,.days .night,.days .act-foot,.days .psep>span,.days .past-btn,.days .empty-day,.days .slot-title').forEach(e=>{
-      if(pf.contains(e))return;const b=e.getBoundingClientRect();
+      if(pf.contains(e)||!e.offsetParent)return;const b=e.getBoundingClientRect();
       if(b.bottom<=pr.top||b.top>=pr.bottom||b.right<=gr.left||b.left>=gr.right)return;
       q+=`M${(b.left-gr.left).toFixed(1)} ${(b.top-gr.top).toFixed(1)}h${b.width.toFixed(1)}v${b.height.toFixed(1)}h${(-b.width).toFixed(1)}Z`;
     });
-    im.style.clipPath=`path(evenodd,"${q}")`;
+    im.style.clipPath=`path(evenodd,"${q}")`});
   }
+  // étirement en haut et en bas : la page s'étire quand on tire au-delà du début ou de la fin, puis revient
+  {let y0=null,x0=0,tg=null,sc=null,on=false,lock=0;
+   const rel=()=>{if(on&&tg){tg.style.transition='transform .42s cubic-bezier(.22,1,.36,1)';tg.style.transform='';const t=tg;setTimeout(()=>{if(!on)t.style.transition=''},450)}on=false;y0=null};
+   root.addEventListener('touchstart',e=>{if(e.touches.length!==1){rel();return}tg=root.querySelector('.pub>main');sc=root.closest('.realview')||document.scrollingElement;y0=e.touches[0].clientY;x0=e.touches[0].clientX;lock=0},{passive:true});
+   root.addEventListener('touchmove',e=>{if(y0==null||!tg||!sc)return;const t=e.touches[0],dy=t.clientY-y0,dx=t.clientX-x0;
+     if(!lock){if(Math.abs(dx)<6&&Math.abs(dy)<6)return;lock=Math.abs(dx)>Math.abs(dy)||e.target.closest('.fvbar,.pbar')?2:1}if(lock!==1)return;
+     const top=sc.scrollTop<=0,bot=sc.scrollTop+sc.clientHeight>=sc.scrollHeight-1;
+     if(!((dy>0&&top)||(dy<0&&bot))){if(on){tg.style.transform='';on=false}y0=t.clientY;return}
+     const k=1+Math.min(Math.abs(dy),360)/360*.07;tg.style.transition='none';tg.style.transformOrigin=dy>0?'50% 0':'50% 100%';tg.style.transform=`scaleY(${k.toFixed(4)})`;on=true},{passive:true});
+   root.addEventListener('touchend',rel,{passive:true});root.addEventListener('touchcancel',rel,{passive:true})}
   const wmTick=()=>{if(!wmRaf)wmRaf=requestAnimationFrame(()=>{wmRaf=0;wmClip()})};
   document.addEventListener('scroll',wmTick,{passive:true,capture:true});window.addEventListener('resize',wmTick);
   // titre sur deux lignes (sans complément) : l'horaire se place à la suite de la seconde ligne
@@ -2876,14 +2890,14 @@ function mountPublic(root,data,opts){
       const hr=d.closed?'':dayRanges(d).map(([a,b])=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'à partir de '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'').filter(Boolean).join(' et ');
       x.dataset.fvd=d.closed?'Fermé '+cl+((d.closedReason||'').trim()?'\n'+d.closedReason.trim():''):dl+(hr?' '+hr:'')});
     root.querySelectorAll('.days>section.day.stay[data-d]').forEach(x=>{x.dataset.ft=fvTypes(x.dataset.d);{const a=x.dataset.d,e=x.dataset.e||a,MM=k=>MONTHS_S[parse(k).getMonth()],same=MM(a)===MM(e)&&a.slice(0,4)===e.slice(0,4),W=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate());x.dataset.fvd=e===a?L(a):'du '+W(a)+(same?'':' '+MM(a)+YY(a))+' au '+W(e)+' '+MM(e)+YY(e)}x.classList.toggle('fvhl',!!x.querySelector('.card.hl'));x.classList.toggle('fvst',!!x.querySelector('.card.hl,.card.resa'))})}
-  function fvBarHTML(){return `<button type="button" class="fvb today" data-fv="today" aria-label="Revenir à aujourd'hui">ce jour</button><button type="button" class="fvb" data-fv="une">à la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Jours scolaires"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3 2.5 8 12 13l9.5-5z" fill="currentColor"/><path d="M6 10.2v4.6c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.6L12 13.4z" fill="currentColor" opacity=".75"/><path d="M20.3 8.6v5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>scolaire</span></button><button type="button" class="fvb vac" data-fv="vac" aria-label="Prochaines vacances"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12.2 9.2c-.6 4.4-1.6 8.3-3.4 11.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.4 9.6C10.6 6.4 7.2 5.6 4 7.4c3-.2 5.4.6 8.4 2.2zM12.4 9.6c1-3.6 4.2-5.2 7.8-4.2-2.8.4-5 1.8-7.8 4.2zM12.4 9.6c3.4-1 6.4.6 7.4 4-1.8-2-4.4-3.2-7.4-4zM12.4 9.6c-2.8.6-4.8 2.8-5 6 1.2-2.6 2.8-4.4 5-6z" fill="currentColor"/><path d="M4.5 21h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>vacances</span></button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button><button type="button" class="fvb past" data-fv="past">passé</button>`}
+  function fvBarHTML(){return `<div class="fvsc"><button type="button" class="fvb today" data-fv="today" aria-label="Revenir à aujourd'hui">ce jour</button><button type="button" class="fvb" data-fv="une">à la une</button><button type="button" class="fvb scol" data-fv="scol" aria-label="Jours scolaires"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3 2.5 8 12 13l9.5-5z" fill="currentColor"/><path d="M6 10.2v4.6c0 1.7 2.7 3.2 6 3.2s6-1.5 6-3.2v-4.6L12 13.4z" fill="currentColor" opacity=".75"/><path d="M20.3 8.6v5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>scolaire</span></button><button type="button" class="fvb vac" data-fv="vac" aria-label="Prochaines vacances"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12.2 9.2c-.6 4.4-1.6 8.3-3.4 11.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.4 9.6C10.6 6.4 7.2 5.6 4 7.4c3-.2 5.4.6 8.4 2.2zM12.4 9.6c1-3.6 4.2-5.2 7.8-4.2-2.8.4-5 1.8-7.8 4.2zM12.4 9.6c3.4-1 6.4.6 7.4 4-1.8-2-4.4-3.2-7.4-4zM12.4 9.6c-2.8.6-4.8 2.8-5 6 1.2-2.6 2.8-4.4 5-6z" fill="currentColor"/><path d="M4.5 21h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>vacances</span></button><button type="button" class="fvb star" data-fv="star" aria-label="Activités mises en évidence"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="currentColor"/></svg></button><button type="button" class="fvb past" data-fv="past">passé</button></div>`}
   function fvApply(){const pb=root.querySelector('.pub');if(!pb)return;const on=fv&&!dv&&st.view==='prog';
     pb.classList.toggle('fview',on);let bar=root.querySelector('.days>.fvbar');
     if(!on){if(bar)bar.remove();root.querySelectorAll('.days>section.day.fcur').forEach(x=>x.classList.remove('fcur'));if(!dv)fvHead(null);return}
     const days=root.querySelector('.days');if(!days)return;
     if(!bar){bar=document.createElement('nav');bar.className='fvbar';bar.innerHTML=fvBarHTML();days.insertBefore(bar,days.firstChild);
       // réaction immédiate au toucher
-      {let p0=null;bar.addEventListener('pointerdown',e=>{p0=e.button>0?null:{x:e.clientX,y:e.clientY,sl:bar.scrollLeft}});bar.addEventListener('pointerup',e=>{const b=e.target.closest('[data-fv]');if(!b||!p0)return;const mv=Math.abs(e.clientX-p0.x)+Math.abs(bar.scrollLeft-p0.sl);p0=null;if(mv<8)fvClick(b)});bar.addEventListener('pointercancel',()=>{p0=null})}setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
+      {let p0=null;const fsc=bar.querySelector('.fvsc');bar.addEventListener('pointerdown',e=>{p0=e.button>0?null:{x:e.clientX,y:e.clientY,sl:fsc.scrollLeft}});bar.addEventListener('pointerup',e=>{const b=e.target.closest('[data-fv]');if(!b||!p0)return;const mv=Math.abs(e.clientX-p0.x)+Math.abs(fsc.scrollLeft-p0.sl);p0=null;if(mv<8)fvClick(b)});bar.addEventListener('pointercancel',()=>{p0=null})}setTimeout(fvLayout,450);setTimeout(fvLayout,900)}
     pb.classList.toggle('fv-u0',!fvF.une);pb.classList.toggle('fv-s1',fvF.scol&&!fvF.star);pb.classList.toggle('fv-s0',!fvF.scol&&!fvF.star);pb.classList.toggle('fv-st',fvF.star);
     root.querySelectorAll('.fvforce').forEach(x=>x.classList.remove('fvforce'));if(fvForceK){const x=root.querySelector('#j-'+fvForceK);if(x)x.classList.add('fvforce')}
     fvMark();fvFirst();fvLayout();{const pf=root.querySelector('.pinfix');pb.style.setProperty('--pinh',pf&&pf.offsetHeight?Math.round(pf.offsetHeight)+'px':'0px')}
@@ -2894,8 +2908,8 @@ function mountPublic(root,data,opts){
     const cs=getComputedStyle(days);bar.style.marginLeft=-parseFloat(cs.paddingLeft)+'px';bar.style.marginRight=-parseFloat(cs.paddingRight)+'px';
     // position de mise en page (sans les animations du bandeau) : bord gauche du logo ou de la date
     const hd=root.querySelector('.pub-head'),el=[...root.querySelectorAll('.pub-head .dvdate,.pub-head .logo')].find(e=>e.offsetWidth>0),br=bar.getBoundingClientRect();
-    if(hd&&el){let x=0,e=el;while(e&&e!==hd){x+=e.offsetLeft;e=e.offsetParent}if(e===hd){bar.style.paddingLeft=Math.round(hd.getBoundingClientRect().left+x-br.left)+'px';const t=bar.querySelector('.today');if(t)t.style.width=el.offsetWidth+'px'}}
-    pb.style.setProperty('--fvh',Math.round(bar.offsetHeight)+'px')}
+    if(hd&&el){let x=0,e=el;while(e&&e!==hd){x+=e.offsetLeft;e=e.offsetParent}if(e===hd){const fsc=bar.querySelector('.fvsc');if(fsc)fsc.style.paddingLeft=Math.round(hd.getBoundingClientRect().left+x-br.left)+'px';const t=bar.querySelector('.today');if(t)t.style.width=el.offsetWidth+'px'}}
+    pb.style.setProperty('--fvh',Math.round(bar.offsetHeight)+'px');wmTick()}
   // première journée affichée à partir d'aujourd'hui
   // section qui couvre aujourd'hui (même masquée par les filtres)
   function fvTodayAny(){const t=iso(new Date());return dvSecs().find(x=>(x.dataset.until||x.id.slice(2))>=t)||null}
@@ -3271,7 +3285,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261127.20';
+const APP_VERSION='v261128.1';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
