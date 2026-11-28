@@ -2886,7 +2886,7 @@ function mountPublic(root,data,opts){
   function fvMark(){const ss=dvSecs();ss.forEach((x,i)=>{const k=x.id.slice(2),d=st.days[k]||{},ci=x.querySelector('.cal-ico'),nx=ss[i+1];
       const until=ci&&ci.classList.contains('multi')&&nx?addDays(nx.id.slice(2),-1):k;x.dataset.ft=fvTypes(k,until);x.dataset.until=until;x.classList.toggle('fvoff',!!d.closed);x.classList.toggle('fvhl',!!x.querySelector('.card.hl'));x.classList.toggle('fvst',!!x.querySelector('.card.hl,.card.resa'))});
     const Y0=new Date().getFullYear(),YY=k=>parse(k).getFullYear()!==Y0?' '+parse(k).getFullYear():'',L=k=>{const d=parse(k);return DAYS[dow(k)]+' '+(d.getDate()===1?'1er':d.getDate())+' '+MONTHS_S[d.getMonth()]+YY(k)};ss.forEach(x=>{const k=x.id.slice(2),u=x.dataset.until,d=st.days[k]||{};const W2=k=>DAYS[dow(k)]+' '+(parse(k).getDate()===1?'1er':parse(k).getDate()),dl=u&&u!==k?'du '+W2(k)+(MONTHS_S[parse(k).getMonth()]===MONTHS_S[parse(u).getMonth()]&&k.slice(0,4)===u.slice(0,4)?'':' '+MONTHS_S[parse(k).getMonth()]+YY(k))+' au '+L(u):L(k);
-      const D1=k=>{const n=parse(k).getDate();return n===1?'1er':String(n)},MM=k=>MONTHS_S[parse(k).getMonth()],cl=u&&u!==k?'du '+D1(k)+(MM(k)===MM(u)&&k.slice(0,4)===u.slice(0,4)?'':' '+MM(k)+(k.slice(0,4)!==u.slice(0,4)?YY(k):''))+' au '+D1(u)+' '+MM(u)+YY(u):'le '+D1(k)+' '+MM(k)+YY(k);
+      const D1=k=>{const n=parse(k).getDate();return DAYS[dow(k)]+' '+(n===1?'1er':String(n))},MM=k=>MONTHS_S[parse(k).getMonth()],cl=u&&u!==k?'du '+D1(k)+(MM(k)===MM(u)&&k.slice(0,4)===u.slice(0,4)?'':' '+MM(k)+(k.slice(0,4)!==u.slice(0,4)?YY(k):''))+' au '+D1(u)+' '+MM(u)+YY(u):'le '+D1(k)+' '+MM(k)+YY(k);
       // intitulé : date et horaires sur une ligne ; fermeture : date, « Fermé », raison
       const hr=d.closed?'':dayRanges(d).map(([a,b])=>a&&b?'de '+fmtTH(a)+' à '+fmtTH(b):a?'à partir de '+fmtTH(a):b?'jusqu\'à '+fmtTH(b):'').filter(Boolean).join(' et ');
       x.dataset.fvd=d.closed?'Fermé '+cl+((d.closedReason||'').trim()?'\n'+d.closedReason.trim():''):dl+(hr?' '+hr:'')});
@@ -3286,7 +3286,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.3';
+const APP_VERSION='v261128.4';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
