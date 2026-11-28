@@ -1072,7 +1072,7 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.pub.fview .days>.pinned.pinfix{margin-top:-16px!important;padding-top:3px!important}
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
-.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow:hidden;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:block;padding:10px 0 8px;margin-top:-18px;margin-bottom:-14px;background:linear-gradient(#d9d5dc,#d9d5dc) no-repeat left 26px bottom 0/calc(100% - 52px) 1px,#F5F4F1}
+.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow:hidden;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:block;padding:10px 0 8px;margin-top:-18px;margin-bottom:-14px;background:linear-gradient(#d9d5dc,#d9d5dc) no-repeat left 0 bottom 0/100% 1px,#F5F4F1}
 .fvb{all:unset;box-sizing:border-box;height:30px;border-radius:8px!important;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:14.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
 .fvsc{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding-left:26px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
 .fvsc::-webkit-scrollbar{display:none}
@@ -2813,7 +2813,7 @@ function mountPublic(root,data,opts){
     pb.classList.add('dayview');if(pb.classList.contains('fview'))fvApply();dvSecs().forEach(x=>x.classList.toggle('dvon',x===sec));dvPinIn();dvDeco(sec);pbUpdate()}
   function dvToggle(sec){const pb=root.querySelector('.pub');if(!pb)return;if(glued)glued.release();
     if(dv&&sec.id==='j-'+dv){// retour à la vue continue, la journée reste au même endroit sous le bandeau
-      dv=null;dvHintHide();dvDeco(null);dvHead(false);setTimeout(pbUpdate,0);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();fvApply();auHold=performance.now()+900;
+      dv=null;dvHintHide();dvDeco(null);dvHead(false);setTimeout(pbUpdate,0);pb.classList.remove('dayview');sec.classList.remove('dvon');dvPinOut();fv=true;fvApply();auHold=performance.now()+900;
       
       // retour à la vue continue sur la journée consultée : la position est tenue le temps que la page se recompose
       fitStay();const sc=scrollerOf(sec),t0=performance.now();let stop=false;const halt=()=>{stop=true};root.addEventListener('pointerdown',halt,{once:true});root.addEventListener('wheel',halt,{once:true,passive:true});
@@ -2972,7 +2972,8 @@ function mountPublic(root,data,opts){
   {let raf=0;window.addEventListener('scroll',()=>{if(!fv||dv||raf)return;raf=requestAnimationFrame(()=>{raf=0;if(root.isConnected)fvCalc()})},{capture:true,passive:true});window.addEventListener('resize',()=>{if(fv&&!dv)fvLayout()})}
 
   function startDay(){const I=(st.settings||{}).info||{};vOrigin='list';fv=false;fvF={une:true,scol:false,star:false};if(st.view!=='prog'||dv){fvApply();return}
-    const m=DIRECT==='jour'?'day':DIRECT==='defile'?'list':DIRECT==='filtre'?'filter':(I.arrive||'filter');
+    // deux vues : la vue défilée (ex-vue filtrée) et la vue jour par jour
+    const m=DIRECT==='jour'?'day':DIRECT?'filter':(I.arrive==='day'?'day':'filter');
     if(m==='filter'){vOrigin='filter';fv=true;fvForceK=null;fvApply();
       // à l'arrivée, les cartes du jour s'affichent même si le filtre les masque
       const ta=fvTodayAny();if(ta&&!ta.offsetParent){fvForceK=ta.id.slice(2);fvApply()}return}fvApply();if(m!=='day')return;vOrigin='day';setTimeout(()=>{if(dv||!root.isConnected)return;const sec=onbToday();if(sec)dvToggle(sec)},60)}
@@ -3286,7 +3287,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.5';
+const APP_VERSION='v261128.6';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -4325,33 +4326,34 @@ function renderSettings(main){
       <label class="fld"><span>Fondu : opaque à partir de <b id="plfv">${st.info.partFade==null?70:st.info.partFade} %</b> de la hauteur (0 % = pas de fondu)</span><input type="range" id="plf" min="0" max="100" step="5" value="${st.info.partFade==null?70:st.info.partFade}"></label>
             <label class="fld"><span>Pied de page (tout en bas, après les logos)</span><input class="in" data-if="footer" value="${esc(st.info.footer)}"></label>`)}
     ${fold('aff-cal','Paramétrage du calendrier',`
+      <label class="fld"><span>Vue d'arrivée sur le programme</span><select class="in t" id="arrive" style="width:auto">${[['filter','Vue défilée'],['day','Vue jour par jour']].map(([v,l])=>`<option value="${v}" ${((st.info.arrive==='day')?'day':'filter')===v?'selected':''}>${l}</option>`).join('')}</select></label>
       <h4 class="tsh">Cartes</h4>
       <p class="hint">Format des cartes à l'arrivée sur la page du programme.</p>
       <div class="cmodes">${[['petite','Petite carte','image + titre'],['demi','Demi-carte','titre, sous-titre et horaires']].map(([k,l,h])=>`<button type="button" class="btn cmode${(st.info.cardMode||'petite')===k?' on':''}" data-cmode="${k}"><b>${l}</b><small>${h}</small></button>`).join('')}</div>
       <label class="sw"><input type="checkbox" id="fixfoot" ${st.info.fixFoot?'checked':''}> Figer le pied de page et les logos (toujours visibles en bas du programme)</label>
       <label class="sw"><input type="checkbox" id="unfoldall" ${st.info.unfoldAll?'checked':''}> Déployer les cartes à l'ouverture de la page programme</label>
-      <label class="sw"><input type="checkbox" data-ib="pinShrink" data-def="1" ${(st.info.pinShrink==null?true:st.info.pinShrink)?'checked':''}> Réduire les cartes figées à la une en petites cartes pendant le défilement</label>
-      <label class="sw"><input type="checkbox" data-ib="pbDay" ${(st.info.pbDay==null?st.info.progBar!==false:st.info.pbDay)?'checked':''}> Afficher la jauge en vue jour par jour</label>
-      <label class="sw"><input type="checkbox" data-ib="pbList" ${st.info.pbList?'checked':''}> Afficher la jauge en vue défilement</label>
-      <label class="fld"><span>Jauge : intensité de la couleur : <b data-irv="pbCol">${st.info.pbCol==null?30:st.info.pbCol} %</b></span><input type="range" data-ir="pbCol" min="0" max="100" step="5" value="${st.info.pbCol==null?30:st.info.pbCol}"></label>
-      <label class="fld"><span>Jauge : intensité de la mise en évidence de la période : <b data-irv="pbSel">${st.info.pbSel==null?40:st.info.pbSel} %</b></span><input type="range" data-ir="pbSel" min="0" max="100" step="5" value="${st.info.pbSel==null?40:st.info.pbSel}"></label>
+      <h4 class="tsh">Jauge sous le bandeau</h4>
+      <label class="fld"><span>Intensité de la couleur : <b data-irv="pbCol">${st.info.pbCol==null?30:st.info.pbCol} %</b></span><input type="range" data-ir="pbCol" min="0" max="100" step="5" value="${st.info.pbCol==null?30:st.info.pbCol}"></label>
+      <label class="fld"><span>Intensité de la mise en évidence de la période : <b data-irv="pbSel">${st.info.pbSel==null?40:st.info.pbSel} %</b></span><input type="range" data-ir="pbSel" min="0" max="100" step="5" value="${st.info.pbSel==null?40:st.info.pbSel}"></label>
       <h4 class="tsh">Liens directs vers le programme</h4>
       <p class="hint">Ouvrent directement le programme, sans bouton de retour vers la page d'accueil.</p>
-      ${[['filtre','Programme en vue filtrée'],['jour','Programme jour par jour'],['defile','Programme en défilement']].map(([h,l])=>`<div class="fld"><span>${l}</span><div class="row" style="gap:8px;align-items:center"><input class="in" readonly value="${esc(location.origin+'/#'+h)}" style="flex:1"><button type="button" class="btn sm" data-cplink="${esc(location.origin+'/#'+h)}">Copier</button></div></div>`).join('')}
-      <h4 class="tsh">Effets au défilement</h4>
-      <label class="sw"><input type="checkbox" data-ib="fxAuto" data-def="1" ${(st.info.fxAuto==null?true:st.info.fxAuto)?'checked':''}> Déploiement automatique des cartes au défilement</label>
-      <label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
-      <label class="sw"><input type="checkbox" data-ib="fxLock" data-def="1" ${(st.info.fxLock==null?true:st.info.fxLock)?'checked':''}> Blocage du défilement pendant le déploiement automatique</label>
-      <label class="sw"><input type="checkbox" data-ib="fxStick" data-def="1" ${(st.info.fxStick==null?true:st.info.fxStick)?'checked':''}> Effet collant (cartes mises en évidence, à déploiement automatique, toujours déployées)</label>
-      <label class="sw"><input type="checkbox" id="stickall" ${st.info.stickAlways!==false?'checked':''}> Effet collant à chaque passage pour les cartes à déploiement automatique et toujours déployées (sinon, seulement la première fois de la session)</label>
-      <p class="hint">Tout décocher : seuls les réglages de chaque carte comptent (affichée, déployée ou non).</p>
-      <h4 class="tsh">En-tête du calendrier</h4>
-      <label class="fld"><span>Phrase d'en-tête du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
-      <h4 class="tsh">Vue jour par jour</h4>
-      <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Parcourir le calendrier jour par jour (un appui sur le calendrier d'une journée l'affiche seule, cartes déployées ; glisser à l'horizontale pour changer de jour ; nouvel appui pour revenir à la vue continue)</label>
-      <label class="fld"><span>Vue d'arrivée sur le programme</span><select class="in t" id="arrive" style="width:auto">${[['filter','Vue filtrée'],['day','Vue jour par jour'],['list','Vue en défilement']].map(([v,l])=>`<option value="${v}" ${(st.info.arrive||'filter')===v?'selected':''}>${l}</option>`).join('')}</select></label>
-      <label class="sw"><input type="checkbox" data-ib="dvFit" data-def="1" ${(st.info.dvFit==null?true:st.info.dvFit)?'checked':''}> Déployer automatiquement les cartes à l'arrivée sur le jour s'il y a la place</label>
-      <label class="sw"><input type="checkbox" data-ib="dvCompact" data-def="1" ${(st.info.dvCompact==null?true:st.info.dvCompact)?'checked':''}> La date à la place du logo, les horaires à la place du sous-titre, la journée sur toute la largeur</label>`)}
+      ${[['defile','Programme en vue défilée'],['jour','Programme jour par jour']].map(([h,l])=>`<div class="fld"><span>${l}</span><div class="row" style="gap:8px;align-items:center"><input class="in" readonly value="${esc(location.origin+'/#'+h)}" style="flex:1"><button type="button" class="btn sm" data-cplink="${esc(location.origin+'/#'+h)}">Copier</button></div></div>`).join('')}
+      ${fold('aff-cal-def','Vue défilée',`
+        <label class="fld"><span>Phrase en pied du calendrier (laisser un espace seul pour ne rien afficher)</span><input class="in" data-if="actFooter" value="${esc(st.info.actFooter)}" placeholder="Programme susceptible d'être modifié en fonction de la météo, des envies, des opportunités."></label>
+        <label class="sw"><input type="checkbox" data-ib="pbList" ${st.info.pbList?'checked':''}> Afficher la jauge</label>
+        <label class="sw"><input type="checkbox" data-ib="pinShrink" data-def="1" ${(st.info.pinShrink==null?true:st.info.pinShrink)?'checked':''}> Réduire les cartes figées à la une en petites cartes pendant le défilement</label>
+        <h4 class="tsh">Effets au défilement</h4>
+        <label class="sw"><input type="checkbox" data-ib="fxAuto" data-def="1" ${(st.info.fxAuto==null?true:st.info.fxAuto)?'checked':''}> Déploiement automatique des cartes au défilement</label>
+        <label class="sw"><input type="checkbox" id="autounf" ${st.info.autoUnfold?'checked':''}> Déploiement automatique pour toutes les cartes (sinon, carte par carte avec l'option « Déploiement automatique »)</label>
+        <label class="sw"><input type="checkbox" data-ib="fxLock" data-def="1" ${(st.info.fxLock==null?true:st.info.fxLock)?'checked':''}> Blocage du défilement pendant le déploiement automatique</label>
+        <label class="sw"><input type="checkbox" data-ib="fxStick" data-def="1" ${(st.info.fxStick==null?true:st.info.fxStick)?'checked':''}> Effet collant (cartes mises en évidence, à déploiement automatique, toujours déployées)</label>
+        <label class="sw"><input type="checkbox" id="stickall" ${st.info.stickAlways!==false?'checked':''}> Effet collant à chaque passage pour les cartes à déploiement automatique et toujours déployées (sinon, seulement la première fois de la session)</label>
+        <p class="hint">Tout décocher : seuls les réglages de chaque carte comptent (affichée, déployée ou non).</p>`)}
+      ${fold('aff-cal-jour','Vue jour par jour',`
+        <label class="sw"><input type="checkbox" id="daybyday" ${st.info.dayByDay?'checked':''}> Accès à la vue jour par jour depuis la vue défilée (appui sur la date du bandeau ; glisser à l'horizontale pour changer de jour)</label>
+        <label class="sw"><input type="checkbox" data-ib="pbDay" ${(st.info.pbDay==null?st.info.progBar!==false:st.info.pbDay)?'checked':''}> Afficher la jauge</label>
+        <label class="sw"><input type="checkbox" data-ib="dvFit" data-def="1" ${(st.info.dvFit==null?true:st.info.dvFit)?'checked':''}> Déployer automatiquement les cartes à l'arrivée sur le jour s'il y a la place</label>
+        <label class="sw"><input type="checkbox" data-ib="dvCompact" data-def="1" ${(st.info.dvCompact==null?true:st.info.dvCompact)?'checked':''}> La date à la place du logo, les horaires à la place du sous-titre, la journée sur toute la largeur</label>`)}`)}
     ${fold('aff-home',"Paramétrage de la page d'accueil",`      <label class="fld"><span>Sous-titre de l'établissement (page d'accueil)</span><input class="in" data-if="homeSub" value="${esc(st.info.homeSub||'')}" placeholder="par la communauté de communes Val de Cher Controis"></label>
       <h4 class="tsh">Photo de fond</h4>
       <div class="row" style="align-items:center;gap:10px"><span class="logo-prev">${st.info.homeBg?`<img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+st.info.homeBg)}" alt="" style="object-fit:cover">`:'—'}</span>
