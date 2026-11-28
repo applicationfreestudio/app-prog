@@ -1072,7 +1072,7 @@ html body .pub .pub-head{transform:translateZ(0);backface-visibility:hidden;back
 .pub.pub.fview .days>.pinned.pinfix{margin-top:-16px!important;padding-top:3px!important}
 .pub.fview .pbar .pbhit{height:15px}
 /* menu de la vue filtrée : collé sous le bandeau, au-dessus des cartes à la une */
-.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow:hidden;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:block;padding:10px 0 8px;margin-top:-18px;margin-bottom:-14px;background:#F5F4F1}
+.fvbar{position:sticky;z-index:7;transform:translateZ(0);overflow:hidden;top:calc(var(--top,0px) + env(safe-area-inset-top,0px) + var(--hh));display:block;padding:10px 0 8px;margin-top:-18px;margin-bottom:-14px;background:linear-gradient(#d9d5dc,#d9d5dc) no-repeat left 26px bottom 0/calc(100% - 52px) 1px,#F5F4F1}
 .fvb{all:unset;box-sizing:border-box;height:30px;border-radius:8px!important;--fvc:color-mix(in srgb,var(--caln,#141317) 82%,#fff);padding:0 14px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--pf);font-size:14.5px;font-weight:600;color:color-mix(in srgb,var(--caln,#141317) 90%,#fff);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:#fff;border:1.5px solid color-mix(in srgb,var(--caln,#141317) 45%,#fff);transition:opacity .15s,background-color .15s}
 .fvsc{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding-left:26px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
 .fvsc::-webkit-scrollbar{display:none}
@@ -3286,7 +3286,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.4';
+const APP_VERSION='v261128.5';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
