@@ -2323,7 +2323,7 @@ function mountPublic(root,data,opts){
     if(c.text)L.push(`<li class="ctx">${nlb(c.text)}</li>`);
     return `<section class="contact"><h2>contact</h2><b class="cn">${esc(c.name||info.name||'Espace jeunes')}</b>${L.length?`<ul>${L.join('')}</ul>`:'<p class="ctx">Coordonnées à compléter dans les paramètres.</p>'}</section>`}
   function homeHTML(info){
-    return `<main class="home"><div class="hgrid">${[['horaires','tes envies'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>{const v=((info.homeTiles||{})[k]||'').trim();return [k,(k==='horaires'&&/^les horaires$/i.test(v))?(v===v.toUpperCase()?l.toUpperCase():l):v||l]}).map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${kico(k,info)}<span class="ktx">${esc(l)}</span></button>`:`<div class="ht off" aria-disabled="true">${kico(k,info)}<span class="ktx">${esc(l)}</span><small class="ktx">bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
+    return `<main class="home"><div class="hgrid">${[['inscription','l\'inscription'],['programme','le programme'],['horaires','tes envies'],['informations','les informations']].map(([k,l])=>{const v=((info.homeTiles||{})[k]||'').trim();return [k,(k==='horaires'&&/^les horaires$/i.test(v))?(v===v.toUpperCase()?l.toUpperCase():l):v||l]}).map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${kico(k,info)}<span class="ktx">${esc(l)}</span></button>`:`<div class="ht off" aria-disabled="true">${kico(k,info)}<span class="ktx">${esc(l)}</span><small class="ktx">bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
   function logoHTML(info){
     if(info.logo&&!opts.noAssets)return `<span class="logo img"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.logo)}" alt=""></span>`;
     const ini=(info.name||'Espace jeunes').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -3287,7 +3287,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.7';
+const APP_VERSION='v261128.8';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
