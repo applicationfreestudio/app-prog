@@ -2305,7 +2305,7 @@ function mountPublic(root,data,opts){
   const DIRECT=opts.hashNav&&(location.hash==='#jour'||location.hash==='#defile'||location.hash==='#filtre')?location.hash.slice(1):'';
   const st={animT:performance.now(),days:{},settings:{},sheet:false,past:false,view:opts.home&&!DIRECT&&!(opts.hashNav&&location.hash==='#programme')?'home':'prog'};
   if(opts.home&&opts.hashNav)window.addEventListener('popstate',()=>{if(DIRECT)return;const v=location.hash==='#programme'?'prog':'home';if(v!==st.view){st.view=v;if(v==='home'&&dv){dv=null;dvHintHide();dvDeco(null);dvPinOut()}render();window.scrollTo(0,0)}});
-  const HICO={horaires:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
+  const HICO={horaires:'<path d="M12 19.6c-1.1-.7-8.4-5.1-8.4-10.2A4.6 4.6 0 0 1 12 6.6a4.6 4.6 0 0 1 8.4 2.8c0 5.1-7.3 9.5-8.4 10.2z"/>',programme:'<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',informations:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',inscription:'<path d="M9 4h6l1 2h2.5A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H8z"/><path d="M9 13l2 2 4-4"/>'};
   const kico=(k,info)=>{const sv=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="${info.tileBold?3.1:2.6}" stroke-linecap="round" stroke-linejoin="round">${HICO[k]}</svg>`,u=`url('data:image/svg+xml,${encodeURIComponent(sv)}')`;return `<span class="kicw" aria-hidden="true"><i class="kic ktx" style="-webkit-mask-image:${u};mask-image:${u}"></i></span>`};
   // lettrage « découpé » : on y voit le fond (photo ou couleur) exactement aligné
   function knock(){const pub=root.querySelector('.pub.ishome');if(!pub)return;const pr=pub.getBoundingClientRect(),img=pub.querySelector('.hbg');
@@ -2323,7 +2323,7 @@ function mountPublic(root,data,opts){
     if(c.text)L.push(`<li class="ctx">${nlb(c.text)}</li>`);
     return `<section class="contact"><h2>contact</h2><b class="cn">${esc(c.name||info.name||'Espace jeunes')}</b>${L.length?`<ul>${L.join('')}</ul>`:'<p class="ctx">Coordonnées à compléter dans les paramètres.</p>'}</section>`}
   function homeHTML(info){
-    return `<main class="home"><div class="hgrid">${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>[k,((info.homeTiles||{})[k]||'').trim()||l]).map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${kico(k,info)}<span class="ktx">${esc(l)}</span></button>`:`<div class="ht off" aria-disabled="true">${kico(k,info)}<span class="ktx">${esc(l)}</span><small class="ktx">bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
+    return `<main class="home"><div class="hgrid">${[['horaires','tes envies'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>{const v=((info.homeTiles||{})[k]||'').trim();return [k,(k==='horaires'&&/^les horaires$/i.test(v))?(v===v.toUpperCase()?l.toUpperCase():l):v||l]}).map(([k,l])=>k==='programme'?`<button class="ht on" data-go="prog">${kico(k,info)}<span class="ktx">${esc(l)}</span></button>`:`<div class="ht off" aria-disabled="true">${kico(k,info)}<span class="ktx">${esc(l)}</span><small class="ktx">bientôt</small></div>`).join('')}</div>${contactHTML(info)}</main>`}
   function logoHTML(info){
     if(info.logo&&!opts.noAssets)return `<span class="logo img"><img src="${window.EJ_ASSET_BASE||'/_blob/'}${esc(info.logo)}" alt=""></span>`;
     const ini=(info.name||'Espace jeunes').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -3287,7 +3287,7 @@ const app=document.getElementById('app');
 const uid=()=>Math.random().toString(36).slice(2,10);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const TODAY=iso(new Date());
-const APP_VERSION='v261128.6';
+const APP_VERSION='v261128.7';
 window.EJ_VERSION=APP_VERSION;
 
 const S={db:null,user:null,canEdit:false,assets:null,downloads:null,
@@ -4359,7 +4359,7 @@ function renderSettings(main){
       <div class="row" style="align-items:center;gap:10px"><span class="logo-prev">${st.info.homeBg?`<img src="${esc((window.EJ_ASSET_BASE||'/_blob/')+st.info.homeBg)}" alt="" style="object-fit:cover">`:'—'}</span>
         ${S.assets?`<label class="btn sm"><input type="file" accept="image/*" id="hbgup" hidden>${st.info.homeBg?'Changer':'Envoyer une photo'}</label>`:''}${st.info.homeBg?'<button class="btn sm ghost warn" id="hbgdel">Retirer</button>':''}</div>
       ${st.info.homeBg?`<label class="fld"><span>Visibilité de la photo : <b id="hbgv">${st.info.homeBgOp==null?25:st.info.homeBgOp} %</b></span><input type="range" id="hbgop" min="5" max="100" step="5" value="${st.info.homeBgOp==null?25:st.info.homeBgOp}"></label>`:''}
-      <h4 class="tsh">Intitulés des 4 boutons</h4>${[['horaires','les horaires'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>`<label class="fld"><span>Bouton « ${l} »</span><input class="in" data-tile="${k}" value="${esc((st.info.homeTiles||{})[k]||'')}" placeholder="${esc(l)}"></label>`).join('')}<h4 class="tsh">Boutons de menu</h4>
+      <h4 class="tsh">Intitulés des 4 boutons</h4>${[['horaires','tes envies'],['programme','le programme'],['informations','les informations'],['inscription','l\'inscription']].map(([k,l])=>`<label class="fld"><span>Bouton « ${l} »</span><input class="in" data-tile="${k}" value="${esc((st.info.homeTiles||{})[k]||'')}" placeholder="${esc(l)}"></label>`).join('')}<h4 class="tsh">Boutons de menu</h4>
       <label class="fld"><span>Intensité de la couleur : <b id="tiv">${st.info.tileInt==null?100:st.info.tileInt} %</b></span><input type="range" id="tint" min="0" max="100" step="5" value="${st.info.tileInt==null?100:st.info.tileInt}"></label>
       <label class="fld"><span>Opacité des carrés : <b id="tov">${st.info.tileOp==null?48:st.info.tileOp} %</b> (plus bas = plus transparent)</span><input type="range" id="top" min="5" max="100" step="5" value="${st.info.tileOp==null?48:st.info.tileOp}"></label>
  <label class="fld"><span>Flou derrière les carrés : <b id="tblv">${st.info.tileBlur==null?1.5:st.info.tileBlur} px</b></span><input type="range" id="tblur" min="0" max="12" step="0.5" value="${st.info.tileBlur==null?1.5:st.info.tileBlur}"></label>
